@@ -109,7 +109,8 @@ var routeExp = function(io) {
             })
         })
     })
-    router.post('/sendMsg', authbit, function(req, res, next) {
+    //msg stuff
+    router.post('/sendMsg', authbit, (req, res, next)=>{
         //user sends message to another user
         console.log('SEND MSG', req.body)
         mongoose.model('User').findOne({ 'user': req.body.to }, function(err, usr) {
@@ -130,6 +131,44 @@ var routeExp = function(io) {
             }
         });
     });
+    router.get('/delMsg', authbit, (req, res, next)=>{
+        //user deletes an old message by user and id.
+        mongoose.model('User').findOne({ 'user': req.session.user.user }, function(err, usr) {
+            if (!usr || err) {
+                res.send('err');
+            } else {
+                for (var i = 0; i < usr.msgs.length; i++) {
+                    if (usr.msgs[i]._id == req.query.id) {
+                        usr.msgs.splice(i, 1);
+                        break;
+                    }
+                }
+                usr.save(function(err, usr) {
+                    req.session.user = usr;
+                    res.send(usr);
+                })
+            }
+        })
+    });
+    router.post('/repMsg',authbit,(req,res,next)=>{
+        //sends a message to all users flagged as 'mods' with message body, to, from
+        mongoose.model('User').find({mod:true},(err,mods)=>{
+            mods.forEach(mod=>{
+                mod.msgs.push({
+                    from:req.session.user.user,
+                    msg:`<h3>Reported Message</h3>
+                    <br>Date:${new Date(req.body.date).toLocaleString()}
+                    <br>From:${req.body.from}
+                    <br>To:${req.session.user.user}
+                    <br>Message:${req.body.msg}`,
+                    date: Date.now()
+                });
+                mod.save();
+            })
+            res.send('done');
+        })
+    })
+    //end of msgs
     router.get('/confirm', authbit, isMod, (req, res, next) => {
         if (!req.query.user) {
             res.status(400).send('err')
@@ -150,25 +189,6 @@ var routeExp = function(io) {
             }
         })
     })
-    router.get('/delMsg', authbit, function(req, res, next) {
-        //user deletes an old message by user and id.
-        mongoose.model('User').findOne({ 'user': req.session.user.user }, function(err, usr) {
-            if (!usr || err) {
-                res.send('err');
-            } else {
-                for (var i = 0; i < usr.msgs.length; i++) {
-                    if (usr.msgs[i]._id == req.query.id) {
-                        usr.msgs.splice(i, 1);
-                        break;
-                    }
-                }
-                usr.save(function(err, usr) {
-                    req.session.user = usr;
-                    res.send(usr);
-                })
-            }
-        })
-    });
     router.get('/usrData', function(req, res, next) {
         mongoose.model('User').findOne({ 'user': req.query.name }, function(err, usr) {
             console.log('found:', usr)
