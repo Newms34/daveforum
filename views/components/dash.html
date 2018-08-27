@@ -1,0 +1,124 @@
+<div ng-controller='dash-cont'>
+    <!--     ITEMS ON DASHBOARD: admin panel table (list of users, with buttons to ban/unban and make admin. NO button to 'unadmin'). list of chars on this acct msg center -->
+    <div class='columns is-multiline is-8 has-text-white'>
+        <h3 class='column is-size-4 is-full'>{{user.user}}</h3>
+        <div class="column is-half panel dash-panel">
+            <div class="panel-heading has-text-white has-background-grey-darker">
+                Characters
+            </div>
+            <div class="panel-block has-text-white">
+                <table class='table is-fullwidth has-background-grey-darker has-text-white'>
+                    <thead>
+                        <th>Character Name</th>
+                        <th>Profession</th>
+                        <th>Race</th>
+                        <th>Level</th>
+                        <th>Notes</th>
+                        <th>&nbsp;</th>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat='chr in user.chars'>
+                            <td>
+                                {{chr.name}}
+                            </td>
+                            <td>
+                                {{chr.elite||chr.prof}}
+                            </td>
+                            <td>{{chr.race}}</td>
+                            <td>{{chr.lvl}}</td>
+                            <td>{{chr.other}}</td>
+                            <td>
+                                <button class="button is-small is-link" title='Edit' ng-click='editChar(chr)'><i class='fa fa-pencil'></i></button>&nbsp;
+                                <button class="button is-small is-danger" title='Remove' ng-click='delChr(chr)'><i class='fa fa-times'></i></button>
+                            </td>
+                        </tr>
+                        <tr ng-if='!user.chars.length'>
+                            <td colspan='6'>
+                                You haven't added any characters! Go ahead and add some below!
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan='6'>
+                                <button class="button is-fullwidth is-light" ng-click='addChar()'><i class='fa fa-plus'></i>&nbsp;Add Characters</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="column is-half panel dash-panel">
+            <div class="panel-heading has-text-white has-background-grey-darker">
+                Admin
+            </div>
+            <div class="panel-block has-text-white">
+                <table class="table is-fullwidth has-background-grey-darker has-text-white">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Send Message</th>
+                            <th>Mod</th>
+                            <th>Ban Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat='u in allUsers' ng-if='u.user!=user.user'>
+                            <!--  ng-if='u.user!=user.user' -->
+                            <td>{{u.user}}</td>
+                            <td>
+                                <button class="button is-info" title='Send a message to this user' ng-click='mail(u)'><i class="fa fa-envelope-o"></i></button>
+                            </td>
+                            <td>
+                                <button ng-if='user.mod' class="button is-success" ng-disabled='u.mod' title='{{u.mod?"This user is already a moderator":"Make this user a moderator"}}' ng-click='makeMod(u)'>Make Moderator</button>
+                                <i class='fa fa-square-o' ng-if='!user.mod && !u.mod'></i><i class='fa fa-check-square-o' ng-if='!user.mod && u.mod'></i>
+                            </td>
+                            <td>
+                                <button ng-if='user.mod' class="button is-danger" ng-disabled='u.mod' title='{{u.mod?"Cannot ban/unban a moderator!":"Ban/Unban this user"}}' ng-click='toggleBan(u)'><i class='fa fa-square-o' ng-if='!u.isBanned'></i><i class='fa fa-check-square-o' ng-if='u.isBanned'></i></button>
+                                <i class='fa fa-square-o' ng-if='!user.mod && !u.isBanned'></i><i class='fa fa-check-square-o' ng-if='!user.mod && u.isBanned'></i>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <hr>
+        <div class="column is-full panel dash-panel">
+            <div class="panel-heading has-text-white has-background-grey-darker">
+                Inbox
+            </div>
+            <div class="panel-block has-text-white columns">
+                <div class="column is-one-fifth"></div>
+                <div class="column is-three-fifths">
+                    
+               <table class="is-fullwidth table has-text-white has-background-grey-darker">
+                   <thead>
+                       <tr>
+                           <th>From</th>
+                           <th>Date</th>
+                           <th>Actions</th>
+                       </tr>
+                   </thead>
+                   <tbody>
+                       <tr ng-repeat='msg in user.msgs'>
+                           <td>
+                               {{msg.from}}
+                           </td>
+                           <td>
+                               {{msg.date|numToDate}}
+                           </td>
+                           <td>
+                               <button class="button is-small is-info" title='View Message' ng-click='viewMsg(msg)'>
+                                   <i class="fa fa-eye"></i>
+                               </button>&nbsp;<button class="button is-small is-default" title='Delete Message' ng-click='delMsg(msg)'>
+                                   <i class="fa fa-trash"></i>
+                               </button>&nbsp;<button class="button is-small is-danger" title='Report Message' ng-click='repMsg(msg)'>
+                                   <i class="fa fa-exclamation"></i>
+                               </button>
+                           </td>
+                       </tr>
+                   </tbody>
+               </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Brethren [PAIN] Guild</title>
+    <link rel="icon" href="/img/icon.png">
+    <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+</head>
+
+<body ng-app='reset-app' ng-controller='reset-contr'>
+    <div class='container'>
+        <div class='col-md-8 col-md-offset-2 panel panel-danger'>
+            <div class='panel-heading'>
+                <h3>Reset Password</h3></div>
+            <div class='panel-body'>
+            <form>
+                <div class='col-md-8 col-md-offset-2 panel panel-danger panel-body'>&nbsp;Account: {{user.name}}</div>
+                <div class='row'>
+                    <div class='input-group col-md-8 col-md-offset-2'>
+                        <span class='input-group-addon'>Enter Password</span>
+                        <input type="password" placeholder='Enter a password' ng-model='pwd' class='form-control' required>
+                    </div>
+                </div>
+                <br>
+                <div class='row'>
+                    <div class='input-group col-md-8 col-md-offset-2'>
+                        <span class='input-group-addon'>Repeat Password</span>
+                        <input type="password" placeholder='Enter password again, just to make sure!' ng-model='pwdDup' class='form-control' required>
+                    </div>
+                    <div class='alert alert-danger col-md-8 col-md-offset-2' ng-if='pwd && pwdDup && pwd!=pwdDup'>Error: Your passwords don't match!</div>
+                </div>
+                <br>
+                <button class='btn btn-danger col-md-2 col-md-offset-5' ng-click='doReset()'>
+                	Reset
+                </button>
+            </form>
+            </div>
+        </div>
+    </div>
+    <script src="/js/all.min.js"></script>
+</body>
+
+</html>

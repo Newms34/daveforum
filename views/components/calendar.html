@@ -1,0 +1,26 @@
+<div ng-controller='cal-cont' >
+    <table class='table is-bordered calendar'>
+        <thead>
+            <tr class='is-info'>
+            	<th>Week</th>
+            	<th ng-repeat='d in offsetDays'>{{d}}</th>
+            </tr>
+        </thead>
+        <tbody>
+        	<tr ng-repeat='wk in cal'>
+        		<td>{{wk.wkSt.dyMo()}} - {{wk.wkEn.dyMo()}}</td>
+        		<td ng-repeat='dy in wk.days'>
+        			<button class="button is-primary is-pulled-right is-tiny" title='Add event' ng-click='addEvent(wk,dy)'>+</button>
+        			<div class='is-size-7'>
+        				{{dy.date.toDateString()}}
+        			</div>
+        			<div ng-repeat='ev in dy.evts' class='is-fullwidth has-background-grey-lighter' style='padding:5px;'>{{ev.title}}&nbsp;
+        				<button class="button flex is-danger is-tiny is-pulled-right" title='Delete this event' ng-click='delEvent(ev)'><i class='fa fa-times'></i></button>
+        				<button class="button flex is-link is-tiny is-pulled-right" title='Edit this event' ng-click='editEvent(ev)'><i class='fa fa-pencil'></i></button>
+        				<button class="button flex is-info is-tiny is-pulled-right" title='View this event' ng-click='viewEvent(ev)'><i class='fa fa-eye'></i></button>
+        			</div>
+        		</td>
+        	</tr>
+        </tbody>
+    </table>
+</div>

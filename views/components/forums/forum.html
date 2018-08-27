@@ -1,0 +1,32 @@
+<div ng-controller='forum-cont' class='columns'>
+	<div class="column is-one-fifth"></div>
+	<div class="column is-three-fifths panel">
+		<div class="panel-heading has-text-white has-background-grey-darker">
+			Forums
+		</div>
+		<div class='panel-block has-text-white has-background-grey-dark'>
+			<table class='table striped has-background-grey is-fullwidth has-text-white'>
+				<thead>
+					<tr>
+						<th>
+							Threads
+						</th>
+						<th>
+							Category
+						</th>
+						<th>
+							Last Post 
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat ='c in forObj track by $index' class='pokey thrd-inst' ng-click='goCat(c.name)'>
+						<td>{{c.count}}</td>
+						<td>{{c.name.titleCase()}}</td>
+						<td>{{c.time.toLocaleString()||'N/A'}}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

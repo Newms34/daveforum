@@ -1,0 +1,193 @@
+// @import '../../bower_components/font-awesome/css/font-awesome.css';
+// @import "../../bower_components/components-font-awesome/scss/font-awesome.scss";
+@import './components/bulma';
+@import './components/chat';
+html,
+body {
+    width: 100%;
+    margin: 0;
+    height: 100%; // padding-top: 40px;
+    background: #000;
+    background-attachment: fixed;
+}
+
+#main-box {
+    padding-top: 60px;
+    height: 140vh;
+    color: #fff;
+    background: #000;
+    background-attachment: fixed;
+}
+
+.calendar {
+    width: 90%;
+    position: relative;
+    left: 5%;
+    tbody {
+        tr {
+            &:nth-child(even) {
+                background: #eef;
+            }
+            &:nth-child(odd) {
+                background: #ddf;
+            }
+            td {
+                height: 95px;
+                &:first-child {
+                    background: #bbf;
+                }
+                &:not(:first-child) {
+                    //reserved in case i need
+                }
+            }
+        }
+    }
+}
+
+.is-tiny {
+    border-radius: 2px;
+    font-size: 0.5rem;
+}
+
+.is-fullwidth {
+    width: 100%!important;
+}
+
+.click-cell {
+    transition-duration: .2s;
+    background: hsl(0, 0%, 51%);
+    cursor: pointer;
+    &:hover {
+        background: hsl(0, 0%, 71%);
+    }
+}
+
+.no-blue-link {
+    color: #fff!important;
+    transition-duration: .2s;
+    &:hover {
+        font-weight: 500;
+    }
+}
+
+.forum-post {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    min-height: 100px;
+    width: 100%;
+    border: 1px solid #fff;
+    border-radius: 3px;
+    color: #fff!important;
+    & h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    b,
+    em,
+    strong {
+        color: #fff;
+    }
+    & blockquote {
+        background: #333;
+    }
+    & .prof-pic {
+        width: 100px;
+        height: 100px;
+    }
+    & .post-text {
+        height: 90%;
+    }
+    & .post-buttons {
+        border-top: 1px solid #333;
+        height: 10%;
+        & button,
+        .vote-box {
+            margin: 3px;
+            &.good-vote {
+                color: #afa;
+            }
+            &.bad-vote {
+                color: #fcc;
+            }
+        }
+    }
+}
+
+.new-post-bx {
+    padding: 5px;
+    text-align: center;
+    background: #555;
+    & .button {
+        width: 30%;
+        margin-top: 5px;
+    }
+}
+
+.pokey {
+    cursor: pointer;
+}
+
+.thrd-inst {
+    transition-duration: .2s;
+    background: #222;
+    &:hover {
+        background: #444;
+    }
+}
+
+.dash-panel {
+    min-height: 50vh;
+    .panel-block {
+        height: 100%;
+    }
+}
+
+.panel-block {
+    display: block;
+}
+
+.has-text-white,
+.has-text-white th {
+    color: #fff!important;
+}
+
+.char-opt {
+    display:inline-block;
+    border-radius:30%;
+    & > div{
+        width:60px;
+        height:60px;
+        background-size:contain;
+        cursor:pointer;
+        transition-duration:.2s;
+        filter:saturate(0);
+        border-radius:30%;
+        &:hover{
+            filter:'none';
+            box-shadow:3px 3px 6px #333;
+        }
+    }
+    & > input {
+        visibility: hidden;
+    }
+    & > input:checked + div{
+        filter:'none';
+        box-shadow:3px 3px 6px #333;
+    }
+}
+
+$profs: Warrior Guardian Revenant Thief Engineer Ranger Mesmer Necromancer Elementalist;
+@each $prof in $profs {
+    .opt-#{$prof}>div {
+        background-image:url('../img/profs/#{$prof}.png');
+    }
+}
+
+$races: Asura Charr Human Norn Sylvari;
+@each $race in $races {
+    .opt-#{$race}>div {
+        background-image:url('../img/races/#{$race}.png');
+    }
+}

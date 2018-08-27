@@ -1,0 +1,37 @@
+<div ng-controller='forum-thr-cont'>
+    <div class="panel container">
+        <div class="panel-heading has-background-grey-darker has-text-white"><a href="#" ui-sref='app.forum' class='no-blue-link'>Forums</a>:&nbsp;<a href="#" ui-sref='app.forumCat({c:currCat})' class='no-blue-link'>{{currCat}}</a>:&nbsp;{{thr.title}}</div>
+        <div class="panel-block has-text-white" style='display:block; width:100%;'>
+            <div class="content forum-post is-fullwidth columns" ng-repeat='pst in thr.posts'>
+                <div class='column is-one-fifth has-background-grey-darker'>
+                    <img src="{{pst.pic||defaultPic}}" class='prof-pic'>
+                    <br> {{pst.user}}
+                    <div ng-if='user.mod' class='has-text-danger'>
+                        Moderator
+                    </div>
+                    <div>
+                        {{pst.date}}
+                    </div>
+                </div>
+                <div class="column is-four-fifths">
+                    <div ng-bind-html="pst.text" class='post-text'>
+                    </div>
+                    <div class='post-buttons'>
+                        <button class="button is-light is-small" title='Reply to this post' ng-click='quoteMe(pst);'><i class='fa fa-reply'></i></button>
+                        <button class="button is-light is-small" title='Report this post'><i class='fa fa-exclamation'></i></button>
+
+                        <button class="button is-pulled-right is-light is-small" title='Vote down' ng-click='vote(pst,false);' ng-class='{"is-danger":pst.votesDown.indexOf(user.user)>-1}'><i class='fa fa-thumbs-down'></i></button>
+                        <button class="button is-pulled-right is-light is-small" title='Vote up' ng-click='vote(pst,true);' ng-class='{"is-success":pst.votesUp.indexOf(user.user)>-1}'><i class='fa fa-thumbs-up'></i></button>
+                        <div class='is-pulled-right vote-box' ng-class='{"good-vote":(pst.votesUp.length-pst.votesDown.length>=1),"bad-vote":(pst.votesUp.length-pst.votesDown.length)<1}'><span ng-if='pst.votesUp.length-pst.votesDown.length>0'>+</span>{{pst.votesUp.length-pst.votesDown.length}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-footer">
+            <div class='new-post-bx'>
+                <textarea class='textarea is-fullwidth' id='postTxt'></textarea>
+                <button class="button is-dark" ng-click='newPost()'><i class='fa fa-plus'></i>&nbsp;Post</button>
+            </div>
+        </div>
+    </div>
+</div>
