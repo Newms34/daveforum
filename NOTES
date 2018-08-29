@@ -25,4 +25,8 @@ try voip?
 PROBLY need to fix adding post to existing thred
 Confirm OTHER INFO stuff connects and is saved and displays
 
+cron-ish job to purge old, non-confirmed users?
+
 mod ability to confirm user (btn that ng-if's if user is not yet confirmed)
+
+'No events!' msg if no upcoming events on dashboard tab

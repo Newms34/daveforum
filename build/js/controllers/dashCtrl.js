@@ -227,6 +227,22 @@ app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
                         })
                 }, `<button class='button is-info' onclick='bulmabox.runCb(bulmabox.params.cb)'>Save</button><button class='button is-danger' onclick='bulmabox.kill("bulmabox-diag")'>Cancel</button>`)
         }
+        $scope.autoChars = ()=>{
+            //B9DE7B9E-9DAD-2C40-BECD-12F9BA931FE0851EA3EB-B1AA-4FBB-B4BE-CCDD28F51644
+            bulmabox.prompt('Auto-Fill Characters from API',`Auto-filling characters from the Guild Wars 2 Official API will replace any existing characters you've entered with API-found characters. <br><br> - You'll need an API key to do this (click <a href='https://account.arena.net/' target='_blank'>here</a> if you dont have one). <br><br>Are you wish to do this?`,function(resp){
+                if(resp && resp!=null){
+                    $http.get('/user/charsFromAPI?api='+resp)
+                        .then(r=>{
+                            console.log('Auto-char response is',r)
+                            if(r && r.data && r.data!='err'){
+                                $scope.doUser(r.data)
+                            }else{
+                                bulmabox.alert('Error Auto-Filling','There was an error auto-filling your characters.<br>While it <i>may</i> be Dave\'s fault, you may also wanna check that your API key is valid. You can also always just manually add your characters!')
+                            }
+                        })
+                }
+            })
+        }
         $scope.delChr = (chr) => {
             console.log('user wishes to remove character', chr)
             bulmabox.confirm('Remove Character', `Are you sure you wish to remove the character ${chr.name}?`, function(resp) {

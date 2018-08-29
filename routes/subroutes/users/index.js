@@ -5,6 +5,7 @@ var router = express.Router(),
     async = require('async'),
     mongoose = require('mongoose'),
     session = require('express-session'),
+    axios = require('axios'),
     sendpie = require('sendmail')({
         logger: {
             debug: console.log,
@@ -88,6 +89,47 @@ var routeExp = function(io) {
                 res.send(usrsv);
             })
         })
+    })
+    router.get('/charsFromAPI',authbit,(req,res,next)=>{
+        if(!req.query.api){
+            res.send('err');
+        }else{
+            // axios.get('https://api.guildwars2.com/v2/characters?access_token='+req.query.api,(e,r,b)=>{
+            //     // res.send(b)
+            //     console.log(b);
+            //     const charProms = Array.from(b).map(ch=>axios.get(`https://api.guildwars2.com/v2/characters/${ch}?access_token=${req.query.api}`))
+            //     Promise.all(charProms).then(r=>{
+            //         res.send(r);
+            //     })
+            // })
+            axios.get(`https://api.guildwars2.com/v2/characters?access_token=${req.query.api}`)
+                .then(r=>{
+                    const charProms = Array.from(r.data).map(ch=>axios.get(`https://api.guildwars2.com/v2/characters/${ch}?access_token=${req.query.api}`));
+                    console.log(r.data,typeof r.data,charProms)
+                    axios.get(`https://api.guildwars2.com/v2/characters/${r.data[0]}?access_token=${req.query.api}`)
+                        .then(roc=>{
+                            console.log('FIRST CHAR',roc)
+                        })
+                    axios.all(charProms).then(rc=>{
+                        console.log('hi')
+                        const allChars = rc.map(rcc=>{
+                            return {
+                                name:rcc.data.name,
+                                prof:rcc.data.profession,
+                                race:rcc.data.race,
+                                lvl:rcc.data.level
+                            }
+                        });
+                        mongoose.model('User').findOneAndUpdate({user:req.session.user.user},{chars:allChars},(errsv,respsv)=>{
+                            res.send(respsv)
+                        })
+                        // res.send(allChars);
+                    })
+                })
+                .catch(e=>{
+                    res.send('err');
+                })
+        }
     })
     //character stuff (add, edit, delete)
     router.post('/addChar', authbit, (req, res, next) => {
@@ -305,8 +347,8 @@ var routeExp = function(io) {
                 res.send(false);
             } else {
                 usr.authenticate(req.body.pass, function(err, resp) {
+                        console.log('LOGIN RESPONSE', resp,'ERR',err)
                     if (resp) {
-                        console.log('LOGIN RESPONSE', resp)
                         req.session.user = resp;
                         delete req.session.user.pass;
                         delete req.session.user.salt;
