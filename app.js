@@ -32,9 +32,9 @@ app.use('/', routes);
 // var server = http.Server(app);
 // var io = require('socket.io')(server);
 var names = [];
-io.use(function(socket, next) {
-    sesh(socket.request, socket.request.res, next);
-});
+// io.use(function(socket, next) {
+//     sesh(socket.request, socket.request.res, next);
+// });
 io.on('connection', function(socket) {
     // socket.on('chatMsg', function(chatObj) {
     //     //first, if we dont have this name already, reg it
@@ -45,18 +45,23 @@ io.on('connection', function(socket) {
         
     //     io.sockets.in(chatObj.grp).emit('chatOut', chatObj);
     // });
-    socket.on('joinRooms', function(roomObj) {
-        //NEEDS SECURITY! or at least verification that user is who they say they are
-        var actualUsr = socket.request.session.user.name
-        console.log('USR CHECK:',actualUsr,':',roomObj.user)
-        if(!actualUsr|| actualUsr!=roomObj.user){
-            //no response, since this user failed auth.
-            return false;
-        }
-        //assign a newly-logged-in user to correct rooms.
-        roomObj.rooms.forEach(function(r) {
-            socket.join(r);
-        })
+    // socket.on('joinRooms', function(roomObj) {
+    //     //NEEDS SECURITY! or at least verification that user is who they say they are
+    //     var actualUsr = socket.request.session.user.name
+    //     console.log('USR CHECK:',actualUsr,':',roomObj.user)
+    //     if(!actualUsr|| actualUsr!=roomObj.user){
+    //         //no response, since this user failed auth.
+    //         return false;
+    //     }
+    //     //assign a newly-logged-in user to correct rooms.
+    //     roomObj.rooms.forEach(function(r) {
+    //         socket.join(r);
+    //     })
+    // })
+    socket.on('chatMsg',function(msgObj){
+        console.log('chat message sent! Obj was',msgObj)
+        msgObj.time=Date.now();
+        io.emit('msgOut',msgObj)
     })
 });
 server.listen(process.env.PORT || 8080);

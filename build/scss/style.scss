@@ -219,3 +219,8 @@ $races: Asura Charr Human Norn Sylvari;
     max-height:80px;
     width:auto;
 }
+#chat-container{
+    height:80%;
+    overflow-y: scroll;
+    background:rgba(0,0,0,.5)
+}

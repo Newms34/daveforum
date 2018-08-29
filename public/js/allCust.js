@@ -25,6 +25,10 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', functio
                 url: '/', //default route, if not 404
                 templateUrl: 'components/dash.html'
             })
+            .state('app.chat', {
+                url: '/chat', //default route, if not 404
+                templateUrl: 'components/chat.html'
+            })
             .state('app.calendar', {
                 url: '/calendar',
                 templateUrl: 'components/calendar.html'
@@ -465,6 +469,43 @@ app.controller('cal-cont', function($scope, $http, userFact) {
 
     }
 })
+app.controller('chat-cont', function($scope, $http, $state, userFact, $filter) {
+        $http.get('/user/getUsr')
+            .then(r => {
+                $scope.doUser(r.data);
+                console.log('user', $scope.user)
+            });
+        $scope.msgs=[];
+        $scope.doUser = (u) => {
+            if (!u) {
+                return false;
+            }
+            $scope.user = u;
+        }
+        $http.get('/user/allUsrs')
+            .then((au) => {
+                //Auch!
+                console.log('all users is', au)
+                $scope.allUsers = au.data;
+            });
+        socket.on('msgOut',function(msg){
+        	$scope.msgs.push(msg);
+        	if($scope.msgs.length>100){
+        		$scope.msgs.shift();
+        	}
+        	$scope.$apply()
+        	//scroll to bottom of chat window? HAO DU
+        	document.querySelector('#chat-container').scrollTop = document.querySelector('#chat-container').scrollHeight
+        })
+        $scope.sendChat = ()=>{
+        	if(!$scope.newMsg){
+        		return false;
+        	}
+        	socket.emit('chatMsg',{user:$scope.user.user,msg:$scope.newMsg})
+        	$scope.newMsg = '';
+        }
+    })
+
 app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
         $scope.showDups = localStorage.brethDups; //show this user in 'members' list (for testing)
         $http.get('/user/getUsr')
@@ -1086,7 +1127,9 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                 if (!r.data) {
                     bulmabox.alert('Incorrect Login', 'Either your username or password (or both!) are incorrect');
                 } else {
-                    delete r.data.msgs;
+                    // delete r.data.msgs;
+                    // console.log(io)
+                    socket.emit('chatMsg',{msg:`${$scope.user} logged in!`})
                     localStorage.brethUsr = JSON.stringify(r.data);
                     $state.go('app.dash')
                 }

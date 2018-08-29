@@ -26,7 +26,9 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                 if (!r.data) {
                     bulmabox.alert('Incorrect Login', 'Either your username or password (or both!) are incorrect');
                 } else {
-                    delete r.data.msgs;
+                    // delete r.data.msgs;
+                    // console.log(io)
+                    socket.emit('chatMsg',{msg:`${$scope.user} logged in!`})
                     localStorage.brethUsr = JSON.stringify(r.data);
                     $state.go('app.dash')
                 }

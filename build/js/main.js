@@ -25,6 +25,10 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', functio
                 url: '/', //default route, if not 404
                 templateUrl: 'components/dash.html'
             })
+            .state('app.chat', {
+                url: '/chat', //default route, if not 404
+                templateUrl: 'components/chat.html'
+            })
             .state('app.calendar', {
                 url: '/calendar',
                 templateUrl: 'components/calendar.html'
