@@ -52,6 +52,13 @@ const routeExp = function(io) {
             }
         })
     })
+    router.get('/latestFive',authbit,(req,res,next)=>{
+        mongoose.model('cal').find({},(err,events)=>{
+            res.send(events.sort((a,b)=>{
+                return b.eventDate-a.eventDatel
+            }).slice(0,5));
+        })
+    })
     return router;
 }
 module.exports = routeExp;

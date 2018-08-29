@@ -53,13 +53,23 @@ app.controller('cal-cont', function($scope, $http, userFact) {
     };
     $scope.editEvent=(ev)=>{
     	console.log('Edit event',ev)
+        let opts = '';
+        let theDate = new Date(ev.eventDate)
+        for (let i=0;i<24;i++){
+            let hr = i<13?i:i-12,
+            ampm = i<12?' am':' pm';
+            if(!hr||hr==0){
+                hr=12;
+            }
+            opts+='<option value ='+i+' '+(theDate.getHours()==i && theDate.getMinutes()==0?'selected':'')+'>'+hr+':00'+ampm+'</options><option value ='+(i+0.5)+' '+(theDate.getHours()==i && theDate.getMinutes()==30?'selected':'')+'>'+hr+':30'+ampm+'</options>'
+        }
     	 bulmabox.custom('Edit Event',
             `<div class="field">
             	<label class='label'>
                 Event Title
                 </label>
                     <p class="control has-icons-left">
-                        <input class="input" type="text" placeholder="A title for your event" id='newTitle'>
+                        <input class="input" type="text" placeholder="A title for your event" id='newTitle' value='${ev.title}'>
                         <span class="icon is-small is-left">
                             <i class="fa fa-puzzle-piece"></i>
                         </span>
@@ -70,7 +80,7 @@ app.controller('cal-cont', function($scope, $http, userFact) {
                Description of Event
                 </label>
                     <p class="control">
-                        <textarea class='textarea' id='newMsg' placeholder='A description for your event (optional)'></textarea>
+                        <textarea class='textarea' id='newMsg' placeholder='A description for your event (optional)'>${ev.text}</textarea>
                     </p>
                 </div>
                 <div class="field">
@@ -79,7 +89,6 @@ app.controller('cal-cont', function($scope, $http, userFact) {
                 </label>
                     <p class="select">
                         <select id='newTime'>
-                        	<option disabled selected>Select a time</option>
                         	${opts}
                         </select>
                     </p>

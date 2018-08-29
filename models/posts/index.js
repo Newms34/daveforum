@@ -7,5 +7,7 @@ var postSchema = new mongoose.Schema({
     createDate:{type:Number,default:Date.now()},
     lastUpd:{type:Number,default:Date.now()},
     thread:String,//ID of parent thread.
+    file:{type:String,default:null},
+    profPic:{type:String,default:null}
 }, { collection: 'post' });
 mongoose.model('post', postSchema);

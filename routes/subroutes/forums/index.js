@@ -4,6 +4,7 @@ const express = require('express'),
     models = require('../../../models/'),
     async = require('async'),
     mongoose = require('mongoose'),
+    multer = require('multer'),
     session = require('express-session'),
     maxMsgLen = 50,
     oid = mongoose.Types.ObjectId,
@@ -26,23 +27,37 @@ const express = require('express'),
                 res.status(403).send('err');
             }
         })
-    };
+    },
+    storage = multer.diskStorage({
+        destination: function(req, file, cb) {
+            cb(null, 'uploads/')
+        },
+        filename: function(req, file, cb) {
+            cb(null, file.originalname);
+        }
+    }),
+    upload = multer({
+        storage: storage
+    });
 
 
 const routeExp = function(io) {
+    router.post('/uploadFile',upload.any(),(req,res,next)=>{
+        res.send(req.files)
+    })
     router.post('/newThread', authbit, (req, res, next) => {
         mongoose.model('thread').find({ title: req.body.title }, function(err, thr) {
             if (thr && thr.length) {
                 res.send('err');
             } else {
                 const newThr = {
-                    user:req.session.user.user,
-                    grp:req.body.grp||'general',
-                    open:req.body.open,
+                    user: req.session.user.user,
+                    grp: req.body.grp || 'general',
+                    open: req.body.open,
                     stickied: req.body.stickied,
-                    createDate:req.body.createDate,
-                    title:req.body.title,
-                    lastUpd:req.body.lastUpd
+                    createDate: req.body.createDate,
+                    title: req.body.title,
+                    lastUpd: req.body.lastUpd
                 }
                 mongoose.model('thread').create(newThr, function(err, thrd) {
                     //now create the first post(this one)
@@ -50,15 +65,16 @@ const routeExp = function(io) {
                     const theCat = req.body.grp && cats.indexOf(req.body.grp) > -1 ? req.body.grp : 'general';
                     mongoose.model('post').create({
                         text: req.body.text,
-                        md:req.body.md,
+                        md: req.body.md,
                         user: req.session.user.user,
                         thread: thrd._id,
-                        grp: theCat
+                        grp: theCat,
+                        file:req.body.file
                     }, function(err, thpst) {
                         thrd.posts.push({
                             id: thpst._id,
                             order: 0,
-                            votesUp:[req.session.user.user]
+                            votesUp: [req.session.user.user]
                         })
                         thrd.lastUpd = Date.now();
                         thrd.save();
@@ -69,12 +85,12 @@ const routeExp = function(io) {
         })
     });
     router.get('/thread', authbit, (req, res, next) => {
-        if (!req.query.title) {
+        if (!req.query.id) {
             res.send('err');
             return false;
         }
-        console.log("lookin for thread",req.query.title)
-        mongoose.model('thread').findOne({ title: decodeURIComponent(req.query.title) }, function(err, thrd) {
+        console.log("lookin for thread", req.query.title)
+        mongoose.model('thread').findOne({ _id: req.query.id }, function(err, thrd) {
             if (err || !thrd) {
                 res.send('err');
             } else {
@@ -84,35 +100,35 @@ const routeExp = function(io) {
             }
         })
     })
-    router.post('/vote',authbit,(req,res,next)=>{
+    router.post('/vote', authbit, (req, res, next) => {
         // const voteChange = !!req.body.voteUp?1:-1;
-        mongoose.model('thread').findOne({_id:req.body.thread},(err,thrd)=>{
+        mongoose.model('thread').findOne({ _id: req.body.thread }, (err, thrd) => {
             // console.log('thred',thrd)
-            const thePst = thrd.posts.filter(psf=>psf.id==req.body.post)[0];
+            const thePst = thrd.posts.filter(psf => psf.id == req.body.post)[0];
             //not already voted up
-            if(!!req.body.voteUp && thePst.votesUp.indexOf(req.session.user.user)<0){
+            if (!!req.body.voteUp && thePst.votesUp.indexOf(req.session.user.user) < 0) {
                 thePst.votesUp.push(req.session.user.user);
-            }else if(!!req.body.voteUp){
+            } else if (!!req.body.voteUp) {
                 thePst.votesUp.removeOne(req.session.user.user);
             }
 
-            if (!req.body.voteUp && thePst.votesDown.indexOf(req.session.user.user)<0){
+            if (!req.body.voteUp && thePst.votesDown.indexOf(req.session.user.user) < 0) {
                 thePst.votesDown.push(req.session.user.user);
-            }else if(!req.body.voteUp){
+            } else if (!req.body.voteUp) {
                 thePst.votesDown.removeOne(req.session.user.user);
             }
 
 
 
             //if we're 'switching' votes
-            if(!!req.body.voteUp && thePst.votesDown.indexOf(req.session.user.user)>-1){
-               thePst.votesDown.removeOne(req.session.user.user);
+            if (!!req.body.voteUp && thePst.votesDown.indexOf(req.session.user.user) > -1) {
+                thePst.votesDown.removeOne(req.session.user.user);
             }
 
-            if(!req.body.voteUp && thePst.votesUp.indexOf(req.session.user.user)>-1){
-               thePst.votesUp.removeOne(req.session.user.user);
+            if (!req.body.voteUp && thePst.votesUp.indexOf(req.session.user.user) > -1) {
+                thePst.votesUp.removeOne(req.session.user.user);
             }
-            thrd.save((err,thrdn)=>{
+            thrd.save((err, thrdn) => {
                 res.send(thrd);
             })
         })
@@ -131,14 +147,16 @@ const routeExp = function(io) {
                 res.status(400).send('err');
             } else {
                 mongoose.model('post').create({
-                    text: req.body.text, //actual TEXT of the post (may include html)
+                    text: req.body.text, //html
+                    md:req.body.md,
                     user: req.session.user.user,
+                    file:req.body.file||null,
                     thread: req.body.thread, //ID of parent thread.
                 }, (err, pst) => {
                     thrd.posts.push({
                         id: pst._id,
                         order: thrdLen,
-                        votesUp:[req.session.user.user]
+                        votesUp: [req.session.user.user]
                     })
                     thrd.lastUpd = Date.now();
                     thrd.save((err, resp) => {
@@ -186,7 +204,7 @@ const routeExp = function(io) {
         if (!req.query.grp) {
             res.send('err');
         }
-        console.log('getting posts in cat',req.query.grp)
+        console.log('getting posts in cat', req.query.grp)
         mongoose.model('thread').find({ grp: req.query.grp }, function(err, thrds) {
             if (err) res.send('err')
             res.send(thrds || {});

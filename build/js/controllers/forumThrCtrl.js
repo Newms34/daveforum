@@ -2,16 +2,24 @@ app.controller('forum-thr-cont', function($scope, $http, userFact, $state, $loca
     $scope.currMsg = 0;
     $scope.defaultPic = defaultPic;
     $scope.forObj = {};
+    $scope.fileName = null
     if (!localStorage.brethUsr) {
         $state.go('app.login');
         //since we really cannot do anything here if user is NOT logged in
     }
+    $scope.loadingFile = false;
+    $scope.loadFile=()=>{
+       $scope.loadingFile= true;
+       const fr = new FileReader();
+    }
     $scope.currCat = $location.search().c;
-    $scope.currThrName = $location.search().t;
-    console.log($scope.currCat)
+    $scope.id = $location.search().t;
+    console.log($scope.currCat,)
     $scope.refThred = () => {
-        $http.get('/forum/thread?title=' + $scope.currThrName)
+        console.log('info to back:',$scope.id)
+        $http.get('/forum/thread?id=' + $scope.id)
             .then((r) => {
+                console.log('response',r)
                 $scope.thr = r.data.thrd;
                 r.data.psts.map(ps => {
                     ps.rawText = ps.text;
@@ -43,7 +51,8 @@ app.controller('forum-thr-cont', function($scope, $http, userFact, $state, $loca
         $http.post('/forum/newPost', {
                 thread: $scope.thr._id,
                 text: new showdown.Converter().makeHtml(theText),
-                md:theText
+                md:theText,
+                file:$scope.file||null
             })
             .then((r) => {
                 window.location.reload();

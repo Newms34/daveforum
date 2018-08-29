@@ -47,37 +47,79 @@ var routeExp = function(io) {
         })
     });
 
-    //character stuff (add, edit, delete)
-    router.post('/addChar',authbit,(req,res,next)=>{
+    router.get('/changeInterest',authbit,(req,res,next)=>{
         mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
-            if(!usr.chars.findOne('name',req.body.name)){
+            console.log('INT status',req.query.act,'FOR',parseInt(req.query.int),usr.ints,usr.ints[parseInt(req.query.int)],req.query.act=='true')
+            // usr.ints[parseInt(req.query.int)]= req.query.act=='true'?1:0;
+            if(req.query.act=='true'){
+                usr.ints.set(req.query.int,1)
+            }else{
+                usr.ints.set(req.query.int,0)
+            }
+            console.log('USR NOW',usr,usr.ints)
+            usr.save(function(errsv,usrsv){
+                console.log('USER AFTER SAVE',usrsv,'ERR IS',errsv)
+                res.send(usrsv);
+            })
+        })
+    })
+    router.get('/changeTz',authbit,(req,res,next)=>{
+        mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
+            usr.tz=req.query.tz;
+            console.log('USER TIME ZONE NOW',usr)
+            usr.save((errsv,usrsv)=>{
+                res.send(usrsv)
+            })
+        })
+    })
+    router.post('/changeOther',authbit,(req,res,next)=>{
+        mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
+            usr.otherInfo = req.body.other;
+            usr.save((errsv,usrsv)=>{
+                res.send(usrsv);
+            })
+        })
+    })
+    router.post('/changeAva',authbit,(req,res,next)=>{
+        mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
+            usr.avatar = req.body.img;
+            console.log('USER NOW',req.body,usr)
+            usr.save((errsv,usrsv)=>{
+                res.send(usrsv);
+            })
+        })
+    })
+    //character stuff (add, edit, delete)
+    router.post('/addChar', authbit, (req, res, next) => {
+        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
+            if (!usr.chars.findOne('name', req.body.name)) {
                 usr.chars.push(req.body)
             }
-            usr.save(function(err,ures){
+            usr.save(function(err, ures) {
                 res.send(ures);
             })
         })
     })
-    router.post('/editChar',authbit,(req,res,next)=>{
-        mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
-            const charPos =usr.chars.findOne('name',req.body.name);
-            if(charPos!==false){
-                usr.chars[charPos]= req.body;
+    router.post('/editChar', authbit, (req, res, next) => {
+        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
+            const charPos = usr.chars.findOne('name', req.body.name);
+            if (charPos !== false) {
+                usr.chars[charPos] = req.body;
             }
-            usr.save(function(err,ures){
+            usr.save(function(err, ures) {
                 res.send(ures);
             })
         })
     })
-    router.get('/remChar',authbit,(req,res,next)=>{
-        mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
-            const charPos = usr.chars.findOne('id',req.query.id)
-            console.log('REMOVE CHAR',req.query,usr,charPos)
-            if(!charPos && charPos!==0){
-               res.status(400).send('err');
-            }else{
-                usr.chars.splice(charPos,1);
-                usr.save((err,usd)=>{
+    router.get('/remChar', authbit, (req, res, next) => {
+        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
+            const charPos = usr.chars.findOne('id', req.query.id)
+            console.log('REMOVE CHAR', req.query, usr, charPos)
+            if (!charPos && charPos !== 0) {
+                res.status(400).send('err');
+            } else {
+                usr.chars.splice(charPos, 1);
+                usr.save((err, usd) => {
                     res.send(usd);
                 })
             }
@@ -110,7 +152,7 @@ var routeExp = function(io) {
         })
     })
     //msg stuff
-    router.post('/sendMsg', authbit, (req, res, next)=>{
+    router.post('/sendMsg', authbit, (req, res, next) => {
         //user sends message to another user
         console.log('SEND MSG', req.body)
         mongoose.model('User').findOne({ 'user': req.body.to }, function(err, usr) {
@@ -124,19 +166,20 @@ var routeExp = function(io) {
                     msg: req.body.msg
                 })
                 usr.save(function(err, usr) {
-                    console.log('User updated!', usr,err)
+                    console.log('User updated!', usr, err)
                     io.emit('msgRef', { who: req.body.to }); //send out to trigger refresh
                     res.send('done');
                 });
             }
         });
     });
-    router.get('/delMsg', authbit, (req, res, next)=>{
+    router.get('/delMsg', authbit, (req, res, next) => {
         //user deletes an old message by user and id.
         mongoose.model('User').findOne({ 'user': req.session.user.user }, function(err, usr) {
             if (!usr || err) {
                 res.send('err');
             } else {
+                console.log('USER', usr.user, 'MSGS', usr.msgs, 'QUERY', req.query)
                 for (var i = 0; i < usr.msgs.length; i++) {
                     if (usr.msgs[i]._id == req.query.id) {
                         usr.msgs.splice(i, 1);
@@ -150,22 +193,35 @@ var routeExp = function(io) {
             }
         })
     });
-    router.post('/repMsg',authbit,(req,res,next)=>{
+    router.post('/repMsg', authbit, (req, res, next) => {
         //sends a message to all users flagged as 'mods' with message body, to, from
-        mongoose.model('User').find({mod:true},(err,mods)=>{
-            mods.forEach(mod=>{
-                mod.msgs.push({
-                    from:req.session.user.user,
-                    msg:`<h3>Reported Message</h3>
+        mongoose.model('User').findOne({ user: req.session.user.user }, (erru, usr) => {
+            const theMsg = usr.msgs.filter(m => m._id == req.body._id)[0];
+            if(thsMsg.isRep){
+                res.send('dupRep');
+                return false;
+            }
+            mongoose.model('User').find({ mod: true }, (err, mods) => {
+                //send to each of the mods
+                mods.forEach(mod => {
+                    mod.msgs.push({
+                        from: req.session.user.user,
+                        msg: `<h3>Reported Message</h3>
                     <br>Date:${new Date(req.body.date).toLocaleString()}
                     <br>From:${req.body.from}
                     <br>To:${req.session.user.user}
                     <br>Message:${req.body.msg}`,
-                    date: Date.now()
+                        date: Date.now()
+                    });
+                    mod.save();
+                })
+                //set this msg's report status to true
+                theMsg.isRep = true;
+                console.log('SET ISREP TO TRUE: usr', usr, 'ID', req.body._id, 'MSG', usr.msgs.filter(m => m._id == req.body._id)[0])
+                usr.save((err, usr) => {
+                    res.send(usr);
                 });
-                mod.save();
             })
-            res.send('done');
         })
     })
     //end of msgs
@@ -221,6 +277,7 @@ var routeExp = function(io) {
                     um = mongoose.model('User');
                 delete req.body.pass;
                 console.log(req.body)
+                req.body.ints=[0,0,0,0,0,0];
                 um.register(new um(req.body), pwd, function(err, usr) {
                     console.log(err, usr)
                     if (err) {
@@ -246,7 +303,7 @@ var routeExp = function(io) {
             } else {
                 usr.authenticate(req.body.pass, function(err, resp) {
                     if (resp) {
-                        console.log('LOGIN RESPONSE',resp)
+                        console.log('LOGIN RESPONSE', resp)
                         req.session.user = resp;
                         delete req.session.user.pass;
                         delete req.session.user.salt;

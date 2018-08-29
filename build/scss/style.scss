@@ -26,15 +26,15 @@ body {
     tbody {
         tr {
             &:nth-child(even) {
-                background: #eef;
+                background: #eee;
             }
             &:nth-child(odd) {
-                background: #ddf;
+                background: #ddd;
             }
             td {
                 height: 95px;
                 &:first-child {
-                    background: #bbf;
+                    background: #bbb;
                 }
                 &:not(:first-child) {
                     //reserved in case i need
@@ -97,11 +97,12 @@ body {
         height: 100px;
     }
     & .post-text {
-        height: 90%;
+        // height: 90%;
     }
     & .post-buttons {
         border-top: 1px solid #333;
         height: 10%;
+        min-height:50px;
         & button,
         .vote-box {
             margin: 3px;
@@ -190,4 +191,28 @@ $races: Asura Charr Human Norn Sylvari;
     .opt-#{$race}>div {
         background-image:url('../img/races/#{$race}.png');
     }
+}
+.is-grey-md{
+    background:hsl(0, 0%, 50%);
+}
+.char-stat-img{
+    height:20px;
+    width:auto;
+}
+.checkbox{
+    display:block;
+    transition-duration:.2s;
+    &:hover{
+        background:#eee!important;
+    }
+}
+.chr-list{
+    border-radius:3px;
+    border: 1px solid #999;
+    padding:2px;
+    text-align:center;
+}
+.usr-list-pic{
+    max-height:80px;
+    width:auto;
 }
