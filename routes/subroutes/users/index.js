@@ -226,13 +226,16 @@ var routeExp = function(io) {
     })
     //end of msgs
     router.get('/confirm', authbit, isMod, (req, res, next) => {
-        if (!req.query.user) {
+        if (!req.query.u) {
             res.status(400).send('err')
         }
-        mongoose.model('User').findOneAndUpdate({ 'user': req.query.user }, { confirmed: true }, function(err, usr) {
+        mongoose.model('User').findOneAndUpdate({ 'user': req.query.u }, { confirmed: true }, function(err, usr) {
             if (err) {
                 res.send(err);
             }
+            mongoose.model('User').find({},(erra,usra)=>{
+                res.send(usra);
+            })
         })
     })
     router.get('/makeMod', authbit, isMod, (req, res, next) => {

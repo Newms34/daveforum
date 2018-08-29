@@ -159,7 +159,6 @@
                             <tr ng-if='!usr.msgs.length'>
                                 <td colspan='3'>
                                     <i>
-                                        
                                     You have no messages right now!
                                     </i>
                                 </td>
@@ -179,6 +178,7 @@
                 <span>{{ev.title}}</span>
                 <span>{{ev.createDate|numToDate}}</span>
             </div>
+            <div class="is-fullwidth" ng-if='!latestEvents.length'>No current events!</div>
         </div>
     </div>
     <div class="panel dash-panel" ng-show='currTab=="Members"'>
@@ -216,9 +216,12 @@
                         </td>
                         <td>
                             <button ng-if='user.mod' class="button is-success" ng-disabled='u.mod' title='{{u.mod?"This user is already a moderator":"Make this user a moderator"}}' ng-click='makeMod(u)'>Make Moderator</button>
+                            <button ng-if='user.mod' class="button is-danger" ng-disabled='u.mod' title='{{u.mod?"Cannot ban/unban a moderator!":"Ban/Unban this user"}}' ng-click='toggleBan(u)'>{{u.isBanned?'Unban':'Ban'}}</button>
                             <i class='fa fa-square-o' ng-if='!user.mod && !u.mod'></i><i class='fa fa-check-square-o' ng-if='!user.mod && u.mod'></i>
-                            <button ng-if='user.mod' class="button is-danger" ng-disabled='u.mod' title='{{u.mod?"Cannot ban/unban a moderator!":"Ban/Unban this user"}}' ng-click='toggleBan(u)'><i class='fa fa-square-o' ng-if='!u.isBanned'></i><i class='fa fa-check-square-o' ng-if='u.isBanned'></i></button>
                             <i class='fa fa-square-o' ng-if='!user.mod && !u.isBanned'></i><i class='fa fa-check-square-o' ng-if='!user.mod && u.isBanned'></i>
+                            <button ng-if='user.mod && !u.confirmed' class='button is-info' ng-click='confirmUsr(u);'>
+                                Confirm User
+                            </button>
                         </td>
                         <td>
                             {{u.otherInfo||'No other info!'}}

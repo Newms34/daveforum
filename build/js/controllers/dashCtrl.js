@@ -124,6 +124,7 @@ app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
             $scope.currTab = t;
         }
         $scope.currTab = 'Profile/Characters'
+        //admin stuffs
         $scope.makeMod = (u) => {
             console.log('wanna mod', u);
             bulmabox.confirm(`Assign Moderator Rights`, `Warning: This will give user ${u.user} full moderator rights, and prevents them from being banned. This process is <i>not</i> reversable!`, function(r) {
@@ -144,6 +145,17 @@ app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
                     $scope.allUsers = tbr.data;
                 })
         }
+        $scope.confirmUsr = (u)=>{
+            bulmabox.confirm('Confirm User',`Are you sure you wish to confirm user ${u.user}?`,(r)=>{
+                if(r && r!=null){
+                    $http.get('/user/confirm?u='+u.user)
+                        .then(au=>{
+                            $scope.allUsers = au.data;
+                        })
+                }
+            })
+        }
+        //end admin stuffs
         $scope.races = ['Asura', 'Charr', 'Human', 'Norn', 'Sylvari'];
         $scope.profs = ['Guardian', 'Warrior', 'Revenant', 'Thief', 'Ranger', 'Engineer', 'Elementalist', 'Mesmer', 'Necromancer']
         $scope.addChar = () => {
