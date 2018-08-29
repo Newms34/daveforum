@@ -25,7 +25,8 @@ var usrSchema = new mongoose.Schema({
         from: String,
         date: Number,
         msg: String,
-        isRep: { type: Boolean, default: false }
+        isRep: { type: Boolean, default: false },
+        read:{type:Boolean,default:false}
     }],
     tz:{type:Number,default:-5},
     ints: [{ type: Number, default: 0 }]

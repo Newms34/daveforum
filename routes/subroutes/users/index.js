@@ -15,16 +15,6 @@ var router = express.Router(),
         },
         silent: false
     }),
-    authbit = (req, res, next) => {
-        if (req.session && req.session.user && req.session.user._id) {
-            if (req.session.user.isBanned) {
-                res.status(403).send('banned');
-            }
-            next();
-        } else {
-            res.status(401).send('err')
-        }
-    },
     isMod = (req, res, next) => {
         mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
             if (!err && usr.mod) {
@@ -36,10 +26,21 @@ var router = express.Router(),
     };
 
 var routeExp = function(io) {
-    router.get('/getUsr', authbit, (req, res, next) => {
+    this.authbit = (req, res, next) => {
+        if (req.session && req.session.user && req.session.user._id) {
+            if (req.session.user.isBanned) {
+                res.status(403).send('banned');
+            }
+            next();
+        } else {
+            io.emit('doLogout')
+            res.status(401).send('err')
+        }
+    };
+    router.get('/getUsr', this.authbit, (req, res, next) => {
         res.send(req.session.user);
     });
-    router.get('/allUsrs', authbit, (req, res, next) => {
+    router.get('/allUsrs', this.authbit, (req, res, next) => {
         mongoose.model('User').find({}, function(err, usrs) {
             res.send(usrs.map(u => {
                 delete u.msgs;
@@ -47,53 +48,56 @@ var routeExp = function(io) {
             }));
         })
     });
+    router.get('/setRead',this.authbit,(req,res,next)=>{
+        mongoose.model
+    })
 
-    router.get('/changeInterest',authbit,(req,res,next)=>{
-        mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
-            console.log('INT status',req.query.act,'FOR',parseInt(req.query.int),usr.ints,usr.ints[parseInt(req.query.int)],req.query.act=='true')
+    router.get('/changeInterest', this.authbit, (req, res, next) => {
+        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
+            console.log('INT status', req.query.act, 'FOR', parseInt(req.query.int), usr.ints, usr.ints[parseInt(req.query.int)], req.query.act == 'true')
             // usr.ints[parseInt(req.query.int)]= req.query.act=='true'?1:0;
-            if(req.query.act=='true'){
-                usr.ints.set(req.query.int,1)
-            }else{
-                usr.ints.set(req.query.int,0)
+            if (req.query.act == 'true') {
+                usr.ints.set(req.query.int, 1)
+            } else {
+                usr.ints.set(req.query.int, 0)
             }
-            console.log('USR NOW',usr,usr.ints)
-            usr.save(function(errsv,usrsv){
-                console.log('USER AFTER SAVE',usrsv,'ERR IS',errsv)
+            console.log('USR NOW', usr, usr.ints)
+            usr.save(function(errsv, usrsv) {
+                console.log('USER AFTER SAVE', usrsv, 'ERR IS', errsv)
                 res.send(usrsv);
             })
         })
     })
-    router.get('/changeTz',authbit,(req,res,next)=>{
-        mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
-            usr.tz=req.query.tz;
-            console.log('USER TIME ZONE NOW',usr)
-            usr.save((errsv,usrsv)=>{
+    router.get('/changeTz', this.authbit, (req, res, next) => {
+        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
+            usr.tz = req.query.tz;
+            console.log('USER TIME ZONE NOW', usr)
+            usr.save((errsv, usrsv) => {
                 res.send(usrsv)
             })
         })
     })
-    router.post('/changeOther',authbit,(req,res,next)=>{
-        mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
+    router.post('/changeOther', this.authbit, (req, res, next) => {
+        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
             usr.otherInfo = req.body.other;
-            usr.save((errsv,usrsv)=>{
+            usr.save((errsv, usrsv) => {
                 res.send(usrsv);
             })
         })
     })
-    router.post('/changeAva',authbit,(req,res,next)=>{
-        mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
+    router.post('/changeAva', this.authbit, (req, res, next) => {
+        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
             usr.avatar = req.body.img;
-            console.log('USER NOW',req.body,usr)
-            usr.save((errsv,usrsv)=>{
+            console.log('USER NOW', req.body, usr)
+            usr.save((errsv, usrsv) => {
                 res.send(usrsv);
             })
         })
     })
-    router.get('/charsFromAPI',authbit,(req,res,next)=>{
-        if(!req.query.api){
+    router.get('/charsFromAPI', this.authbit, (req, res, next) => {
+        if (!req.query.api) {
             res.send('err');
-        }else{
+        } else {
             // axios.get('https://api.guildwars2.com/v2/characters?access_token='+req.query.api,(e,r,b)=>{
             //     // res.send(b)
             //     console.log(b);
@@ -103,36 +107,36 @@ var routeExp = function(io) {
             //     })
             // })
             axios.get(`https://api.guildwars2.com/v2/characters?access_token=${req.query.api}`)
-                .then(r=>{
-                    const charProms = Array.from(r.data).map(ch=>axios.get(`https://api.guildwars2.com/v2/characters/${ch}?access_token=${req.query.api}`));
-                    console.log(r.data,typeof r.data,charProms)
+                .then(r => {
+                    const charProms = Array.from(r.data).map(ch => axios.get(`https://api.guildwars2.com/v2/characters/${ch}?access_token=${req.query.api}`));
+                    console.log(r.data, typeof r.data, charProms)
                     axios.get(`https://api.guildwars2.com/v2/characters/${r.data[0]}?access_token=${req.query.api}`)
-                        .then(roc=>{
-                            console.log('FIRST CHAR',roc)
+                        .then(roc => {
+                            console.log('FIRST CHAR', roc)
                         })
-                    axios.all(charProms).then(rc=>{
+                    axios.all(charProms).then(rc => {
                         console.log('hi')
-                        const allChars = rc.map(rcc=>{
+                        const allChars = rc.map(rcc => {
                             return {
-                                name:rcc.data.name,
-                                prof:rcc.data.profession,
-                                race:rcc.data.race,
-                                lvl:rcc.data.level
+                                name: rcc.data.name,
+                                prof: rcc.data.profession,
+                                race: rcc.data.race,
+                                lvl: rcc.data.level
                             }
                         });
-                        mongoose.model('User').findOneAndUpdate({user:req.session.user.user},{chars:allChars},(errsv,respsv)=>{
+                        mongoose.model('User').findOneAndUpdate({ user: req.session.user.user }, { $set: { chars: allChars } }, (errsv, respsv) => {
                             res.send(respsv)
                         })
                         // res.send(allChars);
                     })
                 })
-                .catch(e=>{
+                .catch(e => {
                     res.send('err');
                 })
         }
     })
     //character stuff (add, edit, delete)
-    router.post('/addChar', authbit, (req, res, next) => {
+    router.post('/addChar', this.authbit, (req, res, next) => {
         mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
             if (!usr.chars.findOne('name', req.body.name)) {
                 usr.chars.push(req.body)
@@ -142,7 +146,7 @@ var routeExp = function(io) {
             })
         })
     })
-    router.post('/editChar', authbit, (req, res, next) => {
+    router.post('/editChar', this.authbit, (req, res, next) => {
         mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
             const charPos = usr.chars.findOne('name', req.body.name);
             if (charPos !== false) {
@@ -153,7 +157,7 @@ var routeExp = function(io) {
             })
         })
     })
-    router.get('/remChar', authbit, (req, res, next) => {
+    router.get('/remChar', this.authbit, (req, res, next) => {
         mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
             const charPos = usr.chars.findOne('id', req.query.id)
             console.log('REMOVE CHAR', req.query, usr, charPos)
@@ -169,7 +173,7 @@ var routeExp = function(io) {
     })
 
     //admin stuff
-    router.get('/makeMod', authbit, isMod, (req, res, next) => {
+    router.get('/makeMod', this.authbit, isMod, (req, res, next) => {
         mongoose.model('User').findOneAndUpdate({ user: req.query.user }, { $set: { mod: true } }, function(err, nm) {
             mongoose.model('User').find({}, function(err, usrs) {
                 res.send(usrs.map(u => {
@@ -179,7 +183,7 @@ var routeExp = function(io) {
             })
         })
     })
-    router.get('/toggleBan', authbit, isMod, (req, res, next) => {
+    router.get('/toggleBan', this.authbit, isMod, (req, res, next) => {
         mongoose.model('User').findOne({ user: req.query.user }, function(err, usr) {
             console.log('BANNING', req.query.user, usr)
             usr.isBanned = !usr.isBanned;
@@ -194,7 +198,7 @@ var routeExp = function(io) {
         })
     })
     //msg stuff
-    router.post('/sendMsg', authbit, (req, res, next) => {
+    router.post('/sendMsg', this.authbit, (req, res, next) => {
         //user sends message to another user
         console.log('SEND MSG', req.body)
         mongoose.model('User').findOne({ 'user': req.body.to }, function(err, usr) {
@@ -215,7 +219,7 @@ var routeExp = function(io) {
             }
         });
     });
-    router.get('/delMsg', authbit, (req, res, next) => {
+    router.get('/delMsg', this.authbit, (req, res, next) => {
         //user deletes an old message by user and id.
         mongoose.model('User').findOne({ 'user': req.session.user.user }, function(err, usr) {
             if (!usr || err) {
@@ -235,11 +239,11 @@ var routeExp = function(io) {
             }
         })
     });
-    router.post('/repMsg', authbit, (req, res, next) => {
+    router.post('/repMsg', this.authbit, (req, res, next) => {
         //sends a message to all users flagged as 'mods' with message body, to, from
         mongoose.model('User').findOne({ user: req.session.user.user }, (erru, usr) => {
             const theMsg = usr.msgs.filter(m => m._id == req.body._id)[0];
-            if(thsMsg.isRep){
+            if (thsMsg.isRep) {
                 res.send('dupRep');
                 return false;
             }
@@ -267,7 +271,7 @@ var routeExp = function(io) {
         })
     })
     //end of msgs
-    router.get('/confirm', authbit, isMod, (req, res, next) => {
+    router.get('/confirm', this.authbit, isMod, (req, res, next) => {
         if (!req.query.u) {
             res.status(400).send('err')
         }
@@ -275,12 +279,12 @@ var routeExp = function(io) {
             if (err) {
                 res.send(err);
             }
-            mongoose.model('User').find({},(erra,usra)=>{
+            mongoose.model('User').find({}, (erra, usra) => {
                 res.send(usra);
             })
         })
     })
-    router.get('/makeMod', authbit, isMod, (req, res, next) => {
+    router.get('/makeMod', this.authbit, isMod, (req, res, next) => {
         if (!req.query.user) {
             res.status(400).send('err')
         }
@@ -322,7 +326,7 @@ var routeExp = function(io) {
                     um = mongoose.model('User');
                 delete req.body.pass;
                 console.log(req.body)
-                req.body.ints=[0,0,0,0,0,0];
+                req.body.ints = [0, 0, 0, 0, 0, 0];
                 um.register(new um(req.body), pwd, function(err, usr) {
                     console.log(err, usr)
                     if (err) {
@@ -347,7 +351,7 @@ var routeExp = function(io) {
                 res.send(false);
             } else {
                 usr.authenticate(req.body.pass, function(err, resp) {
-                        console.log('LOGIN RESPONSE', resp,'ERR',err)
+                    console.log('LOGIN RESPONSE', resp, 'ERR', err)
                     if (resp) {
                         req.session.user = resp;
                         delete req.session.user.pass;
@@ -452,7 +456,7 @@ var routeExp = function(io) {
             })
         }
     })
-    router.get('/clean', authbit, isMod, (req, res, next) => {
+    router.get('/clean', this.authbit, isMod, (req, res, next) => {
         mongoose.model('cal').remove({}, function(r) {
             res.send('Cleaned!')
         });

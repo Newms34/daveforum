@@ -204,7 +204,7 @@
                         <td>
                             <button class="button is-info is-fullwidth" title='Send a message to this user' ng-click='mail(u)'><i class="fa fa-envelope-o"></i></button>
                         </td>
-                        <td>
+                        <td style='display:block; max-height:150px; overflow-y: scroll;'>
                             <div class='is-fullwidth chr-list' ng-repeat='chr in u.chars'>
                                 <div class='is-fullwidth is-size-7'><img src="./img/races/{{chr.race}}.png" class='char-stat-img'>&nbsp;{{chr.race}}&nbsp;<img src="./img/profs/{{chr.prof}}.png" class='char-stat-img'>&nbsp;{{chr.prof}}&nbsp;</div>
                                 <div class='is-fullwidth'>
