@@ -7,7 +7,10 @@ body {
     width: 100%;
     margin: 0;
     height: 100%; // padding-top: 40px;
-    background: #000;
+    // background: #000;
+    background:linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.5)),url('../img/brethren.png'),#000;
+    background-repeat:no-repeat;
+    background-size:cover;
     background-attachment: fixed;
 }
 
@@ -15,8 +18,8 @@ body {
     padding-top: 60px;
     height: 140vh;
     color: #fff;
-    background: #000;
-    background-attachment: fixed;
+    // background: #000;
+    // background-attachment: fixed;
 }
 
 .calendar {

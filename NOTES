@@ -1,0 +1,28 @@
+STUFF TO ADD:
+---------
+
+FORUMS:
+ability to post pictures
+ - file upload better to just do with 'vanilla'angularjs? would allow connection to disable/enable btn
+-DONE!
+
+markdown help
+
+CALENDAR:
+TYPES of events (WILL need icons!): guild mish, contest, giveaway, ceremony, other
+
+USER:
+user panel + MORE extensive profile
+ability to view other players profile
+switch dashboard to tabs: inbox/outbox?, user chars, other users (/admin) (view users), Edit profile
+
+gw2 api tie ins? probly not
+
+try voip?
+
+
+----NEXT
+PROBLY need to fix adding post to existing thred
+Confirm OTHER INFO stuff connects and is saved and displays
+
+mod ability to confirm user (btn that ng-if's if user is not yet confirmed)
