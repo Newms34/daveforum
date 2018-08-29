@@ -397,6 +397,7 @@ app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
                 return 'Invalid date!';
             }
             const theDate = new Date(num);
-            return `${theDate.toLocaleDateString()} ${theDate.getHours()%12}:${theDate.getMinutes().toString.length<2?'0'+theDate.getMinutes():theDate.getMinutes()} ${theDate.getHours()<13?'AM':'PM'}`;
+            console.log(theDate.getMinutes())
+            return `${theDate.toLocaleDateString()} ${theDate.getHours()%12}:${theDate.getMinutes().toString().length<2?'0'+theDate.getMinutes():theDate.getMinutes()} ${theDate.getHours()<13?'AM':'PM'}`;
         };
     })

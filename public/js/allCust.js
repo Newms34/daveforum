@@ -177,104 +177,6 @@ const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight,tempName) => {
     // We put the Data URI in the image's src attribute
     img.src = datas;
 }
-app.factory('socketFac', function ($rootScope) {
-  var socket = io.connect();
-  return {
-    on: function (eventName, callback) {
-      socket.on(eventName, function () { 
-        var args = arguments;
-        $rootScope.$apply(function () {
-          callback.apply(socket, args);
-        });
-      });
-    },
-    emit: function (eventName, data, callback) {
-      socket.emit(eventName, data, function () {
-        var args = arguments;
-        $rootScope.$apply(function () {
-          if (callback) {
-            callback.apply(socket, args);
-          }
-        });
-      })
-    }
-  };
-});
-app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact', function($rootScope, $state, $stateParams, $transitions, $q,userFact) {
-    $transitions.onBefore({ to: 'app.**' }, function(trans) {
-        let def = $q.defer();
-        console.log('TRANS',trans)
-        const usrCheck = trans.injector().get('userFact')
-        usrCheck.getUser().then(function(r) {
-            console.log('response from login chck',r)
-            if (r.data && r.data.confirmed) {
-                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
-                def.resolve(true)
-            } else if(r.data){
-                def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
-            }else{
-                // User isn't authenticated. Redirect to a new Target State
-                def.resolve($state.target('appSimp.login', undefined, { location: true }))
-            }
-        });
-        return def.promise;
-    });
-    // $transitions.onFinish({ to: '*' }, function() {
-    //     document.body.scrollTop = document.documentElement.scrollTop = 0;
-    // });
-}]);
-app.factory('userFact', function($http) {
-    return {
-        makeGroup: function() {
-            //do stuff
-        },
-        getDefaultLoc: function() {
-            return $http.get('//freegeoip.net/json/').then(function(r) {
-                return r.data;
-            })
-        },
-        getUser: function() {
-            return $http.get('/user/chkLog').then(function(s) {
-                console.log('getUser in fac says:', s)
-                return s;
-            })
-        },
-        inspectUsr: function(name) {
-        },
-        writeMsg: function(to, from, isRepl) {
-            bootbox.dialog({
-                title: 'Send a ' + (isRepl ? 'Reply' : 'Message') + ' to ' + to,
-                message: 'Type your message below, and then click "Send"<hr><textarea id="send-msg-txt" style="width:100%;" placeholder="Your message text"></textarea>',
-                buttons: {
-                    okay: {
-                        label: 'Send',
-                        className: 'btn-success',
-                        callback: function() {
-                            var sndMsgTxt = document.querySelector('#send-msg-txt').value;
-                            console.log(to, from, sndMsgTxt)
-                            $http.post('/user/sendMsg', {
-                                to: to,
-                                from: from,
-                                msg: sndMsgTxt
-                            }).then(function(r) {
-                                if (r.data == 'err') {
-                                    bootbox.alert('There was an error sending your message to ' + to + '!');
-                                } else {
-                                    bootbox.alert('Message sent!');
-                                }
-                            })
-                        }
-                    },
-                    cancel: {
-                        label: 'Cancel',
-                        className: 'btn-default'
-                    }
-                }
-            });
-        }
-    };
-});
-
 app.controller('cal-cont', function($scope, $http, userFact) {
     $scope.cal = [];
     $scope.days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -469,43 +371,72 @@ app.controller('cal-cont', function($scope, $http, userFact) {
 
     }
 })
-app.controller('chat-cont', function($scope, $http, $state, userFact, $filter) {
-        $http.get('/user/getUsr')
-            .then(r => {
-                $scope.doUser(r.data);
-                console.log('user', $scope.user)
-            });
-        $scope.msgs=[];
-        $scope.doUser = (u) => {
-            if (!u) {
-                return false;
-            }
-            $scope.user = u;
+app.controller('chat-cont', function($scope, $http, $state, userFact, $filter,$sce) {
+    $http.get('/user/getUsr')
+        .then(r => {
+            $scope.doUser(r.data);
+            console.log('user', $scope.user)
+        });
+    $scope.msgs = [];
+    $scope.doUser = (u) => {
+        if (!u) {
+            return false;
         }
-        $http.get('/user/allUsrs')
-            .then((au) => {
-                //Auch!
-                console.log('all users is', au)
-                $scope.allUsers = au.data;
-            });
-        socket.on('msgOut',function(msg){
-        	$scope.msgs.push(msg);
-        	if($scope.msgs.length>100){
-        		$scope.msgs.shift();
-        	}
-        	$scope.$apply()
-        	//scroll to bottom of chat window? HAO DU
-        	document.querySelector('#chat-container').scrollTop = document.querySelector('#chat-container').scrollHeight
+        $scope.user = u;
+        $scope.msgs.push({
+            time: Date.now(),
+            user: 'System',
+            msg: 'Welcome to Brethren [PAIN] Chat! You\'re logged in as ' + u.user + '. Try /wiki or /google to search for stuff!',
+            isSys: true
         })
-        $scope.sendChat = ()=>{
-        	if(!$scope.newMsg){
-        		return false;
-        	}
-        	socket.emit('chatMsg',{user:$scope.user.user,msg:$scope.newMsg})
-        	$scope.newMsg = '';
+    }
+    $scope.parseMsg = (t)=>{
+    	if(t.indexOf('/wiki ')===0){
+    		return `Wiki: <a href="https://wiki.guildwars2.com/wiki/${t.slice(6)}" target="_blank">${t.slice(6)}</a>`
+    	}else if(t.indexOf('/google ')===0){
+    		return `Google: <a href="https://www.google.com/search?q=${t.slice(8)}" target="_blank">${t.slice(8)}</a>`
+    	}
+    	return t;
+    }
+    $http.get('/user/allUsrs')
+        .then((au) => {
+            //Auch!
+            console.log('all users is', au)
+            $scope.allUsers = au.data;
+        });
+    socket.on('msgOut', function(msg) {
+    	console.log($scope.parseMsg(msg.msg),'IS THE MESSAGE')
+    	msg.msg = $sce.trustAsHtml($scope.parseMsg(msg.msg));
+        $scope.msgs.push(msg);
+        if ($scope.msgs.length > 100) {
+            $scope.msgs.shift();
         }
+        $scope.$apply()
+        //scroll to bottom of chat window? HAO DU
+        document.querySelector('#chat-container').scrollTop = document.querySelector('#chat-container').scrollHeight;
     })
-
+    socket.on('disconnect', function() {
+        $scope.msgs.push({
+            time: Date.now(),
+            user: 'System',
+            msg: 'Warning: The connection to the server was lost. Until you refresh, chat\'s probably gonna be pretty quiet!',
+            isSys: true
+        });
+        if ($scope.msgs.length > 100) {
+            $scope.msgs.shift();
+        }
+        $scope.$apply()
+        //scroll to bottom of chat window? HAO DU
+        document.querySelector('#chat-container').scrollTop = document.querySelector('#chat-container').scrollHeight;
+    })
+    $scope.sendChat = () => {
+        if (!$scope.newMsg) {
+            return false;
+        }
+        socket.emit('chatMsg', { user: $scope.user.user, msg: $scope.newMsg })
+        $scope.newMsg = '';
+    }
+})
 app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
         $scope.showDups = localStorage.brethDups; //show this user in 'members' list (for testing)
         $http.get('/user/getUsr')
@@ -905,7 +836,8 @@ app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
                 return 'Invalid date!';
             }
             const theDate = new Date(num);
-            return `${theDate.toLocaleDateString()} ${theDate.getHours()%12}:${theDate.getMinutes().toString.length<2?'0'+theDate.getMinutes():theDate.getMinutes()} ${theDate.getHours()<13?'AM':'PM'}`;
+            console.log(theDate.getMinutes())
+            return `${theDate.toLocaleDateString()} ${theDate.getHours()%12}:${theDate.getMinutes().toString().length<2?'0'+theDate.getMinutes():theDate.getMinutes()} ${theDate.getHours()<13?'AM':'PM'}`;
         };
     })
 app.controller('forum-cat-cont', function($scope, $http, userFact, $state, $location) {
@@ -1357,3 +1289,100 @@ app.controller('unconf-cont', function($scope, $http, $state) {
         })
     }
 })
+app.factory('socketFac', function ($rootScope) {
+  var socket = io.connect();
+  return {
+    on: function (eventName, callback) {
+      socket.on(eventName, function () { 
+        var args = arguments;
+        $rootScope.$apply(function () {
+          callback.apply(socket, args);
+        });
+      });
+    },
+    emit: function (eventName, data, callback) {
+      socket.emit(eventName, data, function () {
+        var args = arguments;
+        $rootScope.$apply(function () {
+          if (callback) {
+            callback.apply(socket, args);
+          }
+        });
+      })
+    }
+  };
+});
+app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact', function($rootScope, $state, $stateParams, $transitions, $q,userFact) {
+    $transitions.onBefore({ to: 'app.**' }, function(trans) {
+        let def = $q.defer();
+        console.log('TRANS',trans)
+        const usrCheck = trans.injector().get('userFact')
+        usrCheck.getUser().then(function(r) {
+            console.log('response from login chck',r)
+            if (r.data && r.data.confirmed) {
+                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
+                def.resolve(true)
+            } else if(r.data){
+                def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
+            }else{
+                // User isn't authenticated. Redirect to a new Target State
+                def.resolve($state.target('appSimp.login', undefined, { location: true }))
+            }
+        });
+        return def.promise;
+    });
+    // $transitions.onFinish({ to: '*' }, function() {
+    //     document.body.scrollTop = document.documentElement.scrollTop = 0;
+    // });
+}]);
+app.factory('userFact', function($http) {
+    return {
+        makeGroup: function() {
+            //do stuff
+        },
+        getDefaultLoc: function() {
+            return $http.get('//freegeoip.net/json/').then(function(r) {
+                return r.data;
+            })
+        },
+        getUser: function() {
+            return $http.get('/user/chkLog').then(function(s) {
+                console.log('getUser in fac says:', s)
+                return s;
+            })
+        },
+        inspectUsr: function(name) {
+        },
+        writeMsg: function(to, from, isRepl) {
+            bootbox.dialog({
+                title: 'Send a ' + (isRepl ? 'Reply' : 'Message') + ' to ' + to,
+                message: 'Type your message below, and then click "Send"<hr><textarea id="send-msg-txt" style="width:100%;" placeholder="Your message text"></textarea>',
+                buttons: {
+                    okay: {
+                        label: 'Send',
+                        className: 'btn-success',
+                        callback: function() {
+                            var sndMsgTxt = document.querySelector('#send-msg-txt').value;
+                            console.log(to, from, sndMsgTxt)
+                            $http.post('/user/sendMsg', {
+                                to: to,
+                                from: from,
+                                msg: sndMsgTxt
+                            }).then(function(r) {
+                                if (r.data == 'err') {
+                                    bootbox.alert('There was an error sending your message to ' + to + '!');
+                                } else {
+                                    bootbox.alert('Message sent!');
+                                }
+                            })
+                        }
+                    },
+                    cancel: {
+                        label: 'Cancel',
+                        className: 'btn-default'
+                    }
+                }
+            });
+        }
+    };
+});
