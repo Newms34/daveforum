@@ -30,7 +30,6 @@
     "q": "^1.5.1",
     "sendmail": "^1.4.1",
     "socket.io": "^2.1.1",
-    "socketio": "^1.0.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
