@@ -33,7 +33,7 @@ var routeExp = function(io) {
             }
             next();
         } else {
-            io.emit('doLogout')
+            
             res.status(401).send('err')
         }
     };

@@ -1,4 +1,4 @@
-# Ribbon to Ribbon
+# Forum Site
 
 ## Contents:
  * [About](#About)
@@ -6,7 +6,7 @@
  * [Credits](#credits)
 
 ## About:
-Ribbon to Ribbon is a chat app for cancer fighters. It's still very much under development, so check back soon!
+This is a forum site. That's all you need to know for now.
 
 ## Currently Under Development:
 Yes. It is.

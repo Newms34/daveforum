@@ -23,10 +23,19 @@ try voip?
 
 ----NEXT
 PROBLY need to fix adding post to existing thred
-Confirm OTHER INFO stuff connects and is saved and displays
 
 cron-ish job to purge old, non-confirmed users?
 
-mod ability to confirm user (btn that ng-if's if user is not yet confirmed)
+socket.io chat?
+PROBLY not separate rooms
 
-'No events!' msg if no upcoming events on dashboard tab
+read/unread status on msgs (so user can see when they have new msgs!)
+confirm for sent msg?
+socket.io forced-logout? i.e., if authbit returns false, send msg forcing logout.
+have socketio DC force a logout? make sure works on all app
+
+WRITE ToS
+
+SEARCH stuff
+
+re-figure out dc-on-restart  thing to ONLY force logout for connected player

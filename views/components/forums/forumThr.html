@@ -4,7 +4,7 @@
         <div class="panel-block has-text-white" style='display:block; width:100%;'>
             <div class="content forum-post is-fullwidth columns" ng-repeat='pst in thr.posts'>
                 <div class='column is-one-fifth has-background-grey-darker'>
-                    <img src="{{pst.profPic||defaultPic}}" class='prof-pic'>
+                    <img src="{{avas[pst.user]||defaultPic}}" class='prof-pic'>
                     <br> {{pst.user}}
                     <div ng-if='user.mod' class='has-text-danger'>
                         Moderator

@@ -8,11 +8,10 @@ var usrSchema = new mongoose.Schema({
     salt: String,
     otherInfo:String,
     avatar: String, //base64 avatar
-    desc: String, //optional user description
     isBanned: { type: Boolean, default: false },
     mod: { type: Boolean, default: false }, //only mods can sticky/unsticky and lock/unlock threds
     confirmed: { type: Boolean, default: false },
-    lastLogin: Date,
+    lastLogin: Number,
     chars: [{
         name: String,
         prof: String,

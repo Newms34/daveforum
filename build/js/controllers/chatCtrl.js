@@ -1,4 +1,4 @@
-app.controller('chat-cont', function($scope, $http, $state, userFact, $filter,$sce) {
+app.controller('chat-cont', function($scope, $http, $state, $filter,$sce) {
     $http.get('/user/getUsr')
         .then(r => {
             $scope.doUser(r.data);

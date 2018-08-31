@@ -30,7 +30,7 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                     // console.log(io)
                     socket.emit('chatMsg',{msg:`${$scope.user} logged in!`})
                     localStorage.brethUsr = JSON.stringify(r.data);
-                    $state.go('app.dash')
+                    $state.go('app.dash');
                 }
             })
             .catch(e=>{

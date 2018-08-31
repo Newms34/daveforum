@@ -7,6 +7,7 @@ const express = require('express'),
     multer = require('multer'),
     session = require('express-session'),
     maxMsgLen = 50,
+    _=require('lodash'),
     oid = mongoose.Types.ObjectId,
     cats = ['general', 'missions', 'random', 'management'],
     authbit = (req, res, next) => {
@@ -84,18 +85,33 @@ const routeExp = function(io) {
             }
         })
     });
-    router.get('/thread', authbit, (req, res, next) => {
+    router.get('/thread',authbit, (req, res, next) => {
         if (!req.query.id) {
             res.send('err');
             return false;
         }
-        console.log("lookin for thread", req.query.title)
+        console.log("lookin for thread", req.query.id)
         mongoose.model('thread').findOne({ _id: req.query.id }, function(err, thrd) {
             if (err || !thrd) {
                 res.send('err');
             } else {
                 mongoose.model('post').find({ thread: thrd._id }, function(err, psts) {
-                    res.send({ thrd: thrd, psts: psts })
+                    const usrList=_.map(_.uniqBy(psts,'user'),'user');
+                    console.log('RESULT OF usrList',usrList)
+                    mongoose.model('User').find({user:{$in:usrList}},function(err,ufp){
+                        // console.log('results of user uniq stuff for thred',_.map(ufp,(u)=>{
+                        //     return u.user+u.pass.length
+                        // }),usrList);
+                        // ufpr = ufp.map(u=>{
+                        //     return {u:u.user,a:u.avatar||false}
+                        // })
+                        let ufpa = _.zipObject(_.map(ufp,'user'),ufp.map(u=>u.avatar||false));
+                        // console.log('USERS IN THIS THRED',ufpa)
+                        // psts.forEach(function(psta){
+                        //     psta.profPic = ufpa[psta.user];
+                        // })
+                        res.send({ thrd: thrd, psts: psts ,ava:ufpa})
+                    })
                 })
             }
         })

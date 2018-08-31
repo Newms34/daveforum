@@ -177,7 +177,65 @@ const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight,tempName) => {
     // We put the Data URI in the image's src attribute
     img.src = datas;
 }
-app.controller('cal-cont', function($scope, $http, userFact) {
+app.factory('socketFac', function ($rootScope) {
+  var socket = io.connect();
+  return {
+    on: function (eventName, callback) {
+      socket.on(eventName, function () { 
+        var args = arguments;
+        $rootScope.$apply(function () {
+          callback.apply(socket, args);
+        });
+      });
+    },
+    emit: function (eventName, data, callback) {
+      socket.emit(eventName, data, function () {
+        var args = arguments;
+        $rootScope.$apply(function () {
+          if (callback) {
+            callback.apply(socket, args);
+          }
+        });
+      })
+    }
+  };
+});
+app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact', function($rootScope, $state, $stateParams, $transitions, $q,userFact) {
+    $transitions.onBefore({ to: 'app.**' }, function(trans) {
+        let def = $q.defer();
+        console.log('TRANS',trans)
+        const usrCheck = trans.injector().get('userFact')
+        usrCheck.getUser().then(function(r) {
+            console.log('response from login chck',r)
+            if (r.data && r.data.confirmed) {
+                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
+                def.resolve(true)
+            } else if(r.data){
+                def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
+            }else{
+                // User isn't authenticated. Redirect to a new Target State
+                def.resolve($state.target('appSimp.login', undefined, { location: true }))
+            }
+        }).catch(e=>{
+            def.resolve($state.target('appSimp.login', undefined, { location: true }))
+        });
+        return def.promise;
+    });
+    // $transitions.onFinish({ to: '*' }, function() {
+    //     document.body.scrollTop = document.documentElement.scrollTop = 0;
+    // });
+}]);
+app.factory('userFact', function($http) {
+    return {
+        getUser: function() {
+            return $http.get('/user/getUsr').then(function(s) {
+                console.log('getUser in fac says:', s)
+                return s;
+            })
+        }
+    };
+});
+app.controller('cal-cont', function($scope, $http) {
     $scope.cal = [];
     $scope.days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     $scope.calLoaded = false;
@@ -371,7 +429,7 @@ app.controller('cal-cont', function($scope, $http, userFact) {
 
     }
 })
-app.controller('chat-cont', function($scope, $http, $state, userFact, $filter,$sce) {
+app.controller('chat-cont', function($scope, $http, $state, $filter,$sce) {
     $http.get('/user/getUsr')
         .then(r => {
             $scope.doUser(r.data);
@@ -437,7 +495,7 @@ app.controller('chat-cont', function($scope, $http, $state, userFact, $filter,$s
         $scope.newMsg = '';
     }
 })
-app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
+app.controller('dash-cont', function($scope, $http, $state, $filter) {
         $scope.showDups = localStorage.brethDups; //show this user in 'members' list (for testing)
         $http.get('/user/getUsr')
             .then(r => {
@@ -482,13 +540,13 @@ app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
             $scope.loadingFile = true;
             const fr = new FileReader();
         }
-        $scope.saveDataURI = (d)=>{
-            $http.post('/user/changeAva',{
-                img:d
-            })
-            .then(r=>{
-                $scope.doUser(r.data);
-            })
+        $scope.saveDataURI = (d) => {
+            $http.post('/user/changeAva', {
+                    img: d
+                })
+                .then(r => {
+                    $scope.doUser(r.data);
+                })
         }
         //END PIC STUFF
         $scope.possibleInterests = [{
@@ -555,10 +613,21 @@ app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
         //end info stuff
         $http.get('/user/allUsrs')
             .then((au) => {
-                //Auch!
                 console.log('all users is', au)
                 $scope.allUsers = au.data;
+                setTimeout(function() {
+
+                    socket.emit('getOnline', {});
+                }, 100)
             });
+        socket.on('allNames', function(r) {
+            // console.log('ALL NAMES SOCKET SAYS', r)
+            r = r.map(nm=>nm.name);
+            $scope.allUsers.forEach(usr => {
+                usr.online = r.indexOf(usr.user) > -1 || usr.user==$scope.user.user;
+            })
+            $scope.$digest();
+        })
         $scope.showTab = (t) => {
             $scope.currTab = t;
         }
@@ -584,11 +653,11 @@ app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
                     $scope.allUsers = tbr.data;
                 })
         }
-        $scope.confirmUsr = (u)=>{
-            bulmabox.confirm('Confirm User',`Are you sure you wish to confirm user ${u.user}?`,(r)=>{
-                if(r && r!=null){
-                    $http.get('/user/confirm?u='+u.user)
-                        .then(au=>{
+        $scope.confirmUsr = (u) => {
+            bulmabox.confirm('Confirm User', `Are you sure you wish to confirm user ${u.user}?`, (r) => {
+                if (r && r != null) {
+                    $http.get('/user/confirm?u=' + u.user)
+                        .then(au => {
                             $scope.allUsers = au.data;
                         })
                 }
@@ -666,17 +735,17 @@ app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
                         })
                 }, `<button class='button is-info' onclick='bulmabox.runCb(bulmabox.params.cb)'>Save</button><button class='button is-danger' onclick='bulmabox.kill("bulmabox-diag")'>Cancel</button>`)
         }
-        $scope.autoChars = ()=>{
+        $scope.autoChars = () => {
             //B9DE7B9E-9DAD-2C40-BECD-12F9BA931FE0851EA3EB-B1AA-4FBB-B4BE-CCDD28F51644
-            bulmabox.prompt('Auto-Fill Characters from API',`Auto-filling characters from the Guild Wars 2 Official API will replace any existing characters you've entered with API-found characters. <br><br> - You'll need an API key to do this (click <a href='https://account.arena.net/' target='_blank'>here</a> if you dont have one). <br><br>Are you sure you wish to do this?`,function(resp){
-                if(resp && resp!=null){
-                    $http.get('/user/charsFromAPI?api='+resp)
-                        .then(r=>{
-                            console.log('Auto-char response is',r)
-                            if(r && r.data && r.data!='err'){
+            bulmabox.prompt('Auto-Fill Characters from API', `Auto-filling characters from the Guild Wars 2 Official API will replace any existing characters you've entered with API-found characters. <br><br> - You'll need an API key to do this (click <a href='https://account.arena.net/' target='_blank'>here</a> if you dont have one). <br><br>Are you sure you wish to do this?`, function(resp) {
+                if (resp && resp != null) {
+                    $http.get('/user/charsFromAPI?api=' + resp)
+                        .then(r => {
+                            console.log('Auto-char response is', r)
+                            if (r && r.data && r.data != 'err') {
                                 $scope.doUser(r.data)
-                            }else{
-                                bulmabox.alert('Error Auto-Filling','There was an error auto-filling your characters.<br>While it <i>may</i> be Dave\'s fault, you may also wanna check that your API key is valid. You can also always just manually add your characters!')
+                            } else {
+                                bulmabox.alert('Error Auto-Filling', 'There was an error auto-filling your characters.<br>While it <i>may</i> be Dave\'s fault, you may also wanna check that your API key is valid. You can also always just manually add your characters!')
                             }
                         })
                 }
@@ -840,7 +909,7 @@ app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
             return `${theDate.toLocaleDateString()} ${theDate.getHours()%12}:${theDate.getMinutes().toString().length<2?'0'+theDate.getMinutes():theDate.getMinutes()} ${theDate.getHours()<13?'AM':'PM'}`;
         };
     })
-app.controller('forum-cat-cont', function($scope, $http, userFact, $state, $location) {
+app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
     if (!localStorage.brethUsr) {
         $state.go('app.login');
         //since we really cannot do anything here if user is NOT logged in
@@ -889,7 +958,7 @@ app.controller('forum-cat-cont', function($scope, $http, userFact, $state, $loca
 //         console.log(fr.result)
 //     })
 // }
-app.controller('forum-cont', function($scope, $http, userFact, $state) {
+app.controller('forum-cont', function($scope, $http, $state) {
     $scope.currMsg = 0;
     $scope.forObj = {};
     if (!localStorage.brethUsr) {
@@ -914,7 +983,7 @@ app.controller('forum-cont', function($scope, $http, userFact, $state) {
     	$state.go('app.forumCat',{c:n})
     }
 })
-app.controller('forum-thr-cont', function($scope, $http, userFact, $state, $location, $sce) {
+app.controller('forum-thr-cont', function($scope, $http, $state, $location, $sce) {
     $scope.currMsg = 0;
     $scope.defaultPic = defaultPic;
     $scope.forObj = {};
@@ -944,6 +1013,7 @@ app.controller('forum-thr-cont', function($scope, $http, userFact, $state, $loca
                     ps.wasEdited = ps.lastUpd != ps.createDate;
                     return ps;
                 });
+                $scope.avas = r.data.ava;
                 $scope.thr.posts = $scope.thr.posts.map(psth => {
                     console.log('PSTH', psth, r.data.psts.filter(psps => psps._id == psth.id)[0])
                     const thePst = r.data.psts.filter(psps => psps._id == psth.id)[0];
@@ -1063,7 +1133,7 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                     // console.log(io)
                     socket.emit('chatMsg',{msg:`${$scope.user} logged in!`})
                     localStorage.brethUsr = JSON.stringify(r.data);
-                    $state.go('app.dash')
+                    $state.go('app.dash');
                 }
             })
             .catch(e=>{
@@ -1105,8 +1175,22 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
 String.prototype.capMe = function() {
     return this.slice(0, 1).toUpperCase() + this.slice(1);
 }
-app.controller('main-cont', function($scope, $http, $state, userFact) {
+app.controller('main-cont', function($scope, $http, $state,userFact) {
     console.log('main controller registered!')
+    $scope.user=null;
+    userFact.getUser().then(r=>{
+    	$scope.user=r.data;
+    	//user sends their name to back
+    	socket.emit('hiIm',{name:$scope.user.user})
+    })
+    //used to see if this user is still online after a disconnect
+    socket.on('reqHeartBeat',function(sr){
+    	socket.emit('hbResp',{name:$scope.user.user})
+    })
+    // socket.on('allNames',function(r){
+    // 	$scope.online = r;
+    // 	console.log('users now online are',r)
+    // })
 })
 
 app.controller('nav-cont',function($scope,$http,$state){
@@ -1123,6 +1207,11 @@ app.controller('nav-cont',function($scope,$http,$state){
     }
     socket.on('doLogout',function(r){
         //force logout (likely due to app change)
+        console.log('APP REQUESTED LOGOUT:',$state.current)
+        if($state.current.name=='appSimp.login'||$state.current.name=='appSimp.register'){
+            //don't force logout if we're already logged out!
+            return false;
+        }
         bulmabox.alert(`App Restarting`,`Hi! I've made some sort of change just now to make this app more awesome! Unfortunately, this also means I've needed to restart it. I'm gonna log you out now.`,function(r){
             console.log('herez where user wud b logged out');
             $http.get('/user/logout').then(function(r){
@@ -1289,100 +1378,3 @@ app.controller('unconf-cont', function($scope, $http, $state) {
         })
     }
 })
-app.factory('socketFac', function ($rootScope) {
-  var socket = io.connect();
-  return {
-    on: function (eventName, callback) {
-      socket.on(eventName, function () { 
-        var args = arguments;
-        $rootScope.$apply(function () {
-          callback.apply(socket, args);
-        });
-      });
-    },
-    emit: function (eventName, data, callback) {
-      socket.emit(eventName, data, function () {
-        var args = arguments;
-        $rootScope.$apply(function () {
-          if (callback) {
-            callback.apply(socket, args);
-          }
-        });
-      })
-    }
-  };
-});
-app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact', function($rootScope, $state, $stateParams, $transitions, $q,userFact) {
-    $transitions.onBefore({ to: 'app.**' }, function(trans) {
-        let def = $q.defer();
-        console.log('TRANS',trans)
-        const usrCheck = trans.injector().get('userFact')
-        usrCheck.getUser().then(function(r) {
-            console.log('response from login chck',r)
-            if (r.data && r.data.confirmed) {
-                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
-                def.resolve(true)
-            } else if(r.data){
-                def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
-            }else{
-                // User isn't authenticated. Redirect to a new Target State
-                def.resolve($state.target('appSimp.login', undefined, { location: true }))
-            }
-        });
-        return def.promise;
-    });
-    // $transitions.onFinish({ to: '*' }, function() {
-    //     document.body.scrollTop = document.documentElement.scrollTop = 0;
-    // });
-}]);
-app.factory('userFact', function($http) {
-    return {
-        makeGroup: function() {
-            //do stuff
-        },
-        getDefaultLoc: function() {
-            return $http.get('//freegeoip.net/json/').then(function(r) {
-                return r.data;
-            })
-        },
-        getUser: function() {
-            return $http.get('/user/chkLog').then(function(s) {
-                console.log('getUser in fac says:', s)
-                return s;
-            })
-        },
-        inspectUsr: function(name) {
-        },
-        writeMsg: function(to, from, isRepl) {
-            bootbox.dialog({
-                title: 'Send a ' + (isRepl ? 'Reply' : 'Message') + ' to ' + to,
-                message: 'Type your message below, and then click "Send"<hr><textarea id="send-msg-txt" style="width:100%;" placeholder="Your message text"></textarea>',
-                buttons: {
-                    okay: {
-                        label: 'Send',
-                        className: 'btn-success',
-                        callback: function() {
-                            var sndMsgTxt = document.querySelector('#send-msg-txt').value;
-                            console.log(to, from, sndMsgTxt)
-                            $http.post('/user/sendMsg', {
-                                to: to,
-                                from: from,
-                                msg: sndMsgTxt
-                            }).then(function(r) {
-                                if (r.data == 'err') {
-                                    bootbox.alert('There was an error sending your message to ' + to + '!');
-                                } else {
-                                    bootbox.alert('Message sent!');
-                                }
-                            })
-                        }
-                    },
-                    cancel: {
-                        label: 'Cancel',
-                        className: 'btn-default'
-                    }
-                }
-            });
-        }
-    };
-});

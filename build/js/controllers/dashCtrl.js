@@ -1,4 +1,4 @@
-app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
+app.controller('dash-cont', function($scope, $http, $state, $filter) {
         $scope.showDups = localStorage.brethDups; //show this user in 'members' list (for testing)
         $http.get('/user/getUsr')
             .then(r => {
@@ -43,13 +43,13 @@ app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
             $scope.loadingFile = true;
             const fr = new FileReader();
         }
-        $scope.saveDataURI = (d)=>{
-            $http.post('/user/changeAva',{
-                img:d
-            })
-            .then(r=>{
-                $scope.doUser(r.data);
-            })
+        $scope.saveDataURI = (d) => {
+            $http.post('/user/changeAva', {
+                    img: d
+                })
+                .then(r => {
+                    $scope.doUser(r.data);
+                })
         }
         //END PIC STUFF
         $scope.possibleInterests = [{
@@ -116,10 +116,21 @@ app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
         //end info stuff
         $http.get('/user/allUsrs')
             .then((au) => {
-                //Auch!
                 console.log('all users is', au)
                 $scope.allUsers = au.data;
+                setTimeout(function() {
+
+                    socket.emit('getOnline', {});
+                }, 100)
             });
+        socket.on('allNames', function(r) {
+            // console.log('ALL NAMES SOCKET SAYS', r)
+            r = r.map(nm=>nm.name);
+            $scope.allUsers.forEach(usr => {
+                usr.online = r.indexOf(usr.user) > -1 || usr.user==$scope.user.user;
+            })
+            $scope.$digest();
+        })
         $scope.showTab = (t) => {
             $scope.currTab = t;
         }
@@ -145,11 +156,11 @@ app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
                     $scope.allUsers = tbr.data;
                 })
         }
-        $scope.confirmUsr = (u)=>{
-            bulmabox.confirm('Confirm User',`Are you sure you wish to confirm user ${u.user}?`,(r)=>{
-                if(r && r!=null){
-                    $http.get('/user/confirm?u='+u.user)
-                        .then(au=>{
+        $scope.confirmUsr = (u) => {
+            bulmabox.confirm('Confirm User', `Are you sure you wish to confirm user ${u.user}?`, (r) => {
+                if (r && r != null) {
+                    $http.get('/user/confirm?u=' + u.user)
+                        .then(au => {
                             $scope.allUsers = au.data;
                         })
                 }
@@ -227,17 +238,17 @@ app.controller('dash-cont', function($scope, $http, $state, userFact, $filter) {
                         })
                 }, `<button class='button is-info' onclick='bulmabox.runCb(bulmabox.params.cb)'>Save</button><button class='button is-danger' onclick='bulmabox.kill("bulmabox-diag")'>Cancel</button>`)
         }
-        $scope.autoChars = ()=>{
+        $scope.autoChars = () => {
             //B9DE7B9E-9DAD-2C40-BECD-12F9BA931FE0851EA3EB-B1AA-4FBB-B4BE-CCDD28F51644
-            bulmabox.prompt('Auto-Fill Characters from API',`Auto-filling characters from the Guild Wars 2 Official API will replace any existing characters you've entered with API-found characters. <br><br> - You'll need an API key to do this (click <a href='https://account.arena.net/' target='_blank'>here</a> if you dont have one). <br><br>Are you sure you wish to do this?`,function(resp){
-                if(resp && resp!=null){
-                    $http.get('/user/charsFromAPI?api='+resp)
-                        .then(r=>{
-                            console.log('Auto-char response is',r)
-                            if(r && r.data && r.data!='err'){
+            bulmabox.prompt('Auto-Fill Characters from API', `Auto-filling characters from the Guild Wars 2 Official API will replace any existing characters you've entered with API-found characters. <br><br> - You'll need an API key to do this (click <a href='https://account.arena.net/' target='_blank'>here</a> if you dont have one). <br><br>Are you sure you wish to do this?`, function(resp) {
+                if (resp && resp != null) {
+                    $http.get('/user/charsFromAPI?api=' + resp)
+                        .then(r => {
+                            console.log('Auto-char response is', r)
+                            if (r && r.data && r.data != 'err') {
                                 $scope.doUser(r.data)
-                            }else{
-                                bulmabox.alert('Error Auto-Filling','There was an error auto-filling your characters.<br>While it <i>may</i> be Dave\'s fault, you may also wanna check that your API key is valid. You can also always just manually add your characters!')
+                            } else {
+                                bulmabox.alert('Error Auto-Filling', 'There was an error auto-filling your characters.<br>While it <i>may</i> be Dave\'s fault, you may also wanna check that your API key is valid. You can also always just manually add your characters!')
                             }
                         })
                 }

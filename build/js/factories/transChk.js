@@ -14,6 +14,8 @@ app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact'
                 // User isn't authenticated. Redirect to a new Target State
                 def.resolve($state.target('appSimp.login', undefined, { location: true }))
             }
+        }).catch(e=>{
+            def.resolve($state.target('appSimp.login', undefined, { location: true }))
         });
         return def.promise;
     });

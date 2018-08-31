@@ -1,4 +1,4 @@
-app.controller('cal-cont', function($scope, $http, userFact) {
+app.controller('cal-cont', function($scope, $http) {
     $scope.cal = [];
     $scope.days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     $scope.calLoaded = false;

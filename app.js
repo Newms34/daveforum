@@ -1,9 +1,9 @@
-var express = require('express'),
+const express = require('express'),
     app = express(),
     http = require('http'),
     server = http.Server(app),
     io = require('socket.io')(server);
-    var routes = require('./routes')(io),
+var routes = require('./routes')(io),
     path = require('path'),
     cookieParser = require('cookie-parser'),
     cookie = require('cookie'),
@@ -14,7 +14,7 @@ var express = require('express'),
     compression = require('compression');
 app.use(compression());
 
-const sesh =session({
+const sesh = session({
     secret: 'ea augusta est et carissima'
 });
 app.use(sesh);
@@ -25,43 +25,60 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.set('view engine', 'html');
 app.set('views', path.join(__dirname, 'views'));
-app.set('io',io)
+app.set('io', io)
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'views')));
 app.use('/', routes);
 // var server = http.Server(app);
 // var io = require('socket.io')(server);
-var names = [];
+let names = [];
 // io.use(function(socket, next) {
 //     sesh(socket.request, socket.request.res, next);
 // });
+let isFirstCon=true;
 io.on('connection', function(socket) {
-    // socket.on('chatMsg', function(chatObj) {
-    //     //first, if we dont have this name already, reg it
-    //     if (names.indexOf(chatObj.name) == -1) {
-    //         names.push(chatObj.name);
-    //     }
-    //     console.log(chatObj);
-        
-    //     io.sockets.in(chatObj.grp).emit('chatOut', chatObj);
-    // });
-    // socket.on('joinRooms', function(roomObj) {
-    //     //NEEDS SECURITY! or at least verification that user is who they say they are
-    //     var actualUsr = socket.request.session.user.name
-    //     console.log('USR CHECK:',actualUsr,':',roomObj.user)
-    //     if(!actualUsr|| actualUsr!=roomObj.user){
-    //         //no response, since this user failed auth.
-    //         return false;
-    //     }
-    //     //assign a newly-logged-in user to correct rooms.
-    //     roomObj.rooms.forEach(function(r) {
-    //         socket.join(r);
-    //     })
+    //death stuff
+    // socket.on('disconnect',()=>{
+    //     console.log('someone left q.q')
+    //     socket.emit('reqHeartBeat',{})
+    //     names = [];
     // })
-    socket.on('chatMsg',function(msgObj){
-        console.log('chat message sent! Obj was',msgObj)
-        msgObj.time=Date.now();
-        io.emit('msgOut',msgObj)
+    if(isFirstCon) {
+        isFirstCon=false;
+        socket.emit('doLogout')
+    }
+    socket.on('hbResp',function(n){
+        // console.log('heartbeat response from',n)
+        for(let i=0;i<names.length;i++){
+            if(names[i].name==n.name){
+                names[i].t=Date.now();
+            }
+        }
+        let now=Date.now();
+        names=names.filter(nm=>now-nm.t<1000)
+    })
+
+    // //new login stuff
+    socket.on('hiIm', function(n) {
+        //on a new person connecting, add them to our list and then push out the list of all names.
+        names.push({ name: n.name, t: Date.now() });
+        console.log('NEW USER', n, 'ALL USERS', names)
+        // socket.emit('allNames',names);
+    })
+
+    socket.on('getOnline',function(){
+        socket.emit('allNames',names);
+    })
+    setInterval(function() {
+        socket.emit('reqHeartBeat', {});
+        socket.emit('allNames',names)
+    }, 500);
+
+    //messaging (for chat!)
+    socket.on('chatMsg', function(msgObj) {
+        console.log('chat message sent! Obj was', msgObj)
+        msgObj.time = Date.now();
+        io.emit('msgOut', msgObj)
     })
 });
 server.listen(process.env.PORT || 8080);
@@ -72,7 +89,7 @@ server.on('listening', function(lst) {
     console.log('Server is listening!')
 });
 server.on('request', function(req) {
-    console.log(req.body);
+    // console.log(req.body);
 })
 
 app.use(function(req, res, next) {

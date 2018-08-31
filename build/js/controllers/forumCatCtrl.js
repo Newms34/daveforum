@@ -1,4 +1,4 @@
-app.controller('forum-cat-cont', function($scope, $http, userFact, $state, $location) {
+app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
     if (!localStorage.brethUsr) {
         $state.go('app.login');
         //since we really cannot do anything here if user is NOT logged in

@@ -1,4 +1,4 @@
-app.controller('forum-thr-cont', function($scope, $http, userFact, $state, $location, $sce) {
+app.controller('forum-thr-cont', function($scope, $http, $state, $location, $sce) {
     $scope.currMsg = 0;
     $scope.defaultPic = defaultPic;
     $scope.forObj = {};
@@ -28,6 +28,7 @@ app.controller('forum-thr-cont', function($scope, $http, userFact, $state, $loca
                     ps.wasEdited = ps.lastUpd != ps.createDate;
                     return ps;
                 });
+                $scope.avas = r.data.ava;
                 $scope.thr.posts = $scope.thr.posts.map(psth => {
                     console.log('PSTH', psth, r.data.psts.filter(psps => psps._id == psth.id)[0])
                     const thePst = r.data.psts.filter(psps => psps._id == psth.id)[0];

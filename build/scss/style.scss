@@ -8,17 +8,16 @@ body {
     margin: 0;
     height: 100%; // padding-top: 40px;
     // background: #000;
-    background:linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.5)),url('../img/brethren.png'),#000;
-    background-repeat:no-repeat;
-    background-size:cover;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../img/brethren.png'), #000;
+    background-repeat: no-repeat;
+    background-size: cover;
     background-attachment: fixed;
 }
 
 #main-box {
     padding-top: 60px;
     height: 140vh;
-    color: #fff;
-    // background: #000;
+    color: #fff; // background: #000;
     // background-attachment: fixed;
 }
 
@@ -105,7 +104,7 @@ body {
     & .post-buttons {
         border-top: 1px solid #333;
         height: 10%;
-        min-height:50px;
+        min-height: 50px;
         & button,
         .vote-box {
             margin: 3px;
@@ -158,27 +157,27 @@ body {
 }
 
 .char-opt {
-    display:inline-block;
-    border-radius:30%;
-    & > div{
-        width:60px;
-        height:60px;
-        background-size:contain;
-        cursor:pointer;
-        transition-duration:.2s;
-        filter:saturate(0);
-        border-radius:30%;
-        &:hover{
-            filter:'none';
-            box-shadow:3px 3px 6px #333;
+    display: inline-block;
+    border-radius: 30%;
+    &>div {
+        width: 60px;
+        height: 60px;
+        background-size: contain;
+        cursor: pointer;
+        transition-duration: .2s;
+        filter: saturate(0);
+        border-radius: 30%;
+        &:hover {
+            filter: 'none';
+            box-shadow: 3px 3px 6px #333;
         }
     }
-    & > input {
+    &>input {
         visibility: hidden;
     }
-    & > input:checked + div{
-        filter:'none';
-        box-shadow:3px 3px 6px #333;
+    &>input:checked+div {
+        filter: 'none';
+        box-shadow: 3px 3px 6px #333;
     }
 }
 
@@ -195,32 +194,50 @@ $races: Asura Charr Human Norn Sylvari;
         background-image:url('../img/races/#{$race}.png');
     }
 }
-.is-grey-md{
-    background:hsl(0, 0%, 50%);
+
+.is-grey-md {
+    background: hsl(0, 0%, 50%);
 }
-.char-stat-img{
-    height:20px;
-    width:auto;
+
+.char-stat-img {
+    height: 20px;
+    width: auto;
 }
-.checkbox{
-    display:block;
-    transition-duration:.2s;
-    &:hover{
-        background:#eee!important;
+
+.checkbox {
+    display: block;
+    transition-duration: .2s;
+    &:hover {
+        background: #eee!important;
     }
 }
-.chr-list{
-    border-radius:3px;
+
+.chr-list {
+    border-radius: 3px;
     border: 1px solid #999;
-    padding:2px;
-    text-align:center;
+    padding: 2px;
+    text-align: center;
 }
-.usr-list-pic{
-    max-height:80px;
-    width:auto;
+
+.usr-list-pic {
+    max-height: 80px;
+    width: auto;
 }
-#chat-container{
-    height:80%;
+
+#chat-container {
+    height: 80%;
     overflow-y: scroll;
-    background:rgba(0,0,0,.5)
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.halp {
+    background: rgba(0, 0, 0, 0.5);
+    & strong,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+        color: #fff!important;
+    }
 }

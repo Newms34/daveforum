@@ -1,4 +1,4 @@
-app.controller('forum-cont', function($scope, $http, userFact, $state) {
+app.controller('forum-cont', function($scope, $http, $state) {
     $scope.currMsg = 0;
     $scope.forObj = {};
     if (!localStorage.brethUsr) {

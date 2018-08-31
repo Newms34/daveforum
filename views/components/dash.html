@@ -189,6 +189,7 @@
             <table class="table is-fullwidth has-background-grey-darker has-text-white">
                 <thead>
                     <tr>
+                        <th>&nbsp;</th>
                         <th>Name</th>
                         <th>Send Message</th>
                         <th>Characters</th>
@@ -199,6 +200,7 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat='u in allUsers' ng-if='u.user!=user.user || showDups'>
+                        <td><i class="fa fa-circle" style='color:{{u.online?"#0f0":"#300"}};' title='{{u.user}} is {{u.online?"":"not "}}online!'></i></td>
                         <td><img class='usr-list-pic' src="{{u.avatar||defaultPic}}">
                             <br>{{u.user}}</td>
                         <td>
