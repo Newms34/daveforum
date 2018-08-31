@@ -241,3 +241,16 @@ $races: Asura Charr Human Norn Sylvari;
         color: #fff!important;
     }
 }
+
+.hideable-input {
+    transition-duration: .2s;
+    &.hide-input {
+        width: 0%;
+        height:0;
+        opacity: 0%;
+    }
+    & .int-srch-btn{
+        background-size:contain;
+        background-repeat:no-repeat;
+    }
+}

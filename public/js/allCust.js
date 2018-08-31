@@ -611,6 +611,31 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
             }, 500)
         }
         //end info stuff
+        //search stuff
+        $scope.memNameSort = false;
+        $scope.charSearch='';
+        $scope.pickedInts = [false,false,false,false,false,false];
+        $scope.intSearchToggle=false;
+        $scope.charSearchToggle=false;
+        $scope.memFilter= (m)=>{
+            if($scope.charSearch && !hasChars.length){
+                return false;
+            }
+            if($scope.pickedInts.filter(r=>!!r).length){
+                //picked some interests
+                let okay = true;
+                $scope.pickedInts.forEach((intr,idx)=>{
+                    if(!!intr && !m.ints[idx]){
+                        okay=false;
+                    }
+                })
+                if(!okay){
+                    return false;
+                }
+            }
+            return true;
+        }
+        //end search stuff
         $http.get('/user/allUsrs')
             .then((au) => {
                 console.log('all users is', au)
@@ -1205,16 +1230,19 @@ app.controller('nav-cont',function($scope,$http,$state){
             }
         })
     }
+        $scope.gotLogMsg=false;
     socket.on('doLogout',function(r){
         //force logout (likely due to app change)
         console.log('APP REQUESTED LOGOUT:',$state.current)
-        if($state.current.name=='appSimp.login'||$state.current.name=='appSimp.register'){
-            //don't force logout if we're already logged out!
+        if($state.current.name=='appSimp.login'||$state.current.name=='appSimp.register' || $scope.gotLogMsg){
+            //don't force logout if we're already logged out, or if we've already got the msg
             return false;
         }
+        $scope.gotLogMsg=true;
         bulmabox.alert(`App Restarting`,`Hi! I've made some sort of change just now to make this app more awesome! Unfortunately, this also means I've needed to restart it. I'm gonna log you out now.`,function(r){
             console.log('herez where user wud b logged out');
             $http.get('/user/logout').then(function(r){
+                $scope.gotLogMsg=false;
                 $state.go('appSimp.login',{},{reload:true})
             })
         })

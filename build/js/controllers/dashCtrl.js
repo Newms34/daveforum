@@ -114,6 +114,31 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
             }, 500)
         }
         //end info stuff
+        //search stuff
+        $scope.memNameSort = false;
+        $scope.charSearch='';
+        $scope.pickedInts = [false,false,false,false,false,false];
+        $scope.intSearchToggle=false;
+        $scope.charSearchToggle=false;
+        $scope.memFilter= (m)=>{
+            if($scope.charSearch && !hasChars.length){
+                return false;
+            }
+            if($scope.pickedInts.filter(r=>!!r).length){
+                //picked some interests
+                let okay = true;
+                $scope.pickedInts.forEach((intr,idx)=>{
+                    if(!!intr && !m.ints[idx]){
+                        okay=false;
+                    }
+                })
+                if(!okay){
+                    return false;
+                }
+            }
+            return true;
+        }
+        //end search stuff
         $http.get('/user/allUsrs')
             .then((au) => {
                 console.log('all users is', au)

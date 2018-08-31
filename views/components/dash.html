@@ -190,16 +190,26 @@
                 <thead>
                     <tr>
                         <th>&nbsp;</th>
-                        <th>Name</th>
+                        <th>Name <button class='button is-tiny is-grey' ng-click='memNameSort=!memNameSort'><i class="fa fa-caret-up" ng-if='memNameSort'></i><i class="fa fa-caret-down" ng-if='!memNameSort'></i></button></th>
                         <th>Send Message</th>
-                        <th>Characters</th>
-                        <th>Game Modes</th>
+                        <th>Characters
+                            <button class="button is-tiny" ng-click='charSearchToggle=!charSearchToggle'><i class="fa fa-search"></i></button>
+                            <input type="text" class='input hideable-input' ng-model='charSearch' ng-class="{'hide-input':!charSearchToggle}">
+                        </th>
+                        <th>Game Modes <button class="button is-tiny" ng-click='intSearchToggle=!intSearchToggle'><i class="fa fa-search"></i></button>
+                            <div class='hideable-input card' ng-class="{'hide-input':!intSearchToggle}">
+                                <h4>Sort by Game Mode</h4>
+                                <button class='button is-small int-srch-btn' title='{{pi.name}}' ng-repeat='pi in possibleInterests' style='background-image: url("./img/interestIcons/{{pi.icon}}");' ng-class="{'has-background-grey-darker':pickedInts[$index]==true}" ng-click='pickedInts[$index]=!pickedInts[$index]'>&nbsp;</button>
+                                <br>
+                                <button class='button has-background-grey' ng-click='pickedInts=[false,false,false,false,false,false]'>Reset</button>
+                            </div>
+                        </th>
                         <th>Acct Status</th>
                         <th>Other Notes</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat='u in allUsers' ng-if='u.user!=user.user || showDups'>
+                    <tr ng-repeat='u in allUsers|filter:memFilter | orderBy:name:memNameSort' ng-if='u.user!=user.user || showDups'>
                         <td><i class="fa fa-circle" style='color:{{u.online?"#0f0":"#300"}};' title='{{u.user}} is {{u.online?"":"not "}}online!'></i></td>
                         <td><img class='usr-list-pic' src="{{u.avatar||defaultPic}}">
                             <br>{{u.user}}</td>
