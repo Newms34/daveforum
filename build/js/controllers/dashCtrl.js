@@ -20,6 +20,7 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                     c.active = true;
                 }
             })
+            $scope.numUnreadMsgs = u.msgs.filter(m=>!m.read).length;
         }
         $scope.tabs = [{
             name: 'Profile/Characters',
@@ -400,8 +401,11 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                 }, `<button class='button is-info' onclick='bulmabox.runCb(bulmabox.params.cb)'>Send</button><button class='button is-danger' onclick='bulmabox.kill("bulmabox-diag")'>Cancel</button>`)
         }
         $scope.viewMsg = (m) => {
-            console.log('user wishes to view msg', m)
             bulmabox.alert(`Message from ${m.from}`, m.msg || '(No message)')
+            $http.get('/user/setOneRead?id='+m._id)
+                .then(r=>{
+                    $scope.doUser(r.data);
+                })
         }
         $scope.delMsg = (m) => {
             console.log('user wishes to delete msg', m)

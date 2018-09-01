@@ -8,6 +8,7 @@
             <table class='table striped has-background-grey is-fullwidth has-text-white'>
                 <thead>
                     <tr>
+                        <th>&nbsp;</th>
                         <th>
                             Thread
                         </th>
@@ -17,13 +18,25 @@
                         <th>
                             Last Post Time
                         </th>
+                        <th ng-if='user.mod'>
+                            Actions
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat='thr in threads track by $index' ui-sref='app.forumThr({t:thr._id})' class='pokey thrd-inst'>
+                    <tr ng-repeat='thr in threads track by $index' ui-sref='app.forumThr({t:thr._id,c:thr.grp})' class='pokey thrd-inst'>
+                        <td><i class="fa fa-thumb-tack" ng-if='thr.stickied' title='This thread has been stickied by a mod!'></i>&nbsp;<i class="fa fa-lock" ng-if='!thr.open' title='This thread has been locked by a mod!'></i></td>
                         <td>{{thr.title}}</td>
                         <td>{{thr.user}}</td>
                         <td>{{thr.time.toLocaleString()||'N/A'}}</td>
+                        <td ng-if='user.mod'>
+                            <button class='button is-light is-small' ng-click='toggleSticky($event,thr._id);'>
+                                <i class="fa fa-thumb-tack" title='Sticky/unsticky thread' ng-click='$event.preventDefault()'></i>
+                            </button> &nbsp;
+                            <button class='button is-danger is-small' ng-click='toggleLock($event,thr._id);'>
+                                <i class="fa fa-lock" title='Lock/unlock thread' ng-click='$event.preventDefault()'></i>
+                            </button>
+                        </td>
                     </tr>
                     <tr ng-if='!threads || !threads.length'>
                         <td colspan='3' class='has-text-centered'>
@@ -70,22 +83,22 @@
                         <div class="file is-centered">
                             <label class="file-label">
                                 <!-- <input class="file-input" type="file" ng-model='newThr.file' ng-click='loadingFile=true' onchange="angular.element(this).scope().loadFile()"> -->
-                                <input class='file-input' type="file" fileread="newThr.file" onchange="angular.element(this).scope().loadFile()"/>
+                                <input class='file-input' type="file" fileread="newThr.file" onchange="angular.element(this).scope().loadFile()" />
                                 <span class="file-cta">
-      								<span class="file-icon">
-        								<i class="fa fa-upload"></i>
-      								</span>
+                                    <span class="file-icon">
+                                        <i class="fa fa-upload"></i>
+                                    </span>
                                 <span class="file-label">
-        								{{fileName?fileName:'Include an image (optional)…'}}
-      								</span>
+                                        {{fileName?fileName:'Include an image (optional)…'}}
+                                    </span>
                                 </span>
                             </label>
                         </div>
                     </div>
                     <div class="field">
-                            <div class="column is-one-quarter"></div>
-                            <button class='is-fullwidth button is-grey-lighter' ng-disabled='loadingFile' ng-click='makeThread()'><i class='fa fa-check'></i>&nbsp;Create Thread</button>
-                            <button class='is-fullwidth button is-grey-md has-text-white' ng-click='clearThread()'><i class='fa fa-times'></i>&nbsp;Cancel</button>
+                        <div class="column is-one-quarter"></div>
+                        <button class='is-fullwidth button is-grey-lighter' ng-disabled='loadingFile' ng-click='makeThread()'><i class='fa fa-check'></i>&nbsp;Create Thread</button>
+                        <button class='is-fullwidth button is-grey-md has-text-white' ng-click='clearThread()'><i class='fa fa-times'></i>&nbsp;Cancel</button>
                     </div>
                 </div>
             </div>

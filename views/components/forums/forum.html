@@ -35,14 +35,14 @@
             	<div class='message is-light' ng-if='searchResults && searchResults.thrds && searchResults.thrds.length'>
             		<div class="message-header">Threads</div>
             		<div class="message-body has-background-grey has-text-white">
-            			<div class="notification has-background-grey-darker pokey" ng-repeat='thrd in searchResults.thrds' ng-bind-html='thrd.title' ui-sref='app.forumThr({t:thrd._id})'></div>
+            			<div class="notification has-background-grey-darker pokey" ng-repeat='thrd in searchResults.thrds' ng-bind-html='thrd.title' ui-sref='app.forumThr({t:thrd._id,c:thrd.grp})'></div>
             		</div>
             	</div>
             	<div class='message is-light' ng-if='searchResults && searchResults.psts && searchResults.psts.length'>
             		<div class="message-header">Posts</div>
             		<div class="message-body has-background-grey has-text-white">
             			<!-- {{searchResults.psts}} -->
-            			<div class="notification has-background-grey-darker pokey" ng-repeat='pst in searchResults.psts' ng-bind-html='pst.text' ui-sref='app.forumThr({t:pst.thread})'></div>
+            			<div class="notification has-background-grey-darker pokey" ng-repeat='pst in searchResults.psts' ng-bind-html='pst.text' ui-sref='app.forumThr({t:pst.thread,c:pst.thrGrp})'></div>
             		</div>
             	</div>
             	<br>

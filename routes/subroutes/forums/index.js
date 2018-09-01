@@ -21,7 +21,7 @@ const express = require('express'),
         }
     },
     isMod = (req, res, next) => {
-        mongoose.model('User').findOne({ name: req.session.user.user }, function(err, usr) {
+        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
             if (!err && usr.mod) {
                 next();
             } else {
@@ -48,7 +48,7 @@ const routeExp = function(io) {
     // })
     router.post('/newThread', authbit, (req, res, next) => {
         mongoose.model('thread').find({ title: req.body.title }, function(err, thr) {
-            console.log('THREAD',req.body)
+            console.log('THREAD', req.body)
             if (thr && thr.length) {
                 res.send('err');
             } else {
@@ -160,7 +160,7 @@ const routeExp = function(io) {
         if (!req.body.thread) res.status(400).send('err');
         mongoose.model('thread').findOne({ _id: req.body.thread }, (err, thrd) => {
             const thrdLen = thrd.posts.length;
-            if (err || !thrd) {
+            if (err || !thrd || !thrd.open) {
                 res.status(400).send('err');
             } else {
                 mongoose.model('post').create({
@@ -227,19 +227,53 @@ const routeExp = function(io) {
             res.send(thrds || {});
         })
     })
-    router.post('/searchThr',(req,res,next)=>{
-        if(!req.body.term){
+    router.post('/searchThr', (req, res, next) => {
+        if (!req.body.term) {
             res.status(400).send('err');
         }
-        console.log("Lookin for",req.body.term)
+        console.log("Lookin for", req.body.term)
         //First we search by thread title, THEN by individual posts
-        mongoose.model('thread').find({$text:{$search:req.body.term}},function(err,thrds){
-            console.log('ERR?',err)
+        mongoose.model('thread').find({ $text: { $search: req.body.term } }, function(err, thrds) {
+            console.log('ERR?', err)
             // res.send(thrd)
-            mongoose.model('post').find({$text:{$search:req.body.term}},function(err,psts){
-                // //need to re-find each thread 'title' for 
-                // psts.forEach
-                res.send({thrds:thrds,psts:psts})
+            mongoose.model('post').find({ $text: { $search: req.body.term } }, function(err, psts) {
+                // //need to re-find each thread 'cat' for posts
+                console.log('threads for these posts:', _.uniqBy(psts, 'thread').map(p => p.thread))
+                mongoose.model('thread').find({ _id: { $in: _.uniqBy(psts, 'thread').map(p => p.thread) } }, function(err, pt) {
+                    console.log('threads for these posts', pt)
+                    //pt is list of threads for posts. psts is list of posts that match initial search terms
+                    let pstsOut = psts.map(p => {
+                        let theThread = pt.filter(tf => tf._id == p.thread)[0],
+                            pn ={};
+                        console.log('Doin post', p, 'for thread', theThread)
+                        pn.thrTitle = theThread.title;
+                        pn.thrGrp = theThread.grp;
+                        ['createDate','lastUpd','file','profPic','_id','text','md','user','thread'].forEach(term=>{
+                            pn[term]=p[term];
+                        })
+                        console.log('PN now',pn)
+                        return pn;
+                    })
+                    res.send({ thrds: thrds, psts: pstsOut })
+                })
+            })
+        })
+    })
+    //thread status toggles
+    router.get('/toggleLock', authbit, isMod, (req, res, next) => {
+        mongoose.model('thread').findOne({ _id: req.query.id }, (err, thr) => {
+            thr.open = !thr.open;
+            thr.save((err, resp) => {
+                res.send('done');
+            })
+        })
+    })
+    router.get('/toggleSticky', authbit, isMod, (req, res, next) => {
+        mongoose.model('thread').findOne({ _id: req.query.id }, (err, thr) => {
+            thr.stickied = !thr.stickied;
+            thr.save((err, resp) => {
+                console.log('Toggled thread sticky! now is', thr.stickied)
+                res.send('done');
             })
         })
     })

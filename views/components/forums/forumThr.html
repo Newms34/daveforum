@@ -29,7 +29,7 @@
             </div>
         </div>
         <div class="panel-footer">
-            <div class='new-post-bx content'>
+            <div class='new-post-bx content' ng-if='thr.open'>
                 <h4 class='has-text-white'>Add Something</h4>
                 <textarea class='textarea is-fullwidth' id='postTxt' placeholder="Say something!"></textarea>
                 <hr>
@@ -50,6 +50,9 @@
                         </div>
                     </div>
                 <button class="button is-light" ng-click='newPost()'><i class='fa fa-plus'></i>&nbsp;Post</button>
+            </div>
+            <div class="notification has-background-grey-darker has-text-white">
+                (This thread has been locked by a mod!)
             </div>
         </div>
     </div>
