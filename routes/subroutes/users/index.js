@@ -76,8 +76,8 @@ var routeExp = function(io) {
                 console.log('RESULT', r.data)
                 let modes = ['pve', 'pvp', 'wvw', 'fractals', 'special'];
                 mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
-                    const minUsrLvl = usr.chars?_.minBy(usr.chars, 'lvl').lvl:1,
-                        maxUsrLvl = usr.chars?_.maxBy(usr.chars, 'lvl').lvl:80;
+                    const minUsrLvl = usr.chars && usr.chars.length?_.minBy(usr.chars, 'lvl').lvl:1,
+                        maxUsrLvl = usr.chars && usr.chars.length?_.maxBy(usr.chars, 'lvl').lvl:80;
                     modes.forEach(mode => r.data[mode] = r.data[mode].filter(dl => {
                         console.log('Lookin at daily', dl.id, dl.level.min, dl.level.max, minUsrLvl, maxUsrLvl)
                         //1,80 daily vs 48,80 usr

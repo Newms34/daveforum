@@ -12,9 +12,9 @@ app.controller('forum-thr-cont', function($scope, $http, $state, $location, $sce
        $scope.loadingFile= true;
        const fr = new FileReader();
     }
-    $scope.currCat = $location.search().c;
+    // $scope.currCat = $location.search().c;
     $scope.id = $location.search().t;
-    console.log($scope.currCat,)
+    // console.log($scope.currCat,)
     $scope.refThred = () => {
         console.log('info to back:',$scope.id)
         $http.get('/forum/thread?id=' + $scope.id)

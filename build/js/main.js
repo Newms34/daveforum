@@ -50,7 +50,7 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', functio
             })
             .state('app.forumThr', {
                 //indiv Thread
-                url: '/forumThr?c&t',
+                url: '/forumThr?t',
                 templateUrl: 'components/forums/forumThr.html'
             })
 

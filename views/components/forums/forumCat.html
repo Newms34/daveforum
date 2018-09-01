@@ -20,7 +20,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat='thr in threads track by $index' ui-sref='app.forumThr({c:currCat,t:thr._id})' class='pokey thrd-inst'>
+                    <tr ng-repeat='thr in threads track by $index' ui-sref='app.forumThr({t:thr._id})' class='pokey thrd-inst'>
                         <td>{{thr.title}}</td>
                         <td>{{thr.user}}</td>
                         <td>{{thr.time.toLocaleString()||'N/A'}}</td>
