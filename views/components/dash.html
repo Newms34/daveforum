@@ -2,15 +2,23 @@
     <!--     ITEMS ON DASHBOARD: admin panel table (list of users, with buttons to ban/unban and make admin. NO button to 'unadmin'). list of chars on this acct msg center -->
     <h3 class='is-size-4 is-full'>Dashboard: {{user.user}}</h3>
     <div class='tabs is-fullwidth is-boxed'>
-        <ul>
+        <ul class='is-flex-mobile'>
             <li ng-repeat='tab in tabs' ng-class='{"is-active":currTab==tab.name}'>
                 <a href="#" ng-click='showTab(tab.name)' class=''>
                     <i class="fa fa-{{tab.icon}}"></i>&nbsp;
-                    {{tab.name}}
+                    <span class="is-hidden-mobile">{{tab.name}}</span>
                 </a>
             </li>
         </ul>
     </div>
+   <!--  <div class='is-fullwidth is-boxed is-hidden-tablet full-tab'>
+        <div ng-repeat='tab in tabs' ng-class='{"is-active":currTab==tab.name}'>
+            <a href="#" ng-click='showTab(tab.name)' class=''>
+                    <i class="fa fa-{{tab.icon}}"></i>&nbsp;
+                    {{tab.name}}
+                </a>
+        </div>
+    </div> -->
     <!--     <div class='columns is-8 has-text-white'> -->
     <div class="panel dash-panel" ng-show='currTab=="Profile/Characters"'>
         <div class="panel-heading has-text-white has-background-grey-darker">

@@ -10,6 +10,7 @@ app.controller('nav-cont',function($scope,$http,$state){
             }
         })
     }
+    $scope.mobActive=false;
         $scope.gotLogMsg=false;
     socket.on('doLogout',function(r){
         //force logout (likely due to app change)

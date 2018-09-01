@@ -20,6 +20,7 @@ body {
     color: #fff; // background: #000;
     // background-attachment: fixed;
 }
+
 // .small-notif{
 //     padding: 0.625rem 1.25rem 0.625rem 0.75rem;
 //     display:inline-block;
@@ -253,16 +254,33 @@ $races: Asura Charr Human Norn Sylvari;
     transition-duration: .2s;
     &.hide-input {
         width: 0%;
-        height:0;
+        height: 0;
         opacity: 0%;
     }
-    & .int-srch-btn{
-        background-size:contain;
-        background-repeat:no-repeat;
+    & .int-srch-btn {
+        background-size: contain;
+        background-repeat: no-repeat;
     }
 }
 
-.achieve-box{
-    color:#fff;
-    background:#2e0c0c;
+.achieve-box {
+    color: #fff;
+    background: #2e0c0c;
+}
+
+// .full-tab {
+//     div {
+
+//         border: 1px solid transparent;
+//         border-radius: 4px 4px 0 0;
+//         width: 100%;
+//         &:hover {
+//             background: #f5f5f5;
+//             border-bottom-color: #dbdbdb;
+//         }
+//     }
+// }
+
+.navbar-burger {
+    color: #fff!important;
 }
