@@ -154,9 +154,11 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         socket.on('allNames', function(r) {
             // console.log('ALL NAMES SOCKET SAYS', r)
             r = r.map(nm => nm.name);
-            $scope.allUsers.forEach(usr => {
-                usr.online = r.indexOf(usr.user) > -1 || usr.user == $scope.user.user;
-            })
+            if ($scope.allUser) {
+                $scope.allUsers.forEach(usr => {
+                    usr.online = r.indexOf(usr.user) > -1 || usr.user == $scope.user.user;
+                })
+            }
             $scope.$digest();
         })
         $scope.showTab = (t) => {
@@ -432,8 +434,8 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         //dailies tab!
         $scope.dailyRestrict = {};
         $scope.regetDaily = () => {
-            const spd = Object.keys($scope.dailyRestrict).filter(sp=>$scope.dailyRestrict[sp]);
-            $http.get('/user/daily'+(spd.length?'?modes='+spd.join(','):'')).then(r => {
+            const spd = Object.keys($scope.dailyRestrict).filter(sp => $scope.dailyRestrict[sp]);
+            $http.get('/user/daily' + (spd.length ? '?modes=' + spd.join(',') : '')).then(r => {
                 $scope.dailies = r.data;
             })
         }

@@ -43,11 +43,12 @@ const express = require('express'),
 
 
 const routeExp = function(io) {
-    router.post('/uploadFile', upload.any(), (req, res, next) => {
-        res.send(req.files)
-    })
+    // router.post('/uploadFile', upload.any(), (req, res, next) => {
+    //     res.send(req.files)
+    // })
     router.post('/newThread', authbit, (req, res, next) => {
         mongoose.model('thread').find({ title: req.body.title }, function(err, thr) {
+            console.log('THREAD',req.body)
             if (thr && thr.length) {
                 res.send('err');
             } else {
@@ -224,6 +225,22 @@ const routeExp = function(io) {
         mongoose.model('thread').find({ grp: req.query.grp }, function(err, thrds) {
             if (err) res.send('err')
             res.send(thrds || {});
+        })
+    })
+    router.post('/searchThr',(req,res,next)=>{
+        if(!req.body.term){
+            res.status(400).send('err');
+        }
+        console.log("Lookin for",req.body.term)
+        //First we search by thread title, THEN by individual posts
+        mongoose.model('thread').find({$text:{$search:req.body.term}},function(err,thrds){
+            console.log('ERR?',err)
+            // res.send(thrd)
+            mongoose.model('post').find({$text:{$search:req.body.term}},function(err,psts){
+                // //need to re-find each thread 'title' for 
+                // psts.forEach
+                res.send({thrds:thrds,psts:psts})
+            })
         })
     })
     return router;

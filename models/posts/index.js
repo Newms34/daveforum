@@ -10,4 +10,5 @@ var postSchema = new mongoose.Schema({
     file:{type:String,default:null},
     profPic:{type:String,default:null}
 }, { collection: 'post' });
+postSchema.index({md:'text'});
 mongoose.model('post', postSchema);

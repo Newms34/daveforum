@@ -16,4 +16,5 @@ const threadSchema = new mongoose.Schema({
         votesDown: [String]
     }]
 }, { collection: 'thread' });
+threadSchema.index({title:'text'});
 mongoose.model('thread', threadSchema);

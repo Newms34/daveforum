@@ -32,7 +32,7 @@ app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
         $http.post('/forum/newThread',$scope.newThr)
         .then(function(r){
             console.log('new thred response', r )
-            //$state.go($state.current, {}, {reload: true});
+            $state.go($state.current, {}, {reload: true});
         })
     }
 })

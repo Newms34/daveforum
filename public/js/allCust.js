@@ -593,9 +593,11 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         socket.on('allNames', function(r) {
             // console.log('ALL NAMES SOCKET SAYS', r)
             r = r.map(nm => nm.name);
-            $scope.allUsers.forEach(usr => {
-                usr.online = r.indexOf(usr.user) > -1 || usr.user == $scope.user.user;
-            })
+            if ($scope.allUser) {
+                $scope.allUsers.forEach(usr => {
+                    usr.online = r.indexOf(usr.user) > -1 || usr.user == $scope.user.user;
+                })
+            }
             $scope.$digest();
         })
         $scope.showTab = (t) => {
@@ -871,8 +873,8 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         //dailies tab!
         $scope.dailyRestrict = {};
         $scope.regetDaily = () => {
-            const spd = Object.keys($scope.dailyRestrict).filter(sp=>$scope.dailyRestrict[sp]);
-            $http.get('/user/daily'+(spd.length?'?modes='+spd.join(','):'')).then(r => {
+            const spd = Object.keys($scope.dailyRestrict).filter(sp => $scope.dailyRestrict[sp]);
+            $http.get('/user/daily' + (spd.length ? '?modes=' + spd.join(',') : '')).then(r => {
                 $scope.dailies = r.data;
             })
         }
@@ -922,7 +924,7 @@ app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
         $http.post('/forum/newThread',$scope.newThr)
         .then(function(r){
             console.log('new thred response', r )
-            //$state.go($state.current, {}, {reload: true});
+            $state.go($state.current, {}, {reload: true});
         })
     }
 })
@@ -937,7 +939,7 @@ app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
 //         console.log(fr.result)
 //     })
 // }
-app.controller('forum-cont', function($scope, $http, $state) {
+app.controller('forum-cont', function($scope, $http, $state,$sce) {
     $scope.currMsg = 0;
     $scope.forObj = {};
     if (!localStorage.brethUsr) {
@@ -946,20 +948,39 @@ app.controller('forum-cont', function($scope, $http, $state) {
     }
     //how do we wanna structure the forum obj?
     //structure is gonna be categories --> threads ---> indiv posts
-        //main page
-        $http.get('/forum/cats')
-            .then((r) => {
-                const forCats = Object.keys(r.data);
-                $scope.forObj = forCats.map(ct => {
-                    return {
-                        name: ct,
-                        count: r.data[ct].n,
-                        time: r.data[ct] > 0 ? new Date(r.data[ct]) : null
-                    }
-                })
+    //main page
+    $http.get('/forum/cats')
+        .then((r) => {
+            const forCats = Object.keys(r.data);
+            $scope.forObj = forCats.map(ct => {
+                return {
+                    name: ct,
+                    count: r.data[ct].n,
+                    time: r.data[ct] > 0 ? new Date(r.data[ct]) : null
+                }
             })
-    $scope.goCat = function(n){
-    	$state.go('app.forumCat',{c:n})
+        })
+    //search stuffs
+    $scope.searchin=false;
+    $scope.search = '';
+    $scope.searchTimer = null;
+    $scope.doSearch = () => {
+        if ($scope.searchTimer) {
+            clearTimeout($scope.searchTimer);
+        }
+        $scope.searchTimer = setTimeout(function() {
+            if ($scope.search && $scope.search.length) {
+                $http.post('/forum/searchThr', { term: $scope.search })
+                    .then(r => {
+                        console.log('search response', r);
+                        $scope.searchResults = r.data;
+                    })
+            }
+        }, 500)
+    }
+    //end search stuff
+    $scope.goCat = function(n) {
+        $state.go('app.forumCat', { c: n })
     }
 })
 app.controller('forum-thr-cont', function($scope, $http, $state, $location, $sce) {

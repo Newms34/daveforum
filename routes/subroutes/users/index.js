@@ -76,8 +76,8 @@ var routeExp = function(io) {
                 console.log('RESULT', r.data)
                 let modes = ['pve', 'pvp', 'wvw', 'fractals', 'special'];
                 mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
-                    const minUsrLvl = _.minBy(usr.chars, 'lvl').lvl,
-                        maxUsrLvl = _.maxBy(usr.chars, 'lvl').lvl;
+                    const minUsrLvl = usr.chars?_.minBy(usr.chars, 'lvl').lvl:1,
+                        maxUsrLvl = usr.chars?_.maxBy(usr.chars, 'lvl').lvl:80;
                     modes.forEach(mode => r.data[mode] = r.data[mode].filter(dl => {
                         console.log('Lookin at daily', dl.id, dl.level.min, dl.level.max, minUsrLvl, maxUsrLvl)
                         //1,80 daily vs 48,80 usr
@@ -97,15 +97,15 @@ var routeExp = function(io) {
                     //now have a list of all desired achievs (or all achieves). Get actual info;
                     axios.get('https://api.guildwars2.com/v2/achievements?ids=' + achieveIds.join(','))
                         .then(ds => {
-                            _.each(modes,mdd=>{
-                                _.each(r.data[mdd],mdf=>{
-                                    const theDly = _.find(ds.data,{id:mdf.id})
-                                    mdf.desc = theDly.description;
-                                    mdf.name = theDly.name;
-                                    mdf.req = theDly.requirement;
-                                    mdf.pic=theDly.icon
-                                })
-                            })
+                            // _.each(modes,mdd=>{
+                            //     _.each(r.data[mdd],mdf=>{
+                            //         const theDly = _.find(ds.data,{id:mdf.id})
+                            //         mdf.desc = theDly.description;
+                            //         mdf.name = theDly.name;
+                            //         mdf.req = theDly.requirement;
+                            //         mdf.pic=theDly.icon
+                            //     })
+                            // })
                             // res.send(r.data)
                             res.send(ds.data)
                         })
