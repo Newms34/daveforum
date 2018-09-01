@@ -7,7 +7,7 @@ const express = require('express'),
     multer = require('multer'),
     session = require('express-session'),
     maxMsgLen = 50,
-    _=require('lodash'),
+    _ = require('lodash'),
     oid = mongoose.Types.ObjectId,
     cats = ['general', 'missions', 'random', 'management'],
     authbit = (req, res, next) => {
@@ -43,7 +43,7 @@ const express = require('express'),
 
 
 const routeExp = function(io) {
-    router.post('/uploadFile',upload.any(),(req,res,next)=>{
+    router.post('/uploadFile', upload.any(), (req, res, next) => {
         res.send(req.files)
     })
     router.post('/newThread', authbit, (req, res, next) => {
@@ -70,7 +70,7 @@ const routeExp = function(io) {
                         user: req.session.user.user,
                         thread: thrd._id,
                         grp: theCat,
-                        file:req.body.file
+                        file: req.body.file
                     }, function(err, thpst) {
                         thrd.posts.push({
                             id: thpst._id,
@@ -85,7 +85,7 @@ const routeExp = function(io) {
             }
         })
     });
-    router.get('/thread',authbit, (req, res, next) => {
+    router.get('/thread', authbit, (req, res, next) => {
         if (!req.query.id) {
             res.send('err');
             return false;
@@ -96,21 +96,21 @@ const routeExp = function(io) {
                 res.send('err');
             } else {
                 mongoose.model('post').find({ thread: thrd._id }, function(err, psts) {
-                    const usrList=_.map(_.uniqBy(psts,'user'),'user');
-                    console.log('RESULT OF usrList',usrList)
-                    mongoose.model('User').find({user:{$in:usrList}},function(err,ufp){
+                    const usrList = _.map(_.uniqBy(psts, 'user'), 'user');
+                    console.log('RESULT OF usrList', usrList)
+                    mongoose.model('User').find({ user: { $in: usrList } }, function(err, ufp) {
                         // console.log('results of user uniq stuff for thred',_.map(ufp,(u)=>{
                         //     return u.user+u.pass.length
                         // }),usrList);
                         // ufpr = ufp.map(u=>{
                         //     return {u:u.user,a:u.avatar||false}
                         // })
-                        let ufpa = _.zipObject(_.map(ufp,'user'),ufp.map(u=>u.avatar||false));
+                        let ufpa = _.zipObject(_.map(ufp, 'user'), ufp.map(u => u.avatar || false));
                         // console.log('USERS IN THIS THRED',ufpa)
                         // psts.forEach(function(psta){
                         //     psta.profPic = ufpa[psta.user];
                         // })
-                        res.send({ thrd: thrd, psts: psts ,ava:ufpa})
+                        res.send({ thrd: thrd, psts: psts, ava: ufpa })
                     })
                 })
             }
@@ -164,9 +164,9 @@ const routeExp = function(io) {
             } else {
                 mongoose.model('post').create({
                     text: req.body.text, //html
-                    md:req.body.md,
+                    md: req.body.md,
                     user: req.session.user.user,
-                    file:req.body.file||null,
+                    file: req.body.file || null,
                     thread: req.body.thread, //ID of parent thread.
                 }, (err, pst) => {
                     thrd.posts.push({

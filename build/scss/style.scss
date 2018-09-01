@@ -20,7 +20,14 @@ body {
     color: #fff; // background: #000;
     // background-attachment: fixed;
 }
-
+// .small-notif{
+//     padding: 0.625rem 1.25rem 0.625rem 0.75rem;
+//     display:inline-block;
+//     & label{
+//         margin-left:auto;
+//         margin-right:auto;
+//     }
+// }
 .calendar {
     width: 90%;
     position: relative;
@@ -253,4 +260,9 @@ $races: Asura Charr Human Norn Sylvari;
         background-size:contain;
         background-repeat:no-repeat;
     }
+}
+
+.achieve-box{
+    color:#fff;
+    background:#2e0c0c;
 }

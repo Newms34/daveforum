@@ -45,7 +45,8 @@
                                 </label>
                             </div>
                         </div>
-                        <br><br>
+                        <br>
+                        <br>
                         <label class="label">
                             Time zone
                             <div class="select">
@@ -112,7 +113,8 @@
                     </tr>
                     <tr>
                         <td colspan='6'>
-                            <button class="button is-light" ng-click='addChar()'><i class='fa fa-plus'></i>&nbsp;Add Character</button>&nbsp;<button class="button is-grey-md has-text-white" ng-click='autoChars()'><i class="fa fa-cogs"></i>&nbsp;Auto-Populate</button>
+                            <button class="button is-light" ng-click='addChar()'><i class='fa fa-plus'></i>&nbsp;Add Character</button>&nbsp;
+                            <button class="button is-grey-md has-text-white" ng-click='autoChars()'><i class="fa fa-cogs"></i>&nbsp;Auto-Populate</button>
                         </td>
                     </tr>
                 </tbody>
@@ -190,13 +192,16 @@
                 <thead>
                     <tr>
                         <th>&nbsp;</th>
-                        <th>Name <button class='button is-tiny is-grey' ng-click='memNameSort=!memNameSort'><i class="fa fa-caret-up" ng-if='memNameSort'></i><i class="fa fa-caret-down" ng-if='!memNameSort'></i></button></th>
+                        <th>Name
+                            <button class='button is-tiny is-grey' ng-click='memNameSort=!memNameSort'><i class="fa fa-caret-up" ng-if='memNameSort'></i><i class="fa fa-caret-down" ng-if='!memNameSort'></i></button>
+                        </th>
                         <th>Send Message</th>
                         <th>Characters
                             <button class="button is-tiny" ng-click='charSearchToggle=!charSearchToggle'><i class="fa fa-search"></i></button>
                             <input type="text" class='input hideable-input' ng-model='charSearch' ng-class="{'hide-input':!charSearchToggle}">
                         </th>
-                        <th>Game Modes <button class="button is-tiny" ng-click='intSearchToggle=!intSearchToggle'><i class="fa fa-search"></i></button>
+                        <th>Game Modes
+                            <button class="button is-tiny" ng-click='intSearchToggle=!intSearchToggle'><i class="fa fa-search"></i></button>
                             <div class='hideable-input card' ng-class="{'hide-input':!intSearchToggle}">
                                 <h4>Sort by Game Mode</h4>
                                 <button class='button is-small int-srch-btn' title='{{pi.name}}' ng-repeat='pi in possibleInterests' style='background-image: url("./img/interestIcons/{{pi.icon}}");' ng-class="{'has-background-grey-darker':pickedInts[$index]==true}" ng-click='pickedInts[$index]=!pickedInts[$index]'>&nbsp;</button>
@@ -241,6 +246,39 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+    <div class="panel dash-panel" ng-show='currTab=="Dailies"'>
+        <div class="panel-heading has-text-white has-background-grey-darker">
+            <i class="fa fa-calendar-check-o"></i>&nbsp;Available Dailies
+        </div>
+        <div class="panel-block has-text-white">
+            <div class="notification has-background-grey-darker">Restrict by:&nbsp;
+                <button class='button is-light' ng-class='{"has-background-grey-lighter":dailyRestrict.pve}' ng-click='dailyRestrict.pve=!dailyRestrict.pve;regetDaily()'><i class="fa fa-square-o" ng-if='!dailyRestrict.pve'></i><i class="fa fa-check-square-o" ng-if='dailyRestrict.pve'></i> PvE
+                </button>
+                <button class='button is-light' ng-class='{"has-background-grey-lighter":dailyRestrict.pvp}' ng-click='dailyRestrict.pvp=!dailyRestrict.pvp;regetDaily()'><i class="fa fa-square-o" ng-if='!dailyRestrict.pvp'></i><i class="fa fa-check-square-o" ng-if='dailyRestrict.pvp'></i> PvP
+                </button>
+                <button class='button is-light' ng-class='{"has-background-grey-lighter":dailyRestrict.wvw}' ng-click='dailyRestrict.wvw=!dailyRestrict.wvw;regetDaily()'><i class="fa fa-square-o" ng-if='!dailyRestrict.wvw'></i><i class="fa fa-check-square-o" ng-if='dailyRestrict.wvw'></i> WvW
+                </button>
+                <button class='button is-light' ng-class='{"has-background-grey-lighter":dailyRestrict.fractals}' ng-click='dailyRestrict.fractals=!dailyRestrict.fractals;regetDaily()'><i class="fa fa-square-o" ng-if='!dailyRestrict.fractals'></i><i class="fa fa-check-square-o" ng-if='dailyRestrict.fractals'></i> Fractals
+                </button>
+                <button class='button is-light' ng-class='{"has-background-grey-lighter":dailyRestrict.special}' ng-click='dailyRestrict.special=!dailyRestrict.special;regetDaily()'><i class="fa fa-square-o" ng-if='!dailyRestrict.special'></i><i class="fa fa-check-square-o" ng-if='dailyRestrict.special'></i> Special
+                </button>
+            </div>
+            <div class="tile is-ancestor" style='flex-wrap:wrap;'>
+                <div class="tile is-6 is-12-mobile is-parent" ng-repeat='d in dailies'>
+                    <article class='tile is-child box achieve-box columns'>
+                        <div class="column is-one-fifth" ng-if='d.icon'>
+                            <img src="{{d.icon}}">
+                        </div>
+                        <div class="column is-four-fifths" ng-class='{"is-full":!d.icon}'>
+                            <p class="is-size-5">{{d.name}}</p>
+                            <p class="is-italic">{{d.description}}</p>
+                            <p class="notification has-background-grey-darker">{{d.requirement}}</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
         </div>
     </div>
 </div>

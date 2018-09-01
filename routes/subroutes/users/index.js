@@ -3,6 +3,7 @@ var router = express.Router(),
     path = require('path'),
     models = require('../../../models/'),
     async = require('async'),
+    _ = require('lodash'),
     mongoose = require('mongoose'),
     session = require('express-session'),
     axios = require('axios'),
@@ -33,7 +34,6 @@ var routeExp = function(io) {
             }
             next();
         } else {
-            
             res.status(401).send('err')
         }
     };
@@ -48,10 +48,73 @@ var routeExp = function(io) {
             }));
         })
     });
-    router.get('/setRead',this.authbit,(req,res,next)=>{
-        mongoose.model
+    router.get('/setOneRead', this.authbit, (req, res, next) => {
+        if (!req.query.id) {
+            res.send('err');
+        }
+        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
+            usr.msgs.filter(m => m._id == req.query.id)[0].read = true;
+            usr.save((errsv, usrsv) => {
+                res.send(usrsv);
+            })
+        })
     })
-
+    router.get('/setAllRead', this.authbit, (req, res, next) => {
+        if (!req.query.id) {
+            res.send('err');
+        }
+        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
+            usr.msgs.forEach(m => m.read = true);
+            usr.save((errsv, usrsv) => {
+                res.send(usrsv);
+            })
+        })
+    })
+    router.get('/daily', this.authbit, (req, res, next) => {
+        axios.get('https://api.guildwars2.com/v2/achievements/daily')
+            .then((r) => {
+                console.log('RESULT', r.data)
+                let modes = ['pve', 'pvp', 'wvw', 'fractals', 'special'];
+                mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
+                    const minUsrLvl = _.minBy(usr.chars, 'lvl').lvl,
+                        maxUsrLvl = _.maxBy(usr.chars, 'lvl').lvl;
+                    modes.forEach(mode => r.data[mode] = r.data[mode].filter(dl => {
+                        console.log('Lookin at daily', dl.id, dl.level.min, dl.level.max, minUsrLvl, maxUsrLvl)
+                        //1,80 daily vs 48,80 usr
+                        return dl.level.min <= maxUsrLvl && dl.level.max >= minUsrLvl;
+                    }))
+                    let achieveIds = [];
+                    if (req.query.modes) {
+                        const desiredModes = req.query.modes.split(',');
+                        _.difference(modes, desiredModes).forEach(umd => {
+                            delete r.data[umd];
+                        });
+                        modes = desiredModes;
+                    }
+                    _.each(modes, md => {
+                        achieveIds = _.uniq(achieveIds.concat(r.data[md].map(mdi => mdi.id)))
+                    })
+                    //now have a list of all desired achievs (or all achieves). Get actual info;
+                    axios.get('https://api.guildwars2.com/v2/achievements?ids=' + achieveIds.join(','))
+                        .then(ds => {
+                            _.each(modes,mdd=>{
+                                _.each(r.data[mdd],mdf=>{
+                                    const theDly = _.find(ds.data,{id:mdf.id})
+                                    mdf.desc = theDly.description;
+                                    mdf.name = theDly.name;
+                                    mdf.req = theDly.requirement;
+                                    mdf.pic=theDly.icon
+                                })
+                            })
+                            // res.send(r.data)
+                            res.send(ds.data)
+                        })
+                })
+            })
+            .catch((e) => {
+                res.status(400).send(e);
+            })
+    })
     router.get('/changeInterest', this.authbit, (req, res, next) => {
         mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
             console.log('INT status', req.query.act, 'FOR', parseInt(req.query.int), usr.ints, usr.ints[parseInt(req.query.int)], req.query.act == 'true')

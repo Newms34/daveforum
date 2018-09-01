@@ -530,6 +530,9 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         }, {
             name: 'Upcoming Events',
             icon: 'calendar'
+        }, {
+            name: 'Dailies',
+            icon: 'calendar-check-o'
         }]
         //PIC STUFF
         $scope.defaultPic = defaultPic;
@@ -613,23 +616,23 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         //end info stuff
         //search stuff
         $scope.memNameSort = false;
-        $scope.charSearch='';
-        $scope.pickedInts = [false,false,false,false,false,false];
-        $scope.intSearchToggle=false;
-        $scope.charSearchToggle=false;
-        $scope.memFilter= (m)=>{
-            if($scope.charSearch && !hasChars.length){
+        $scope.charSearch = '';
+        $scope.pickedInts = [false, false, false, false, false, false];
+        $scope.intSearchToggle = false;
+        $scope.charSearchToggle = false;
+        $scope.memFilter = (m) => {
+            if ($scope.charSearch && !hasChars.length) {
                 return false;
             }
-            if($scope.pickedInts.filter(r=>!!r).length){
+            if ($scope.pickedInts.filter(r => !!r).length) {
                 //picked some interests
                 let okay = true;
-                $scope.pickedInts.forEach((intr,idx)=>{
-                    if(!!intr && !m.ints[idx]){
-                        okay=false;
+                $scope.pickedInts.forEach((intr, idx) => {
+                    if (!!intr && !m.ints[idx]) {
+                        okay = false;
                     }
                 })
-                if(!okay){
+                if (!okay) {
                     return false;
                 }
             }
@@ -647,9 +650,9 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
             });
         socket.on('allNames', function(r) {
             // console.log('ALL NAMES SOCKET SAYS', r)
-            r = r.map(nm=>nm.name);
+            r = r.map(nm => nm.name);
             $scope.allUsers.forEach(usr => {
-                usr.online = r.indexOf(usr.user) > -1 || usr.user==$scope.user.user;
+                usr.online = r.indexOf(usr.user) > -1 || usr.user == $scope.user.user;
             })
             $scope.$digest();
         })
@@ -923,6 +926,15 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         $scope.viewEvent = (ev) => {
             bulmabox.alert(`Event: ${ev.title}`, `Date:${$filter('numToDate')(ev.eventDate)}<br>Description:${ev.text}`);
         }
+        //dailies tab!
+        $scope.dailyRestrict = {};
+        $scope.regetDaily = () => {
+            const spd = Object.keys($scope.dailyRestrict).filter(sp=>$scope.dailyRestrict[sp]);
+            $http.get('/user/daily'+(spd.length?'?modes='+spd.join(','):'')).then(r => {
+                $scope.dailies = r.data;
+            })
+        }
+        $scope.regetDaily();
     })
     .filter('numToDate', function() {
         return function(num) {
