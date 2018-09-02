@@ -12,8 +12,37 @@ Array.prototype.findUser = function(u) {
     }
     return -1;
 }
-
-app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', function($stateProvider, $urlRouterProvider, $locationProvider) {
+let hadDirect = false;
+const dcRedirect = ['$location', '$q', '$injector', function($location, $q, $injector) {
+    //if we get a 401 response, redirect to login
+    let currLoc = '';
+    return {
+        request: function(config) {
+            // console.log('STATE', $injector.get('$state'));
+            currLoc = $location.path();
+            return config;
+        },
+        requestError: function(rejection) {
+            return $q.reject(rejection);
+        },
+        response: function(result) {
+            return result;
+        },
+        responseError: function(response) {
+            console.log('Something bad happened!', response,currLoc, $location.path())
+            hadDirect = true;
+            bulmabox.alert(`App Restarting`, `Hi! I've made some sort of change just now to make this app more awesome! Unfortunately, this also means I've needed to restart it. I'm gonna log you out now.`, function(r) {
+                fetch('/user/logout')
+                    .then(r=>{
+                    hadDirect = false;
+                    $state.go('appSimp.login', {}, { reload: true })
+                    return $q.reject(response);
+                })
+            })
+        }
+    }
+}];
+app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpProvider', function($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider) {
         $locationProvider.html5Mode(true);
         $urlRouterProvider.otherwise('/404');
         $stateProvider
@@ -81,6 +110,8 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', functio
                 url: '/500',
                 templateUrl: 'components/alt/500.html'
             })
+        //http interceptor stuffs!
+        // $httpProvider.interceptors.push(dcRedirect)
     }])
     .directive("fileread", [function() {
         return {
@@ -98,13 +129,13 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', functio
                         console.log('URI before optional resize', theURI, theURI.length)
                         if (scope.$parent.needsResize) {
                             //needs to resize img
-                            resizeDataUrl(scope, theURI, scope.$parent.needsResize, scope.$parent.needsResize,tempName);
+                            resizeDataUrl(scope, theURI, scope.$parent.needsResize, scope.$parent.needsResize, tempName);
                         } else {
                             scope.$apply(function() {
                                 scope.$parent.loadingFile = false;
                                 scope.$parent.fileName = 'Loaded:' + tempName;
                                 scope.fileread = theURI;
-                                if(scope.$parent.saveDataURI && typeof scope.$parent.saveDataURI=='function'){
+                                if (scope.$parent.saveDataURI && typeof scope.$parent.saveDataURI == 'function') {
                                     scope.$parent.saveDataURI(dataURI);
                                 }
                             });
@@ -142,7 +173,7 @@ String.prototype.titleCase = function() {
     return this.split(/\s/).map(t => t.slice(0, 1).toUpperCase() + t.slice(1).toLowerCase()).join(' ');
 }
 
-const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight,tempName) => {
+const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
     // We create an image to receive the Data URI
     const img = document.createElement('img');
 
@@ -168,7 +199,7 @@ const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight,tempName) => {
             scope.$parent.loadingFile = false;
             scope.$parent.fileName = 'Loaded:' + tempName;
             scope.fileread = dataURI;
-            if(scope.$parent.saveDataURI && typeof scope.$parent.saveDataURI=='function'){
+            if (scope.$parent.saveDataURI && typeof scope.$parent.saveDataURI == 'function') {
                 scope.$parent.saveDataURI(dataURI);
             }
         });
@@ -1245,23 +1276,23 @@ app.controller('nav-cont',function($scope,$http,$state){
         })
     }
     $scope.mobActive=false;
-        $scope.gotLogMsg=false;
-    socket.on('doLogout',function(r){
-        //force logout (likely due to app change)
-        console.log('APP REQUESTED LOGOUT:',$state.current)
-        if($state.current.name=='appSimp.login'||$state.current.name=='appSimp.register' || $scope.gotLogMsg){
-            //don't force logout if we're already logged out, or if we've already got the msg
-            return false;
-        }
-        $scope.gotLogMsg=true;
-        bulmabox.alert(`App Restarting`,`Hi! I've made some sort of change just now to make this app more awesome! Unfortunately, this also means I've needed to restart it. I'm gonna log you out now.`,function(r){
-            console.log('herez where user wud b logged out');
-            $http.get('/user/logout').then(function(r){
-                $scope.gotLogMsg=false;
-                $state.go('appSimp.login',{},{reload:true})
-            })
-        })
-    })
+    //     $scope.gotLogMsg=false;
+    // socket.on('doLogout',function(r){
+    //     //force logout (likely due to app change)
+    //     console.log('APP REQUESTED LOGOUT:',$state.current)
+    //     if($state.current.name=='appSimp.login'||$state.current.name=='appSimp.register' || $scope.gotLogMsg){
+    //         //don't force logout if we're already logged out, or if we've already got the msg
+    //         return false;
+    //     }
+    //     $scope.gotLogMsg=true;
+    //     bulmabox.alert(`App Restarting`,`Hi! I've made some sort of change just now to make this app more awesome! Unfortunately, this also means I've needed to restart it. I'm gonna log you out now.`,function(r){
+    //         console.log('herez where user wud b logged out');
+    //         $http.get('/user/logout').then(function(r){
+    //             $scope.gotLogMsg=false;
+    //             $state.go('appSimp.login',{},{reload:true})
+    //         })
+    //     })
+    // })
 })
 resetApp.controller('reset-contr',function($scope,$http){
 	$scope.key = window.location.href.slice(window.location.href.lastIndexOf('/')+1)
