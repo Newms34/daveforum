@@ -213,64 +213,6 @@ const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
     // We put the Data URI in the image's src attribute
     img.src = datas;
 }
-app.factory('socketFac', function ($rootScope) {
-  var socket = io.connect();
-  return {
-    on: function (eventName, callback) {
-      socket.on(eventName, function () { 
-        var args = arguments;
-        $rootScope.$apply(function () {
-          callback.apply(socket, args);
-        });
-      });
-    },
-    emit: function (eventName, data, callback) {
-      socket.emit(eventName, data, function () {
-        var args = arguments;
-        $rootScope.$apply(function () {
-          if (callback) {
-            callback.apply(socket, args);
-          }
-        });
-      })
-    }
-  };
-});
-app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact', function($rootScope, $state, $stateParams, $transitions, $q,userFact) {
-    $transitions.onBefore({ to: 'app.**' }, function(trans) {
-        let def = $q.defer();
-        console.log('TRANS',trans)
-        const usrCheck = trans.injector().get('userFact')
-        usrCheck.getUser().then(function(r) {
-            console.log('response from login chck',r)
-            if (r.data && r.data.confirmed) {
-                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
-                def.resolve(true)
-            } else if(r.data){
-                def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
-            }else{
-                // User isn't authenticated. Redirect to a new Target State
-                def.resolve($state.target('appSimp.login', undefined, { location: true }))
-            }
-        }).catch(e=>{
-            def.resolve($state.target('appSimp.login', undefined, { location: true }))
-        });
-        return def.promise;
-    });
-    // $transitions.onFinish({ to: '*' }, function() {
-    //     document.body.scrollTop = document.documentElement.scrollTop = 0;
-    // });
-}]);
-app.factory('userFact', function($http) {
-    return {
-        getUser: function() {
-            return $http.get('/user/getUsr').then(function(s) {
-                console.log('getUser in fac says:', s)
-                return s;
-            })
-        }
-    };
-});
 app.controller('cal-cont', function($scope, $http) {
     $scope.cal = [];
     $scope.days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -1823,7 +1765,24 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                 $scope.wvw.skirmishes.forEach(sk => {
                     sk.scoreArr = $scope.wvwColors.map(c => sk.scores[c]);
                 })
-                // console.log(labels)
+                $scope.wvw.history = $scope.wvwColors.map(c=>{
+                	return $scope.wvw.skirmishes.map(sk=>sk.scores[c]);
+                })
+                $scope.wvw.histLabels = new Array($scope.wvw.history[0].length).fill(100).map((c,i)=>i+1);
+                $scope.wvw.histColors =  [{
+                	backgroundColor:'transparent',
+                	borderColor:'#f00',
+                	pointBackgroundColor:'#f00'
+                },{
+                	backgroundColor:'transparent',
+                	borderColor:'#0f0',
+                	pointBackgroundColor:'#0f0'
+                },{
+                	backgroundColor:'transparent',
+                	borderColor:'#00f',
+                	pointBackgroundColor:'#00f'
+                }]
+                console.log('WVW',$scope.wvw)
                 // $scope.currSkirm = {s:$scope.wvwColors.map(c=>r.data.data.scores[c]),l:labels,v:$scope.wvwColors.map(c=>r.data.data.victory_points[c])}
             })
     }
@@ -1836,6 +1795,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         } else {
             $scope.currentMatch = 0;
         }
+        $scope.positionVert();
     }
     $scope.prevSkirm = () => {
         if (!$scope.wvw) {
@@ -1846,12 +1806,15 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         } else {
             $scope.currentMatch = $scope.wvw.skirmishes.length - 1;
         }
+        $scope.positionVert();
     }
     $scope.lastSkirm = () => {
         $scope.currentMatch = $scope.wvw.skirmishes.length - 1;
+        $scope.positionVert();
     }
     $scope.firstSkirm = () => {
         $scope.currentMatch = 0;
+        $scope.positionVert();
     }
     //prices!
     $scope.mats = ['blood', 'bone', 'claw', 'fang', 'scale', 'totem', 'venom'];
@@ -1905,6 +1868,16 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
     	// console.log('checking',m,m.sName[0])
         return m.sName.indexOf('t6') < 0 && m.sName != 'wine' && m.sName.indexOf('t5') < 0 && m.sName[0] == 'l';
     }
+    $scope.histClick = (e)=>{
+    	console.log('CLICKED:',e)
+    	if(!e||!e[0]) return false;
+    	$scope.currentMatch = e[0]._index;
+    	$scope.positionVert();
+    }
+    $scope.positionVert = ()=>{
+    	$scope.x;
+    	$scope.$digest();
+    }
     $scope.refPrices();
     $scope.refWvw();
 })
@@ -1917,3 +1890,61 @@ app.controller('unconf-cont', function($scope, $http, $state) {
         })
     }
 })
+app.factory('socketFac', function ($rootScope) {
+  var socket = io.connect();
+  return {
+    on: function (eventName, callback) {
+      socket.on(eventName, function () { 
+        var args = arguments;
+        $rootScope.$apply(function () {
+          callback.apply(socket, args);
+        });
+      });
+    },
+    emit: function (eventName, data, callback) {
+      socket.emit(eventName, data, function () {
+        var args = arguments;
+        $rootScope.$apply(function () {
+          if (callback) {
+            callback.apply(socket, args);
+          }
+        });
+      })
+    }
+  };
+});
+app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact', function($rootScope, $state, $stateParams, $transitions, $q,userFact) {
+    $transitions.onBefore({ to: 'app.**' }, function(trans) {
+        let def = $q.defer();
+        console.log('TRANS',trans)
+        const usrCheck = trans.injector().get('userFact')
+        usrCheck.getUser().then(function(r) {
+            console.log('response from login chck',r)
+            if (r.data && r.data.confirmed) {
+                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
+                def.resolve(true)
+            } else if(r.data){
+                def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
+            }else{
+                // User isn't authenticated. Redirect to a new Target State
+                def.resolve($state.target('appSimp.login', undefined, { location: true }))
+            }
+        }).catch(e=>{
+            def.resolve($state.target('appSimp.login', undefined, { location: true }))
+        });
+        return def.promise;
+    });
+    // $transitions.onFinish({ to: '*' }, function() {
+    //     document.body.scrollTop = document.documentElement.scrollTop = 0;
+    // });
+}]);
+app.factory('userFact', function($http) {
+    return {
+        getUser: function() {
+            return $http.get('/user/getUsr').then(function(s) {
+                console.log('getUser in fac says:', s)
+                return s;
+            })
+        }
+    };
+});

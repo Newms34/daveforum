@@ -325,7 +325,24 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                 $scope.wvw.skirmishes.forEach(sk => {
                     sk.scoreArr = $scope.wvwColors.map(c => sk.scores[c]);
                 })
-                // console.log(labels)
+                $scope.wvw.history = $scope.wvwColors.map(c=>{
+                	return $scope.wvw.skirmishes.map(sk=>sk.scores[c]);
+                })
+                $scope.wvw.histLabels = new Array($scope.wvw.history[0].length).fill(100).map((c,i)=>i+1);
+                $scope.wvw.histColors =  [{
+                	backgroundColor:'transparent',
+                	borderColor:'#f00',
+                	pointBackgroundColor:'#f00'
+                },{
+                	backgroundColor:'transparent',
+                	borderColor:'#0f0',
+                	pointBackgroundColor:'#0f0'
+                },{
+                	backgroundColor:'transparent',
+                	borderColor:'#00f',
+                	pointBackgroundColor:'#00f'
+                }]
+                console.log('WVW',$scope.wvw)
                 // $scope.currSkirm = {s:$scope.wvwColors.map(c=>r.data.data.scores[c]),l:labels,v:$scope.wvwColors.map(c=>r.data.data.victory_points[c])}
             })
     }
@@ -338,6 +355,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         } else {
             $scope.currentMatch = 0;
         }
+        $scope.positionVert();
     }
     $scope.prevSkirm = () => {
         if (!$scope.wvw) {
@@ -348,12 +366,15 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         } else {
             $scope.currentMatch = $scope.wvw.skirmishes.length - 1;
         }
+        $scope.positionVert();
     }
     $scope.lastSkirm = () => {
         $scope.currentMatch = $scope.wvw.skirmishes.length - 1;
+        $scope.positionVert();
     }
     $scope.firstSkirm = () => {
         $scope.currentMatch = 0;
+        $scope.positionVert();
     }
     //prices!
     $scope.mats = ['blood', 'bone', 'claw', 'fang', 'scale', 'totem', 'venom'];
@@ -406,6 +427,16 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
     $scope.isGem = (m) => {
     	// console.log('checking',m,m.sName[0])
         return m.sName.indexOf('t6') < 0 && m.sName != 'wine' && m.sName.indexOf('t5') < 0 && m.sName[0] == 'l';
+    }
+    $scope.histClick = (e)=>{
+    	console.log('CLICKED:',e)
+    	if(!e||!e[0]) return false;
+    	$scope.currentMatch = e[0]._index;
+    	$scope.positionVert();
+    }
+    $scope.positionVert = ()=>{
+    	$scope.x;
+    	$scope.$digest();
     }
     $scope.refPrices();
     $scope.refWvw();
