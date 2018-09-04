@@ -213,64 +213,6 @@ const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
     // We put the Data URI in the image's src attribute
     img.src = datas;
 }
-app.factory('socketFac', function ($rootScope) {
-  var socket = io.connect();
-  return {
-    on: function (eventName, callback) {
-      socket.on(eventName, function () { 
-        var args = arguments;
-        $rootScope.$apply(function () {
-          callback.apply(socket, args);
-        });
-      });
-    },
-    emit: function (eventName, data, callback) {
-      socket.emit(eventName, data, function () {
-        var args = arguments;
-        $rootScope.$apply(function () {
-          if (callback) {
-            callback.apply(socket, args);
-          }
-        });
-      })
-    }
-  };
-});
-app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact', function($rootScope, $state, $stateParams, $transitions, $q,userFact) {
-    $transitions.onBefore({ to: 'app.**' }, function(trans) {
-        let def = $q.defer();
-        console.log('TRANS',trans)
-        const usrCheck = trans.injector().get('userFact')
-        usrCheck.getUser().then(function(r) {
-            console.log('response from login chck',r)
-            if (r.data && r.data.confirmed) {
-                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
-                def.resolve(true)
-            } else if(r.data){
-                def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
-            }else{
-                // User isn't authenticated. Redirect to a new Target State
-                def.resolve($state.target('appSimp.login', undefined, { location: true }))
-            }
-        }).catch(e=>{
-            def.resolve($state.target('appSimp.login', undefined, { location: true }))
-        });
-        return def.promise;
-    });
-    // $transitions.onFinish({ to: '*' }, function() {
-    //     document.body.scrollTop = document.documentElement.scrollTop = 0;
-    // });
-}]);
-app.factory('userFact', function($http) {
-    return {
-        getUser: function() {
-            return $http.get('/user/getUsr').then(function(s) {
-                console.log('getUser in fac says:', s)
-                return s;
-            })
-        }
-    };
-});
 app.controller('cal-cont', function($scope, $http) {
     $scope.cal = [];
     $scope.days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -1753,7 +1695,7 @@ name: "Baruch Bay",
 population: "VeryHigh"
 }
 ];
-app.controller('tool-cont', function($scope, $http, $state, $filter, $sce) {
+app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $window) {
     $scope.showTab = (t) => {
         $scope.currTab = t;
     }
@@ -1780,6 +1722,19 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce) {
             $scope.dailies = r.data;
         })
     }
+    $window.addEventListener('keyup',(e)=>{
+    	console.log(e||'NO E');
+    	if(e.which==39 && !e.shiftKey){
+    		$scope.nextSkirm();
+    		$scope.$digest();
+    	}else if(e.which==39 && e.shiftKey){
+    		$scope.lastSkirm();
+    		$scope.$digest();
+    	}else if(e.which==37){
+    		$scope.prevSkirm();
+    		$scope.$digest();
+    	}
+    })
     $scope.regetDaily();
     //get ALL prices:
     $scope.refPrices = () => {
@@ -1794,19 +1749,50 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce) {
     	cutoutPercentage:0,
     	backgroundColor:['#aa0000','#00aa00','#0000aa']
     }
+    //NOTE: slice 'size' is current accumulated score for that skirimish; i.e., the score at end of skirimish
     $scope.refWvw= ()=>{
     	$http.get('/tool/wvw'+($scope.wvwWorld?'?world='+$scope.wvwWorld:''))
     		.then(r=>{
     			console.log('WVW STUFF',r,r.data.data.scores)
     			$scope.wvw = r.data.data;
-    			const labels = $scope.wvwColors.map(cl=>{
+    			$scope.currentMatch = $scope.wvw.skirmishes.length-1;
+
+    			$scope.wvw.labels = $scope.wvwColors.map(cl=>{
     				return r.data.data.all_worlds[cl].map(clw=>{
     					return worlds.find(wld=>wld.id==clw).name;
     				}).join(', ')
     			});
-    			console.log(labels)
-    			$scope.currSkirm = {s:$scope.wvwColors.map(c=>r.data.data.scores[c]),l:labels,v:$scope.wvwColors.map(c=>r.data.data.victory_points[c])}
+    			$scope.wvw.skirmishes.forEach(sk=>{
+    				sk.scoreArr = $scope.wvwColors.map(c=>sk.scores[c]);
+    			})
+    			// console.log(labels)
+    			// $scope.currSkirm = {s:$scope.wvwColors.map(c=>r.data.data.scores[c]),l:labels,v:$scope.wvwColors.map(c=>r.data.data.victory_points[c])}
     		})
+    }
+    $scope.nextSkirm=()=>{
+    	console.log('tryin to get NEXT skirm')
+    	if(!$scope.wvw){
+    		return false
+    	}
+    	if($scope.wvw.skirmishes.length>$scope.currentMatch+1){
+    		$scope.currentMatch++;
+    	}else{
+    		$scope.currentMatch=0;
+    	}
+    }
+    $scope.prevSkirm=()=>{
+    	console.log('tryin to get PREV skirm',!!$scope.wvw,)
+    	if(!$scope.wvw){
+    		return false
+    	}
+    	if($scope.currentMatch && $scope.currentMatch>0){
+    		$scope.currentMatch--;
+    	}else{
+    		$scope.currentMatch = $scope.wvw.skirmishes.length-1;
+    	}
+    }
+    $scope.lastSkirm = ()=>{
+    	$scope.currentMatch = $scope.currentMatch = $scope.wvw.skirmishes.length-1;
     }
     $scope.refPrices();
     $scope.refWvw();
@@ -1820,3 +1806,61 @@ app.controller('unconf-cont', function($scope, $http, $state) {
         })
     }
 })
+app.factory('socketFac', function ($rootScope) {
+  var socket = io.connect();
+  return {
+    on: function (eventName, callback) {
+      socket.on(eventName, function () { 
+        var args = arguments;
+        $rootScope.$apply(function () {
+          callback.apply(socket, args);
+        });
+      });
+    },
+    emit: function (eventName, data, callback) {
+      socket.emit(eventName, data, function () {
+        var args = arguments;
+        $rootScope.$apply(function () {
+          if (callback) {
+            callback.apply(socket, args);
+          }
+        });
+      })
+    }
+  };
+});
+app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact', function($rootScope, $state, $stateParams, $transitions, $q,userFact) {
+    $transitions.onBefore({ to: 'app.**' }, function(trans) {
+        let def = $q.defer();
+        console.log('TRANS',trans)
+        const usrCheck = trans.injector().get('userFact')
+        usrCheck.getUser().then(function(r) {
+            console.log('response from login chck',r)
+            if (r.data && r.data.confirmed) {
+                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
+                def.resolve(true)
+            } else if(r.data){
+                def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
+            }else{
+                // User isn't authenticated. Redirect to a new Target State
+                def.resolve($state.target('appSimp.login', undefined, { location: true }))
+            }
+        }).catch(e=>{
+            def.resolve($state.target('appSimp.login', undefined, { location: true }))
+        });
+        return def.promise;
+    });
+    // $transitions.onFinish({ to: '*' }, function() {
+    //     document.body.scrollTop = document.documentElement.scrollTop = 0;
+    // });
+}]);
+app.factory('userFact', function($http) {
+    return {
+        getUser: function() {
+            return $http.get('/user/getUsr').then(function(s) {
+                console.log('getUser in fac says:', s)
+                return s;
+            })
+        }
+    };
+});

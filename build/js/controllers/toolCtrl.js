@@ -255,7 +255,7 @@ name: "Baruch Bay",
 population: "VeryHigh"
 }
 ];
-app.controller('tool-cont', function($scope, $http, $state, $filter, $sce) {
+app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $window) {
     $scope.showTab = (t) => {
         $scope.currTab = t;
     }
@@ -282,6 +282,19 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce) {
             $scope.dailies = r.data;
         })
     }
+    $window.addEventListener('keyup',(e)=>{
+    	console.log(e||'NO E');
+    	if(e.which==39 && !e.shiftKey){
+    		$scope.nextSkirm();
+    		$scope.$digest();
+    	}else if(e.which==39 && e.shiftKey){
+    		$scope.lastSkirm();
+    		$scope.$digest();
+    	}else if(e.which==37){
+    		$scope.prevSkirm();
+    		$scope.$digest();
+    	}
+    })
     $scope.regetDaily();
     //get ALL prices:
     $scope.refPrices = () => {
@@ -296,19 +309,50 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce) {
     	cutoutPercentage:0,
     	backgroundColor:['#aa0000','#00aa00','#0000aa']
     }
+    //NOTE: slice 'size' is current accumulated score for that skirimish; i.e., the score at end of skirimish
     $scope.refWvw= ()=>{
     	$http.get('/tool/wvw'+($scope.wvwWorld?'?world='+$scope.wvwWorld:''))
     		.then(r=>{
     			console.log('WVW STUFF',r,r.data.data.scores)
     			$scope.wvw = r.data.data;
-    			const labels = $scope.wvwColors.map(cl=>{
+    			$scope.currentMatch = $scope.wvw.skirmishes.length-1;
+
+    			$scope.wvw.labels = $scope.wvwColors.map(cl=>{
     				return r.data.data.all_worlds[cl].map(clw=>{
     					return worlds.find(wld=>wld.id==clw).name;
     				}).join(', ')
     			});
-    			console.log(labels)
-    			$scope.currSkirm = {s:$scope.wvwColors.map(c=>r.data.data.scores[c]),l:labels,v:$scope.wvwColors.map(c=>r.data.data.victory_points[c])}
+    			$scope.wvw.skirmishes.forEach(sk=>{
+    				sk.scoreArr = $scope.wvwColors.map(c=>sk.scores[c]);
+    			})
+    			// console.log(labels)
+    			// $scope.currSkirm = {s:$scope.wvwColors.map(c=>r.data.data.scores[c]),l:labels,v:$scope.wvwColors.map(c=>r.data.data.victory_points[c])}
     		})
+    }
+    $scope.nextSkirm=()=>{
+    	console.log('tryin to get NEXT skirm')
+    	if(!$scope.wvw){
+    		return false
+    	}
+    	if($scope.wvw.skirmishes.length>$scope.currentMatch+1){
+    		$scope.currentMatch++;
+    	}else{
+    		$scope.currentMatch=0;
+    	}
+    }
+    $scope.prevSkirm=()=>{
+    	console.log('tryin to get PREV skirm',!!$scope.wvw,)
+    	if(!$scope.wvw){
+    		return false
+    	}
+    	if($scope.currentMatch && $scope.currentMatch>0){
+    		$scope.currentMatch--;
+    	}else{
+    		$scope.currentMatch = $scope.wvw.skirmishes.length-1;
+    	}
+    }
+    $scope.lastSkirm = ()=>{
+    	$scope.currentMatch = $scope.currentMatch = $scope.wvw.skirmishes.length-1;
     }
     $scope.refPrices();
     $scope.refWvw();
