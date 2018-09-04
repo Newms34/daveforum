@@ -60,11 +60,32 @@
             <div class="columns">
                 <div class='column is-one-fifth'></div>
                 <div class='column is-three-fifths content'>
-                    <h3 class=' has-text-white has-text-centered'><button class="button is-light is-small" ng-disabled='!currentMatch' ng-click='prevSkirm()'><i class="fa fa-chevron-left" title='Previous Skirmish'></i></button> &nbsp;
-                    	Skirmish ({{currentMatch+1}} of {{wvw.skirmishes.length}})&nbsp;<button class="button is-light is-small" title='Next Skirmish' ng-disabled='currentMatch && currentMatch==wvw.skirmishes.length-1' ng-click='nextSkirm()'><i class="fa fa-chevron-right"></i></button>&nbsp;
-                    	<button class="button is-light is-small" title='Last Skirmish' ng-disabled='currentMatch && currentMatch==wvw.skirmishes.length-1' ng-click='lastSkirm()'><i class="fa fa-angle-double-right"></i></button> </h3>
-                    <canvas id="doughnut" class="chart chart-doughnut" chart-data="wvw.skirmishes[currentMatch].scoreArr" chart-labels="wvw.labels" chart-options='wvwPie' chart-colors='wvwPie.backgroundColor'>
-                    </canvas>
+                    <div class='wvw-bg'>
+                        <div class="wvw-bar red">
+                            <div class='is-pulled-left' style='max-width:200px;' title='{{wvw.labels[0]}}'>{{wvw.labels[0].split(',')[0]}}...
+                            <br><span class='is-size-4'>+ {{wvw.victory_points.red}}</span></div>
+                            <div class="is-pulled-right">{{wvw.skirmishes[currentMatch].scoreArr[0]}}</div>
+                        </div>
+                        <div class="wvw-bar green">
+                            <div class='is-pulled-left' style='max-width:200px;' title='{{wvw.labels[1]}}'>{{wvw.labels[1].split(',')[0]}}...
+                            <br><span class='is-size-4'>+ {{wvw.victory_points.green}}</span></div>
+                            <div class="is-pulled-right">{{wvw.skirmishes[currentMatch].scoreArr[1]}}</div>
+                        </div>
+                        <div class="wvw-bar blue">
+                            <div class='is-pulled-left' style='max-width:200px;' title='{{wvw.labels[2]}}'>{{wvw.labels[2].split(',')[0]}}...
+                            <br><span class='is-size-4'>+ {{wvw.victory_points.blue}}</span></div>
+                            <div class="is-pulled-right">{{wvw.skirmishes[currentMatch].scoreArr[2]}}</div>
+                        </div>
+                    </div>
+                    <div style='height:600px; position:relative;top:-300px;'>
+                        <h3 class=' has-text-white has-text-centered'>
+                        <button class="button is-light is-small" ng-disabled='!currentMatch' ng-click='firstSkirm()'><i class="fa fa-angle-double-left" title='First Skirmish'></i></button> &nbsp;
+                        <button class="button is-light is-small" ng-disabled='!currentMatch' ng-click='prevSkirm()'><i class="fa fa-chevron-left" title='Previous Skirmish'></i></button> &nbsp;
+                        Skirmish ({{currentMatch+1}} of {{wvw.skirmishes.length}})&nbsp;<button class="button is-light is-small" title='Next Skirmish' ng-disabled='currentMatch && currentMatch==wvw.skirmishes.length-1' ng-click='nextSkirm()'><i class="fa fa-chevron-right"></i></button>&nbsp;
+                        <button class="button is-light is-small" title='Last Skirmish' ng-disabled='currentMatch && currentMatch==wvw.skirmishes.length-1' ng-click='lastSkirm()'><i class="fa fa-angle-double-right"></i></button> </h3>
+                        <canvas id="doughnut" class="chart chart-doughnut" chart-data="wvw.skirmishes[currentMatch].scoreArr" chart-labels="wvw.labels" chart-options='wvwPie' chart-colors='wvwPie.backgroundColor'>
+                        </canvas>
+                    </div>
                 </div>
             </div>
         </div>

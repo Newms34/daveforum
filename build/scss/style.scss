@@ -292,3 +292,23 @@ $races: Asura Charr Human Norn Sylvari;
         padding:0;
     }
 }
+.wvw-bg{
+    height: 300px;
+    // z-index:-1;
+    position: relative;
+    width:100%;
+    top: 120px;
+    & .wvw-bar{
+        width:100%;
+        height:33%;
+    }
+    & .red{
+        background:#600;
+    }
+    & .green{
+        background:#060;
+    }
+    & .blue{
+        background:#006;
+    }
+}

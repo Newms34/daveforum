@@ -290,10 +290,13 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
     	}else if(e.which==39 && e.shiftKey){
     		$scope.lastSkirm();
     		$scope.$digest();
-    	}else if(e.which==37){
+    	}else if(e.which==37 && !e.shiftKey){
     		$scope.prevSkirm();
     		$scope.$digest();
-    	}
+    	}else if(e.which==37 && e.shiftKey){
+            $scope.firstSkirm();
+            $scope.$digest();
+        }
     })
     $scope.regetDaily();
     //get ALL prices:
@@ -352,7 +355,10 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
     	}
     }
     $scope.lastSkirm = ()=>{
-    	$scope.currentMatch = $scope.currentMatch = $scope.wvw.skirmishes.length-1;
+    	$scope.currentMatch = $scope.wvw.skirmishes.length-1;
+    }
+    $scope.firstSkirm = ()=>{
+        $scope.currentMatch = 0;
     }
     $scope.refPrices();
     $scope.refWvw();
