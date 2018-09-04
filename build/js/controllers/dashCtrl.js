@@ -34,9 +34,6 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         }, {
             name: 'Upcoming Events',
             icon: 'calendar'
-        }, {
-            name: 'Dailies',
-            icon: 'calendar-check-o'
         }]
         //PIC STUFF
         $scope.defaultPic = defaultPic;
@@ -436,14 +433,7 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
             bulmabox.alert(`Event: ${ev.title}`, `Date:${$filter('numToDate')(ev.eventDate)}<br>Description:${ev.text}`);
         }
         //dailies tab!
-        $scope.dailyRestrict = {};
-        $scope.regetDaily = () => {
-            const spd = Object.keys($scope.dailyRestrict).filter(sp => $scope.dailyRestrict[sp]);
-            $http.get('/user/daily' + (spd.length ? '?modes=' + spd.join(',') : '')).then(r => {
-                $scope.dailies = r.data;
-            })
-        }
-        $scope.regetDaily();
+       
     })
     .filter('numToDate', function() {
         return function(num) {

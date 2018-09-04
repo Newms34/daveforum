@@ -1,5 +1,5 @@
-var express = require('express');
-var router = express.Router(),
+const express = require('express');
+const router = express.Router(),
     path = require('path'),
     models = require('../../../models/'),
     async = require('async'),
@@ -26,7 +26,7 @@ var router = express.Router(),
         })
     };
 
-var routeExp = function(io) {
+const routeExp = function(io) {
     this.authbit = (req, res, next) => {
         if (req.session && req.session.user && req.session.user._id) {
             if (req.session.user.isBanned) {
@@ -69,51 +69,6 @@ var routeExp = function(io) {
                 res.send(usrsv);
             })
         })
-    })
-    router.get('/daily', this.authbit, (req, res, next) => {
-        axios.get('https://api.guildwars2.com/v2/achievements/daily')
-            .then((r) => {
-                console.log('RESULT', r.data)
-                let modes = ['pve', 'pvp', 'wvw', 'fractals', 'special'];
-                mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
-                    const minUsrLvl = usr.chars && usr.chars.length?_.minBy(usr.chars, 'lvl').lvl:1,
-                        maxUsrLvl = usr.chars && usr.chars.length?_.maxBy(usr.chars, 'lvl').lvl:80;
-                    modes.forEach(mode => r.data[mode] = r.data[mode].filter(dl => {
-                        console.log('Lookin at daily', dl.id, dl.level.min, dl.level.max, minUsrLvl, maxUsrLvl)
-                        //1,80 daily vs 48,80 usr
-                        return dl.level.min <= maxUsrLvl && dl.level.max >= minUsrLvl;
-                    }))
-                    let achieveIds = [];
-                    if (req.query.modes) {
-                        const desiredModes = req.query.modes.split(',');
-                        _.difference(modes, desiredModes).forEach(umd => {
-                            delete r.data[umd];
-                        });
-                        modes = desiredModes;
-                    }
-                    _.each(modes, md => {
-                        achieveIds = _.uniq(achieveIds.concat(r.data[md].map(mdi => mdi.id)))
-                    })
-                    //now have a list of all desired achievs (or all achieves). Get actual info;
-                    axios.get('https://api.guildwars2.com/v2/achievements?ids=' + achieveIds.join(','))
-                        .then(ds => {
-                            // _.each(modes,mdd=>{
-                            //     _.each(r.data[mdd],mdf=>{
-                            //         const theDly = _.find(ds.data,{id:mdf.id})
-                            //         mdf.desc = theDly.description;
-                            //         mdf.name = theDly.name;
-                            //         mdf.req = theDly.requirement;
-                            //         mdf.pic=theDly.icon
-                            //     })
-                            // })
-                            // res.send(r.data)
-                            res.send(ds.data)
-                        })
-                })
-            })
-            .catch((e) => {
-                res.status(400).send(e);
-            })
     })
     router.get('/changeInterest', this.authbit, (req, res, next) => {
         mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {

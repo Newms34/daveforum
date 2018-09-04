@@ -28,3 +28,7 @@ cron-ish job to purge old, non-confirmed users?
 priceCHeck?
 
 raffle section?
+
+convert WVW score to use latest Skirmish score, then cycle thru others (iterator)
+
+rewrite price calcs
