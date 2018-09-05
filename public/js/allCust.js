@@ -1880,20 +1880,20 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         $scope.positionVert();
     }
     $scope.positionVert = () => {
-        $scope.lineOpts = {
-            title:{text: `(${$scope.currentMatch+1})`}
-        }
+        $scope.lineOpts.title.text = `(${$scope.currentMatch+1})`;
         // $scope.$digest();
     }
     Chart.plugins.register({
         id: 'vert',
         afterDraw: function(chart, options) {
             if (chart.config.type != 'doughnut') {
-                $scope.lineXWid = chart.scales[Object.keys(chart.scales)[0]].maxWidth;
-                $scope.lineYWid = chart.scales[Object.keys(chart.scales)[1]].width;
-                $scope.lineHeight = chart.scales[Object.keys(chart.scales)[1]].height;
-                $scope.lineStepWid = $scope.lineXWid / ($scope.wvw.skirmishes.length);
+                // $scope.lineXWid = chart.scales[Object.keys(chart.scales)[0]].maxWidth;
+                $scope.lineXWid = chart.chartArea.right - chart.chartArea.left;
+                $scope.lineYWid = chart.chartArea.left;
+                $scope.lineHeight = chart.chartArea.bottom - chart.chartArea.top;
+                $scope.lineStepWid = $scope.lineXWid / ($scope.wvw.skirmishes.length - 1);
                 // console.log('After Draw', chart, 'WIDTH:', $scope.lineXWid, $scope.lineYWid, $scope.lineHeight, 'SCALE NAMES:', Object.keys(chart.scales));
+                // console.log('CHART',JSON.stringify(chart))
                 const ctx = chart.canvas.getContext("2d");
                 ctx.moveTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), 0)
                 ctx.lineTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), $scope.lineHeight);
@@ -1903,8 +1903,24 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         }
     });
     $scope.lineOpts = {
-            title:{text: `(${$scope.currentMatch+1})`}
+        title: { text: `(${$scope.currentMatch+1})` },
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true,
+                    fontColor: '#fff'
+                },
+            }],
+            xAxes: [{
+                ticks: {
+                    fontColor: '#fff'
+                },
+            }]
+        },
+        hover:{
+        	animationDuration:0
         }
+    }
     $scope.refPrices();
     $scope.refWvw();
 })
