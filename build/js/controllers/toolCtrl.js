@@ -455,8 +455,8 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                 // console.log('After Draw', chart, 'WIDTH:', $scope.lineXWid, $scope.lineYWid, $scope.lineHeight, 'SCALE NAMES:', Object.keys(chart.scales));
                 // console.log('CHART',JSON.stringify(chart))
                 const ctx = chart.canvas.getContext("2d");
-                ctx.moveTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), 0)
-                ctx.lineTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), $scope.lineHeight);
+                ctx.moveTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), 5)
+                ctx.lineTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), $scope.lineHeight+5);
                 ctx.strokeStyle = '#fff';
                 ctx.stroke();
             }
