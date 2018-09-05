@@ -369,17 +369,22 @@ const routeExp = function(io) {
                 res.send(false);
             } else {
                 usr.authenticate(req.body.pass, function(err, resp) {
-                    console.log('LOGIN RESPONSE', resp, 'ERR', err)
-                    if (resp) {
-                        req.session.user = resp;
+                    console.log('LOGIN RESPONSE', usr, 'ERR', err)
+                    if (usr) {
+                        req.session.user = usr;
                         delete req.session.user.pass;
                         delete req.session.user.salt;
                         delete req.session.user.reset;
+                        delete req.session.user.email;
                     }
-                    if (resp.isBanned) {
+                    if (usr.isBanned) {
                         res.status(403).send('banned');
+                        return false;
                     }
-                    res.send(req.session.user)
+                    usr.lastLogin = Date.now();
+                    usr.save((err, usrsv) => {
+                        res.send(req.session.user)
+                    })
                 })
             }
         })
@@ -406,11 +411,16 @@ const routeExp = function(io) {
                 res.send('err');
                 return;
             } else {
-                var email = usr.email,
-                    jrrToken = Math.floor(Math.random() * 99999).toString(32);
+                const email = usr.email;
+                let jrrToken = Math.floor(Math.random() * 99999).toString(32);
                 for (var i = 0; i < 15; i++) {
                     jrrToken += Math.floor(Math.random() * 99999).toString(32);
                 }
+                if(!email){
+                    res.send('noEmail');
+                    return false;
+                }
+                console.log(jrrToken)
                 var resetUrl = 'http://localhost:8080/user/reset/' + jrrToken;
                 usr.reset = jrrToken;
                 usr.save(function() {

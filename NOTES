@@ -11,14 +11,6 @@ markdown help
 CALENDAR:
 TYPES of events (WILL need icons!): guild mish, contest, giveaway, ceremony, other
 
-USER:
-user panel + MORE extensive profile
-ability to view other players profile
-switch dashboard to tabs: inbox/outbox?, user chars, other users (/admin) (view users), Edit profile
-
-gw2 api tie ins? probly not
-
-try voip?
 
 
 ----NEXT
@@ -29,10 +21,8 @@ priceCHeck?
 
 raffle section?
 
-convert WVW score to use latest Skirmish score, then cycle thru others (iterator)
-
-rewrite price calcs
-
 k/d ratio for wvw matches?
 
 graph of % score over time for match?
+
+lastSignon stat for usrs

@@ -5,6 +5,7 @@ var mongoose = require('mongoose'),
 var usrSchema = new mongoose.Schema({
     user: String, //(user)name of the user,
     pass: String,
+    email:String,
     salt: String,
     otherInfo:String,
     avatar: String, //base64 avatar

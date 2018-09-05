@@ -11,12 +11,16 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
     };
     $scope.forgot = () => {
         if (!$scope.user) {
-            bootbox.alert('To recieve a password reset email, please enter your username!')
+            bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Forgot Password', 'To recieve a password reset email, please enter your username!')
             return;
         }
         $http.post('/user/forgot', { user: $scope.user }).then(function(r) {
             console.log('forgot route response', r)
-            bootbox.alert('Check your email! If your username is registered, you should recieve an email from us with a password reset link.')
+            if (r.data == 'noEmail') {
+                bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Forgot Password Error', "It looks like that account doesn't have an email registered with it! Contact a mod for further help.")
+            } else {
+                bulmabox.alert('Forgot Password', 'Check your email! If your username is registered, you should recieve an email from us with a password reset link.')
+            }
         })
     }
     $scope.signin = () => {
@@ -24,17 +28,17 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
             .then((r) => {
                 console.log(r);
                 if (!r.data) {
-                    bulmabox.alert('Incorrect Login', 'Either your username or password (or both!) are incorrect');
+                    bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Incorrect Login', 'Either your username or password (or both!) are incorrect');
                 } else {
                     // delete r.data.msgs;
                     // console.log(io)
-                    socket.emit('chatMsg',{msg:`${$scope.user} logged in!`})
+                    socket.emit('chatMsg', { msg: `${$scope.user} logged in!` })
                     localStorage.brethUsr = JSON.stringify(r.data);
                     $state.go('app.dash');
                 }
             })
-            .catch(e=>{
-                bulmabox.alert('Banned', "You've been banned! We're a pretty laid-back guild, so you must have <i>really</i> done something to piss us off!")
+            .catch(e => {
+                bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Banned', "You've been banned! We're a pretty laid-back guild, so you must have <i>really</i> done something to piss us off!")
                 console.log(e);
             })
     }
