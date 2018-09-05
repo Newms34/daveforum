@@ -12,7 +12,7 @@
             </li>
         </ul>
     </div>
-   <!--  <div class='is-fullwidth is-boxed is-hidden-tablet full-tab'>
+    <!--  <div class='is-fullwidth is-boxed is-hidden-tablet full-tab'>
         <div ng-repeat='tab in tabs' ng-class='{"is-active":currTab==tab.name}'>
             <a href="#" ng-click='showTab(tab.name)' class=''>
                     <i class="fa fa-{{tab.icon}}"></i>&nbsp;
@@ -38,6 +38,14 @@
                      -->
                         <div class="field">
                             <img src="{{user.avatar||defaultPic}}">
+                        </div>
+                        <div class="field">
+                            <p class="control has-icons-left">
+                                <input class="input" type="text" placeholder="Email" ng-model='usr.mail' ng-change='emailTimer'>
+                                <span class="icon is-small is-left">
+                                    <i class="fa fa-envelope"></i>
+                                </span>
+                            </p>
                         </div>
                         <div class="field">
                             <div class="file">
