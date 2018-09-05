@@ -1892,7 +1892,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                 $scope.lineXWid = chart.scales[Object.keys(chart.scales)[0]].maxWidth;
                 $scope.lineYWid = chart.scales[Object.keys(chart.scales)[1]].width;
                 $scope.lineHeight = chart.scales[Object.keys(chart.scales)[1]].height;
-                $scope.lineStepWid = $scope.lineXWid / ($scope.wvw.skirmishes.length - 1);
+                $scope.lineStepWid = $scope.lineXWid / ($scope.wvw.skirmishes.length);
                 // console.log('After Draw', chart, 'WIDTH:', $scope.lineXWid, $scope.lineYWid, $scope.lineHeight, 'SCALE NAMES:', Object.keys(chart.scales));
                 const ctx = chart.canvas.getContext("2d");
                 ctx.moveTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), 0)
