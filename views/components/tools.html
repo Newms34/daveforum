@@ -49,17 +49,29 @@
             <i class="fa fa-money"></i>&nbsp;Tier Six Material Conversion
         </div>
         <div class="panel-block has-text-white">
-            <i>Instructions</i>:<br> Use this tool to determine if upgrading a Tier 5 material (i.e., <img src="https://render.guildwars2.com/file/99AAE49EABF9A2415940FDB83CA1CE5E6E256020/66949.png" class='tiny-img'> Vial of Potent Blood) to Tier 6 materials (i.e., <img src="https://render.guildwars2.com/file/1A930A6A7B5B01EAB4CB36E79014C12B500BF6B3/66950.png" class='tiny-img'> Vial of Powerful Blood) is profitable. <br>The general formula (using Blood as an example):<br>
+            <i>Instructions</i>:
+            <br> Use this tool to determine if upgrading a Tier 5 material (i.e., <img src="https://render.guildwars2.com/file/99AAE49EABF9A2415940FDB83CA1CE5E6E256020/66949.png" class='tiny-img'> Vial of Potent Blood) to Tier 6 materials (i.e., <img src="https://render.guildwars2.com/file/1A930A6A7B5B01EAB4CB36E79014C12B500BF6B3/66950.png" class='tiny-img'> Vial of Powerful Blood) is profitable.
+            <br>The general formula (using Blood as an example):
+            <br>
             <div class="price-ex has-text-centered">
-                <span class='is-size-4'>50x</span> <img src='https://render.guildwars2.com/file/99AAE49EABF9A2415940FDB83CA1CE5E6E256020/66949.png'> <br>Vial of Potent Blood
-            </div> <i class="fa fa-plus is-size-1"></i> <div class="price-ex has-text-centered">
-                <span class='is-size-4'>1x</span> <img src='https://render.guildwars2.com/file/1A930A6A7B5B01EAB4CB36E79014C12B500BF6B3/66950.png'> <br>Vial of Powerful Blood
-            </div> <i class="fa fa-plus is-size-1"></i> <div class="price-ex has-text-centered">
-                <span class='is-size-4'>5x</span> <img src='https://render.guildwars2.com/file/080D00670558CD9E580D5662030394B2206E92A6/434537.png'> <br>Pile of Crystalline Dust
-            </div><i class="fa fa-plus is-size-1"></i> <div class="price-ex has-text-centered">
-                <span class='is-size-4'>5x</span> <img src='https://render.guildwars2.com/file/68FF9617BA1BE1AD58E83E4209AEF0FB58950702/434425.png'> <br>Philosopher's Stone
-            </div><i class="fa fa-arrow-right is-size-1"></i> <div class="price-ex has-text-centered">
-                <span class='is-size-4'>5x</span> - <span class='is-size-4'>12x</span> <img src='https://render.guildwars2.com/file/1A930A6A7B5B01EAB4CB36E79014C12B500BF6B3/66950.png'> <br>Vial of Powerful Blood
+                <span class='is-size-4'>50x</span> <img src='https://render.guildwars2.com/file/99AAE49EABF9A2415940FDB83CA1CE5E6E256020/66949.png'>
+                <br>Vial of Potent Blood
+            </div> <i class="fa fa-plus is-size-1"></i>
+            <div class="price-ex has-text-centered">
+                <span class='is-size-4'>1x</span> <img src='https://render.guildwars2.com/file/1A930A6A7B5B01EAB4CB36E79014C12B500BF6B3/66950.png'>
+                <br>Vial of Powerful Blood
+            </div> <i class="fa fa-plus is-size-1"></i>
+            <div class="price-ex has-text-centered">
+                <span class='is-size-4'>5x</span> <img src='https://render.guildwars2.com/file/080D00670558CD9E580D5662030394B2206E92A6/434537.png'>
+                <br>Pile of Crystalline Dust
+            </div><i class="fa fa-plus is-size-1"></i>
+            <div class="price-ex has-text-centered">
+                <span class='is-size-4'>5x</span> <img src='https://render.guildwars2.com/file/68FF9617BA1BE1AD58E83E4209AEF0FB58950702/434425.png'>
+                <br>Philosopher's Stone
+            </div><i class="fa fa-arrow-right is-size-1"></i>
+            <div class="price-ex has-text-centered">
+                <span class='is-size-4'>5x</span> - <span class='is-size-4'>12x</span> <img src='https://render.guildwars2.com/file/1A930A6A7B5B01EAB4CB36E79014C12B500BF6B3/66950.png'>
+                <br>Vial of Powerful Blood
             </div>
             <table class="table has-background-grey-darker is-fullwidth">
                 <thead>
@@ -75,9 +87,11 @@
                 <tbody>
                     <tr class='has-text-white' ng-repeat='mat in prices|filter: isMat'>
                         <td>{{mat.sName.slice(2).titleCase()}}</td>
-                        <td><div class='is-fullwidth'>{{mat.t5.lName}}</div>
+                        <td>
+                            <div class='is-fullwidth'>{{mat.t5.lName}}</div>
                             <img src="{{mat.t5.pic}}"></td>
-                        <td><div class='is-fullwidth'>{{mat.lName}}</div>
+                        <td>
+                            <div class='is-fullwidth'>{{mat.lName}}</div>
                             <img src="{{mat.pic}}"></td>
                         <td>{{mat.loProf}}</td>
                         <td>{{mat.hiProf}}</td>
@@ -98,17 +112,17 @@
                     <div class='wvw-bg'>
                         <div class="wvw-bar red">
                             <div class='is-pulled-left is-size-4-mobile' style='max-width:200px;' title='{{wvw.labels[0]}}'>{{wvw.labels[0].split(',')[0]}}...
-                            <br><span class='is-size-4'>+ {{wvw.victory_points.red}}</span></div>
+                                <br><span class='is-size-4'>+ {{wvw.victory_points.red}}</span></div>
                             <div class="is-pulled-right is-size-3-mobile">{{wvw.skirmishes[currentMatch].scoreArr[0]}}</div>
                         </div>
                         <div class="wvw-bar green">
                             <div class='is-pulled-left is-size-4-mobile' style='max-width:200px;' title='{{wvw.labels[1]}}'>{{wvw.labels[1].split(',')[0]}}...
-                            <br><span class='is-size-4'>+ {{wvw.victory_points.green}}</span></div>
+                                <br><span class='is-size-4'>+ {{wvw.victory_points.green}}</span></div>
                             <div class="is-pulled-right is-size-3-mobile">{{wvw.skirmishes[currentMatch].scoreArr[1]}}</div>
                         </div>
                         <div class="wvw-bar blue">
                             <div class='is-pulled-left is-size-4-mobile' style='max-width:200px;' title='{{wvw.labels[2]}}'>{{wvw.labels[2].split(',')[0]}}...
-                            <br><span class='is-size-4'>+ {{wvw.victory_points.blue}}</span></div>
+                                <br><span class='is-size-4'>+ {{wvw.victory_points.blue}}</span></div>
                             <div class="is-pulled-right is-size-3-mobile">{{wvw.skirmishes[currentMatch].scoreArr[2]}}</div>
                         </div>
                     </div>
@@ -121,7 +135,7 @@
                         <canvas id="doughnut" class="chart chart-doughnut is-hidden-mobile" chart-data="wvw.skirmishes[currentMatch].scoreArr" chart-labels="wvw.labels" chart-options='wvwPie' chart-colors='wvwPie.backgroundColor'>
                         </canvas>
                         <h3 class='has-text-white is-size-4'>Match History</h3>
-                <canvas class="chart chart-line" chart-data="wvw.history" chart-labels="wvw.histLabels" chart-colors ='wvw.histColors' chart-series="wvw.labels" chart-click='histClick'></canvas>
+                        <canvas class="chart chart-line" chart-data="wvw.history" chart-labels="wvw.histLabels" chart-colors='wvw.histColors' chart-series="wvw.labels" chart-options ='lineOpts' chart-click='histClick'></canvas>
                     </div>
                 </div>
             </div>
@@ -132,17 +146,29 @@
             <i class="fa fa-diamond"></i>&nbsp;Core/Lodestone Upgrade
         </div>
         <div class="panel-block has-text-white">
-            <i>Instructions</i>:<br> Use this tool to determine if upgrading cores (i.e., <img src="https://render.guildwars2.com/file/3903CB74F8D64657FFCCAADB934AF42DFB941E6C/66957.png" class='tiny-img'> Charged Core) to a lodestone (i.e., <img src="https://render.guildwars2.com/file/02EFB1C5E11B2FF4B4AC25A84E2302D244C82AA3/66958.png" class='tiny-img'> Charged Lodestone) is profitable. <br>The general formula (using Charged as an example):<br>
+            <i>Instructions</i>:
+            <br> Use this tool to determine if upgrading cores (i.e., <img src="https://render.guildwars2.com/file/3903CB74F8D64657FFCCAADB934AF42DFB941E6C/66957.png" class='tiny-img'> Charged Core) to a lodestone (i.e., <img src="https://render.guildwars2.com/file/02EFB1C5E11B2FF4B4AC25A84E2302D244C82AA3/66958.png" class='tiny-img'> Charged Lodestone) is profitable.
+            <br>The general formula (using Charged as an example):
+            <br>
             <div class="price-ex has-text-centered">
-                <span class='is-size-4'>2x</span> <img src='https://render.guildwars2.com/file/3903CB74F8D64657FFCCAADB934AF42DFB941E6C/66957.png'> <br>Charged Core
-            </div> <i class="fa fa-plus is-size-1"></i> <div class="price-ex has-text-centered">
-                <span class='is-size-4'>1x</span> <img src='https://render.guildwars2.com/file/CC720B5A5810A84FD97AB00FA43F1679C48074DE/455843.png'> <br>Bottle of Elonian Wine
-            </div> <i class="fa fa-plus is-size-1"></i> <div class="price-ex has-text-centered">
-                <span class='is-size-4'>1x</span> <img src='https://render.guildwars2.com/file/080D00670558CD9E580D5662030394B2206E92A6/434537.png'> <br>Pile of Crystalline Dust
-            </div><i class="fa fa-plus is-size-1"></i> <div class="price-ex has-text-centered">
-                <span class='is-size-4'>1x</span> <img src='https://render.guildwars2.com/file/045C05C2F83A59FC4B6F15073465C5D3040E4DF5/65674.png'> <br>Mystic Crystal
-            </div><i class="fa fa-arrow-right is-size-1"></i> <div class="price-ex has-text-centered">
-                <span class='is-size-4'>1x</span> <img src='https://render.guildwars2.com/file/02EFB1C5E11B2FF4B4AC25A84E2302D244C82AA3/66958.png'> <br>Charged Lodestone
+                <span class='is-size-4'>2x</span> <img src='https://render.guildwars2.com/file/3903CB74F8D64657FFCCAADB934AF42DFB941E6C/66957.png'>
+                <br>Charged Core
+            </div> <i class="fa fa-plus is-size-1"></i>
+            <div class="price-ex has-text-centered">
+                <span class='is-size-4'>1x</span> <img src='https://render.guildwars2.com/file/CC720B5A5810A84FD97AB00FA43F1679C48074DE/455843.png'>
+                <br>Bottle of Elonian Wine
+            </div> <i class="fa fa-plus is-size-1"></i>
+            <div class="price-ex has-text-centered">
+                <span class='is-size-4'>1x</span> <img src='https://render.guildwars2.com/file/080D00670558CD9E580D5662030394B2206E92A6/434537.png'>
+                <br>Pile of Crystalline Dust
+            </div><i class="fa fa-plus is-size-1"></i>
+            <div class="price-ex has-text-centered">
+                <span class='is-size-4'>1x</span> <img src='https://render.guildwars2.com/file/045C05C2F83A59FC4B6F15073465C5D3040E4DF5/65674.png'>
+                <br>Mystic Crystal
+            </div><i class="fa fa-arrow-right is-size-1"></i>
+            <div class="price-ex has-text-centered">
+                <span class='is-size-4'>1x</span> <img src='https://render.guildwars2.com/file/02EFB1C5E11B2FF4B4AC25A84E2302D244C82AA3/66958.png'>
+                <br>Charged Lodestone
             </div>
             <table class="table has-background-grey-darker is-fullwidth">
                 <thead>
@@ -158,9 +184,11 @@
                 <tbody>
                     <tr class='has-text-white' ng-repeat='core in prices|filter: isGem'>
                         <td>{{core.sName.slice(1).titleCase()}}</td>
-                        <td><div class='is-fullwidth'>{{core.c.lName}}</div>
+                        <td>
+                            <div class='is-fullwidth'>{{core.c.lName}}</div>
                             <img src="{{core.c.pic}}"></td>
-                        <td><div class='is-fullwidth'>{{core.lName}}</div>
+                        <td>
+                            <div class='is-fullwidth'>{{core.lName}}</div>
                             <img src="{{core.pic}}"></td>
                         <td>{{core.loProf}}</td>
                         <td>{{core.hiProf}}</td>

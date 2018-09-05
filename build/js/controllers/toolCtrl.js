@@ -307,7 +307,12 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
     $scope.wvwColors = ['red', 'green', 'blue']
     $scope.wvwPie = {
         cutoutPercentage: 0,
-        backgroundColor: ['#aa0000', '#00aa00', '#0000aa']
+        backgroundColor: ['#aa0000', '#00aa00', '#0000aa'],
+        config: {
+            plugins: {
+                vert: false
+            }
+        }
     }
     //NOTE: slice 'size' is current accumulated score for that skirimish; i.e., the score at end of skirimish
     $scope.refWvw = () => {
@@ -325,24 +330,24 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                 $scope.wvw.skirmishes.forEach(sk => {
                     sk.scoreArr = $scope.wvwColors.map(c => sk.scores[c]);
                 })
-                $scope.wvw.history = $scope.wvwColors.map(c=>{
-                	return $scope.wvw.skirmishes.map(sk=>sk.scores[c]);
+                $scope.wvw.history = $scope.wvwColors.map(c => {
+                    return $scope.wvw.skirmishes.map(sk => sk.scores[c]);
                 })
-                $scope.wvw.histLabels = new Array($scope.wvw.history[0].length).fill(100).map((c,i)=>i+1);
-                $scope.wvw.histColors =  [{
-                	backgroundColor:'transparent',
-                	borderColor:'#f00',
-                	pointBackgroundColor:'#f00'
-                },{
-                	backgroundColor:'transparent',
-                	borderColor:'#0f0',
-                	pointBackgroundColor:'#0f0'
-                },{
-                	backgroundColor:'transparent',
-                	borderColor:'#00f',
-                	pointBackgroundColor:'#00f'
+                $scope.wvw.histLabels = new Array($scope.wvw.history[0].length).fill(100).map((c, i) => i + 1);
+                $scope.wvw.histColors = [{
+                    backgroundColor: 'transparent',
+                    borderColor: '#f00',
+                    pointBackgroundColor: '#f00'
+                }, {
+                    backgroundColor: 'transparent',
+                    borderColor: '#0f0',
+                    pointBackgroundColor: '#0f0'
+                }, {
+                    backgroundColor: 'transparent',
+                    borderColor: '#00f',
+                    pointBackgroundColor: '#00f'
                 }]
-                console.log('WVW',$scope.wvw)
+                console.log('WVW', $scope.wvw)
                 // $scope.currSkirm = {s:$scope.wvwColors.map(c=>r.data.data.scores[c]),l:labels,v:$scope.wvwColors.map(c=>r.data.data.victory_points[c])}
             })
     }
@@ -407,7 +412,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         $scope.cores.forEach(c => {
             let core = data.find(d => d.sName == 'c' + c),
                 l = data.find(d => d.sName == 'l' + c);
-                // console.log('TYPE:',c,'CORE',core,'LODE',l)
+            // console.log('TYPE:',c,'CORE',core,'LODE',l)
             l.c = core;
             l.hiProf = l.hi - ((2 * core.lo) + dust.lo + 2504);
             l.loProf = l.lo - ((2 * core.hi) + dust.hi + 2504);
@@ -425,19 +430,41 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         return m.sName.indexOf('t6') > -1 && m.sName != 't6dust';
     }
     $scope.isGem = (m) => {
-    	// console.log('checking',m,m.sName[0])
+        // console.log('checking',m,m.sName[0])
         return m.sName.indexOf('t6') < 0 && m.sName != 'wine' && m.sName.indexOf('t5') < 0 && m.sName[0] == 'l';
     }
-    $scope.histClick = (e)=>{
-    	console.log('CLICKED:',e)
-    	if(!e||!e[0]) return false;
-    	$scope.currentMatch = e[0]._index;
-    	$scope.positionVert();
+    $scope.histClick = (e) => {
+        console.log('CLICKED:', e, Chart)
+        if (!e || !e[0]) return false;
+        $scope.currentMatch = e[0]._index;
+        $scope.positionVert();
     }
-    $scope.positionVert = ()=>{
-    	$scope.x;
-    	$scope.$digest();
+    $scope.positionVert = () => {
+        $scope.lineOpts = {
+            title:{text: `(${$scope.currentMatch+1})`}
+        }
+        // $scope.$digest();
     }
+    Chart.plugins.register({
+        id: 'vert',
+        afterDraw: function(chart, options) {
+            if (chart.config.type != 'doughnut') {
+                $scope.lineXWid = chart.scales[Object.keys(chart.scales)[0]].maxWidth;
+                $scope.lineYWid = chart.scales[Object.keys(chart.scales)[1]].width;
+                $scope.lineHeight = chart.scales[Object.keys(chart.scales)[1]].height;
+                $scope.lineStepWid = $scope.lineXWid / ($scope.wvw.skirmishes.length - 1);
+                // console.log('After Draw', chart, 'WIDTH:', $scope.lineXWid, $scope.lineYWid, $scope.lineHeight, 'SCALE NAMES:', Object.keys(chart.scales));
+                const ctx = chart.canvas.getContext("2d");
+                ctx.moveTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), 0)
+                ctx.lineTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), $scope.lineHeight);
+                ctx.strokeStyle = '#fff';
+                ctx.stroke();
+            }
+        }
+    });
+    $scope.lineOpts = {
+            title:{text: `(${$scope.currentMatch+1})`}
+        }
     $scope.refPrices();
     $scope.refWvw();
 })
