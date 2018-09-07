@@ -7,6 +7,8 @@ var calSchema = new mongoose.Schema({
     user:String,//user that set this event
     eventDate:{type:Number,default:-1},
     createDate:{type:Number,default:Date.now()},
-    lastUpd:{type:Number,default:Date.now()}
+    lastUpd:{type:Number,default:Date.now()},
+    kind:{type:String, default:'lotto'},
+    expired:{type:Boolean,default:false}
 }, { collection: 'cal' });
 mongoose.model('cal', calSchema);

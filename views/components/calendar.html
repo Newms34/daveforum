@@ -1,26 +1,95 @@
-<div ng-controller='cal-cont' >
+<div ng-controller='cal-cont'>
+    <h3 class="is-size-4">Upcoming Events</h3>
+    <br>
+    <div class='calendar'>
+        <button class="button has-background-grey-lighter" title='Add event' ng-click='addEvent=true'><i class="fa fa-plus"></i>&nbsp;Add Event</button>
+    </div>
     <table class='table is-bordered calendar'>
         <thead>
             <tr class='is-info'>
-            	<th>Week</th>
-            	<th ng-repeat='d in offsetDays'>{{d}}</th>
+                <th>Week</th>
+                <th ng-repeat='d in offsetDays'>{{d}}</th>
             </tr>
         </thead>
         <tbody>
-        	<tr ng-repeat='wk in cal'>
-        		<td>{{wk.wkSt.dyMo()}} - {{wk.wkEn.dyMo()}}</td>
-        		<td ng-repeat='dy in wk.days'>
-        			<button class="button is-primary is-pulled-right is-tiny" title='Add event' ng-click='addEvent(wk,dy)'>+</button>
-        			<div class='is-size-7'>
-        				{{dy.date.toDateString()}}
-        			</div>
-        			<div ng-repeat='ev in dy.evts' class='is-fullwidth has-background-grey-darker has-text-white' style='padding:5px;'>{{ev.title}}&nbsp;
-        				<button class="button flex is-danger is-tiny is-pulled-right" title='Delete this event' ng-click='delEvent(ev)'><i class='fa fa-times'></i></button>
-        				<button class="button flex is-link is-tiny is-pulled-right" title='Edit this event' ng-click='editEvent(ev)'><i class='fa fa-pencil'></i></button>
-        				<button class="button flex is-info is-tiny is-pulled-right" title='View this event' ng-click='viewEvent(ev)'><i class='fa fa-eye'></i></button>
-        			</div>
-        		</td>
-        	</tr>
+            <tr ng-repeat='wk in cal'>
+                <td>{{wk.wkSt.dyMo()}} - {{wk.wkEn.dyMo()}}</td>
+                <td ng-repeat='dy in wk.days'>
+                    <!-- <button class="button is-primary is-pulled-right is-tiny" title='Add event' ng-click='addEvent(wk,dy)'>+</button> -->
+                    <div class='is-size-7'>
+                        {{dy.date.toDateString()}}
+                    </div>
+                    <div ng-repeat='ev in dy.evts' class='is-fullwidth has-background-grey-darker has-text-white' style='padding:5px;'>{{ev.title}}&nbsp;
+                        <button class="button flex is-danger is-tiny is-pulled-right" title='Delete this event' ng-click='delEvent(ev)'><i class='fa fa-times'></i></button>
+                        <button class="button flex is-link is-tiny is-pulled-right" title='Edit this event' ng-click='editEvent(ev)'><i class='fa fa-pencil'></i></button>
+                        <button class="button flex is-info is-tiny is-pulled-right" title='View this event' ng-click='viewEvent(ev)'><i class='fa fa-eye'></i></button>
+                    </div>
+                </td>
+            </tr>
         </tbody>
     </table>
+    <div class="modal" ng-class='{"is-active":addEvent}'>
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <div class="panel">
+                <div class="panel-heading">
+                    Add New Event
+                </div>
+                <div class="panel-block has-background-white">
+                    <div class="field">
+                        <label class='label'>
+                            Event Title
+                        </label>
+                        <p class="control has-icons-left">
+                            <input class="input" type="text" placeholder="A title for your event" ng-model='newEventObj.title'>
+                            <span class="icon is-small is-left">
+                            <i class="fa fa-puzzle-piece"></i>
+                        </span>
+                        </p>
+                    </div>
+                    <div class="field">
+                        <label class='label'>
+                            Description of Event
+                        </label>
+                        <p class="control">
+                            <textarea class='textarea' ng-model='newEventObj.desc' placeholder='A description for your event (optional)'></textarea>
+                        </p>
+                    </div>
+                    <div class="field">
+                        <label class='label'>
+                            When should this event occur?
+                        </label>
+                        <p class="select">
+                            <select ng-model='newEventObj.time' ng-options='h.num as h.hr for h in hourOpts'>
+                                <option disabled selected>Select a time</option>
+                            </select>
+                        </p>
+                        <p class="select">
+                            <select ng-model='newEventObj.day' ng-options='d.num as d.day for d in dayOpts'>
+                                <option disabled selected>Select a day</option>
+                            </select>
+                        </p>
+                    </div>
+                    <div class="field">
+                        <label class='label'>
+                            What kind of event is this?
+                        </label>
+                        <p class="select">
+                            <select ng-model='newEventObj.kind' ng-init='newEventObj.kind = kindOpts[0]' ng-options='k as k.kindLong for k in kindOpts'>
+                                <option disabled selected>Select a time</option>
+                            </select>
+                            <div class="notification is-pulled-right column is-two-thirds">
+                                
+                            {{newEventObj.kind.desc}}
+                            </div>
+                        </p>
+                    </div>
+                    <div class="is-fullwidth">
+                        
+                    <button class='button is-info' ng-click='doAdd()'><i class="fa fa-check"></i>&nbsp;Add</button><button class='button is-danger' ng-click='clearAdd()'><i class="fa fa-times"></i>&nbsp;Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

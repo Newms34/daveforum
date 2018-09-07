@@ -261,7 +261,7 @@ const routeExp = function(io) {
         //sends a message to all users flagged as 'mods' with message body, to, from
         mongoose.model('User').findOne({ user: req.session.user.user }, (erru, usr) => {
             const theMsg = usr.msgs.filter(m => m._id == req.body._id)[0];
-            if (thsMsg.isRep) {
+            if (theMsg.isRep) {
                 res.send('dupRep');
                 return false;
             }
@@ -300,16 +300,6 @@ const routeExp = function(io) {
             mongoose.model('User').find({}, (erra, usra) => {
                 res.send(usra);
             })
-        })
-    })
-    router.get('/makeMod', this.authbit, isMod, (req, res, next) => {
-        if (!req.query.user) {
-            res.status(400).send('err')
-        }
-        mongoose.model('User').findOne({ 'user': req.query.user }, { mod: true }, function(err, usr) {
-            if (err) {
-                res.send(err);
-            }
         })
     })
     router.get('/usrData', function(req, res, next) {
@@ -430,7 +420,7 @@ const routeExp = function(io) {
                         subject: 'Password reset for ' + usr.name,
                         html: 'Someone (hopefully you!) requested a reset email for your Brethren [PAIN] account. <br>If you did not request this, just ignore this email.<br>Otherwise, click <a href="' + resetUrl + '">here</a>',
                     }, function(err, reply) {
-                        console.log('REPLY IS', reply)
+                        console.log('REPLY IS', reply,'ERR IS',err)
                     });
                     res.end('done')
                 });
@@ -484,10 +474,17 @@ const routeExp = function(io) {
             })
         }
     })
-    router.get('/clean', this.authbit, isMod, (req, res, next) => {
-        mongoose.model('cal').remove({}, function(r) {
-            res.send('Cleaned!')
-        });
+    router.get('/setEmail',authbit,(req,res,next)=>{
+        if(!req.query.email || !req.query.email.match(/((\w+)\.*)+@(\w*)(\.\w+)+/g)||req.query.email.match(/((\w+)\.*)+@(\w*)(\.\w+)+/g)[0].length!=req.query.email.length){
+            res.send('err');
+            return false;
+        }
+        mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
+            usr.email= req.query.email;
+            usr.save((errsv,usrsv)=>{
+                res.send(usrsv);
+            })
+        })
     })
     return router;
 }

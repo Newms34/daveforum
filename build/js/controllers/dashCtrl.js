@@ -432,8 +432,17 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         $scope.viewEvent = (ev) => {
             bulmabox.alert(`Event: ${ev.title}`, `Date:${$filter('numToDate')(ev.eventDate)}<br>Description:${ev.text}`);
         }
-        //dailies tab!
-       
+        $scope.emailTimer = ()=>{
+            if($scope.updEmail){
+                clearTimeout($scope.updEmail);
+            }
+            $scope.updEmail = setTimeout(function(){
+                $http.get('/user/setEmail?email='+$scope.user.email)
+                    .then(r=>{
+                        $scope.doUser(r.data);
+                    })
+            },500);
+        }
     })
     .filter('numToDate', function() {
         return function(num) {

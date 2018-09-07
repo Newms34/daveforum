@@ -17,7 +17,7 @@ const express = require('express'),
         }
     },
     isMod = (req, res, next) => {
-        mongoose.model('User').findOne({ name: req.session.user.user }, function(err, usr) {
+        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
             if (!err && usr.mod) {
                 next();
             } else {
@@ -32,6 +32,7 @@ const routeExp = function(io) {
     router.post('/new', authbit, isMod, (req, res, next) => {
         req.body.user = req.session.user.user;
         mongoose.model('cal').create(req.body, function(err, resp) {
+            console.log('ERR',err)
             res.send(resp);
         })
     })
@@ -58,6 +59,11 @@ const routeExp = function(io) {
                 return b.eventDate-a.eventDatel
             }).slice(0,5));
         })
+    })
+    router.get('/clean', this.authbit, isMod, (req, res, next) => {
+        mongoose.model('cal').remove({}, function(r) {
+            res.send('Cleaned!')
+        });
     })
     return router;
 }
