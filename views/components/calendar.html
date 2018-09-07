@@ -92,4 +92,68 @@
             </div>
         </div>
     </div>
+    <div class="modal" ng-class='{"is-active":editEventAct}'>
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <div class="panel">
+                <div class="panel-heading">
+                   Edit Event
+                </div>
+                <div class="panel-block has-background-white">
+                    <div class="field">
+                        <label class='label'>
+                            Event Title
+                        </label>
+                        <p class="control has-icons-left">
+                            <input class="input" type="text" placeholder="A title for your event" ng-model='editEventObj.title'>
+                            <span class="icon is-small is-left">
+                            <i class="fa fa-puzzle-piece"></i>
+                        </span>
+                        </p>
+                    </div>
+                    <div class="field">
+                        <label class='label'>
+                            Description of Event
+                        </label>
+                        <p class="control">
+                            <textarea class='textarea' ng-model='editEventObj.desc' placeholder='A description for your event (optional)'></textarea>
+                        </p>
+                    </div>
+                    <div class="field">
+                        <label class='label'>
+                            When should this event occur?
+                        </label>
+                        <p class="select">
+                            <select ng-model='editEventObj.time' ng-options='h.num as h.hr for h in hourOpts'>
+                                <option disabled selected>Select a time</option>
+                            </select>
+                        </p>
+                        <p class="select">
+                            <select ng-model='editEventObj.day' ng-options='d.num as d.day for d in dayOpts'>
+                                <option disabled selected>Select a day</option>
+                            </select>
+                        </p>
+                    </div>
+                    <div class="field">
+                        <label class='label'>
+                            What kind of event is this?
+                        </label>
+                        <p class="select">
+                            <select ng-model='editEventObj.kind' ng-init='editEventObj.kind = kindOpts[0]' ng-options='k as k.kindLong for k in kindOpts'>
+                                <option disabled selected>Select a time</option>
+                            </select>
+                            <div class="notification is-pulled-right column is-two-thirds">
+                                
+                            {{editEventObj.kind.desc}}
+                            </div>
+                        </p>
+                    </div>
+                    <div class="is-fullwidth">
+                        
+                    <button class='button is-info' ng-click='doEdit()'><i class="fa fa-check"></i>&nbsp;Edit</button><button class='button is-danger' ng-click='clearEdit()'><i class="fa fa-times"></i>&nbsp;Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

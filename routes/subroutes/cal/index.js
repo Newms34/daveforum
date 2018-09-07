@@ -29,11 +29,36 @@ const express = require('express'),
 
 const routeExp = function(io) {
     //TODO: need way to only let admins (?) add events. All others should get rejected?
-    router.post('/new', authbit, isMod, (req, res, next) => {
+    router.post('/new', authbit, (req, res, next) => {
         req.body.user = req.session.user.user;
         mongoose.model('cal').create(req.body, function(err, resp) {
             console.log('ERR',err)
             res.send(resp);
+        })
+    })
+    // title: $scope.editEventObj.title,
+    // text: $scope.editEventObj.desc,
+    // eventDate: time,
+    // kind: $scope.editEventObj.kind.kind,
+    // id:$scope.editEventObj.id,
+    // user:$scope.editEventObj.user
+    router.post('/edit',authbit,(req,res,next)=>{
+        mongoose.model('User').findOne({user:req.session.user.user},(err,usr)=>{
+            console.log('USER TO EDIT',usr.user,'USER WHO MADE THIS',req.body.user)
+            if(usr.user!=req.body.user && !usr.mod){
+                res.send('wrongUser');
+                return false;
+            }else{
+                mongoose.model('cal').findOneAndUpdate({_id:req.body.id},{
+                    title:req.body.title,
+                    text:req.body.text,
+                    eventDate:req.body.eventDate,
+                    kind:req.body.kind,
+                    lastUpd:Date.now()
+                },function(err,upd){
+                    res.send('done')
+                })
+            }
         })
     })
     router.get('/del', authbit, isMod, (req, res, next) => {

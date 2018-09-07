@@ -51,68 +51,57 @@ app.controller('cal-cont', function($scope, $http) {
         console.log('View event', ev)
         bulmabox.alert(`Event: ${ev.title}`, `Time:${new Date(ev.eventDate).toString()}<hr>${ev.text}`)
     };
+    $scope.editEventObj = {
+        title: '',
+        desc: '',
+        day: 0,
+        time: (new Date().getHours() + (new Date().getMinutes() < 30 ? 0.5 : 0)) * 2,
+        kind: 'lotto',
+        id: null
+    }
+    $scope.clearEdit = () => {
+        $scope.editEventAct = false;
+    }
+    $scope.editEventAct = false;
     $scope.editEvent = (ev) => {
+        $scope.editEventAct = true;
         console.log('Edit event', ev)
-        let opts = '';
-        let theDate = new Date(ev.eventDate)
-        for (let i = 0; i < 24; i++) {
-            let hr = i < 13 ? i : i - 12,
-                ampm = i < 12 ? ' am' : ' pm';
-            if (!hr || hr == 0) {
-                hr = 12;
-            }
-            opts += '<option value =' + i + ' ' + (theDate.getHours() == i && theDate.getMinutes() == 0 ? 'selected' : '') + '>' + hr + ':00' + ampm + '</options><option value =' + (i + 0.5) + ' ' + (theDate.getHours() == i && theDate.getMinutes() == 30 ? 'selected' : '') + '>' + hr + ':30' + ampm + '</options>'
+        const beginningOfDay =  new Date(ev.eventDate).setHours(0,0,0,0),
+        now = Date.now();
+        $scope.editEventObj = {
+            title:ev.title,
+            desc:ev.text,
+            kind:$scope.kindOpts.find(k=>k.kind==ev.kind),
+            time:Math.floor((ev.eventDate-beginningOfDay)/(30*60*1000)),
+            day:Math.round((ev.eventDate-now)/(3600*1000*24)),
+            id:ev._id,
+            user:ev.user
         }
-        bulmabox.custom('Edit Event',
-            `<div class="field">
-                <label class='label'>
-                Event Title
-                </label>
-                    <p class="control has-icons-left">
-                        <input class="input" type="text" placeholder="A title for your event" id='newTitle' value='${ev.title}'>
-                        <span class="icon is-small is-left">
-                            <i class="fa fa-puzzle-piece"></i>
-                        </span>
-                    </p>
-                </div>
-                <div class="field">
-                <label class='label'>
-               Description of Event
-                </label>
-                    <p class="control">
-                        <textarea class='textarea' id='newMsg' placeholder='A description for your event (optional)'>${ev.text}</textarea>
-                    </p>
-                </div>
-                <div class="field">
-                <label class='label'>
-                When should this event occur?
-                </label>
-                    <p class="select">
-                        <select id='newTime'>
-                            ${opts}
-                        </select>
-                    </p>
-                </div>`,
-            function() {
-                //send event!
-                const title = document.querySelector('#newTitle').value,
-                    msg = document.querySelector('#newMsg').value,
-                    today = new Date();
-                today.setHours(0, 0, 0, 0);
-                //add hours in day, today, and day offset
-                let time = (parseInt(document.querySelector('#newTime').value) * 3600 * 1000) + today.getTime() + (((7 * wk.wk) + dy.d) * 1000 * 3600 * 24);
-                console.log('Sending event', title, msg, time, )
-                $http.post('/cal/new', {
-                        title: title,
-                        text: msg,
-                        eventDate: time,
-                    })
-                    .then(function(r) {
-                        console.log('new event response', r)
-                        $scope.refCal()
-                    })
-            }, `<button class='button is-info' onclick='bulmabox.runCb(bulmabox.params.cb)'>Add</button><button class='button is-danger' onclick='bulmabox.kill("bulmabox-diag")'>Cancel</button>`)
     };
+    $scope.doEdit = ()=>{
+        console.log('Input edit event',$scope.editEventObj)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        let time = today.getTime() + ($scope.editEventObj.time * 1800 * 1000) + ($scope.editEventObj.day * 3600 * 1000 * 24);
+        console.log('Sending event', $scope.editEventObj, time);
+        // return false;
+        $http.post('/cal/edit', {
+                title: $scope.editEventObj.title,
+                text: $scope.editEventObj.desc,
+                eventDate: time,
+                kind: $scope.editEventObj.kind.kind,
+                id:$scope.editEventObj.id,
+                user:$scope.editEventObj.user
+            })
+            .then(function(r) {
+                console.log('edit event response', r)
+                if(r.data=='wrongUser'){
+                    bulmabox.alert('<i class="fa fa-exclamation-triangle"></i> Wrong User','You cannot edit this event, as you are not its creator and are not a moderator.');
+                }
+                $scope.refCal()
+                $scope.clearEdit()
+            })
+    }
     $scope.delEvent = (ev) => {
         console.log('Delete event', ev)
         bulmabox.confirm('Delete Event', `Are you sure you wish to delete the following event?<br> Title: ${ev.title}<br>Description: ${ev.text}`, function(r) {
@@ -170,69 +159,6 @@ app.controller('cal-cont', function($scope, $http) {
         desc: 'Any other event type',
         kindLong: 'Other'
     }]
-    $scope.addEventFn = () => {
-        console.log('DAY is', dy);
-        let opts = '';
-        for (let i = 0; i < 24; i++) {
-            let hr = i < 13 ? i : i - 12,
-                ampm = i < 12 ? ' am' : ' pm';
-            if (!hr || hr == 0) {
-                hr = 12;
-            }
-            opts += '<option value =' + i + '>' + hr + ':00' + ampm + '</options><option value =' + (i + 0.5) + '>' + hr + ':30' + ampm + '</options>'
-        }
-        bulmabox.custom('Add Event',
-            `<div class="field">
-                <label class='label'>
-                Event Title
-                </label>
-                    <p class="control has-icons-left">
-                        <input class="input" type="text" placeholder="A title for your event" id='newTitle'>
-                        <span class="icon is-small is-left">
-                            <i class="fa fa-puzzle-piece"></i>
-                        </span>
-                    </p>
-                </div>
-                <div class="field">
-                <label class='label'>
-               Description of Event
-                </label>
-                    <p class="control">
-                        <textarea class='textarea' id='newMsg' placeholder='A description for your event (optional)'></textarea>
-                    </p>
-                </div>
-                <div class="field">
-                <label class='label'>
-                When should this event occur?
-                </label>
-                    <p class="select">
-                        <select id='newTime'>
-                            <option disabled selected>Select a time</option>
-                            ${opts}
-                        </select>
-                    </p>
-                </div>`,
-            function() {
-                //send event!
-                const title = document.querySelector('#newTitle').value,
-                    msg = document.querySelector('#newMsg').value,
-                    today = new Date();
-                today.setHours(0, 0, 0, 0);
-                //add hours in day, today, and day offset
-                let time = (parseInt(document.querySelector('#newTime').value) * 3600 * 1000) + today.getTime() + (((7 * wk.wk) + dy.d) * 1000 * 3600 * 24);
-                console.log('Sending event', title, msg, time, )
-                $http.post('/cal/new', {
-                        title: title,
-                        text: msg,
-                        eventDate: time,
-                    })
-                    .then(function(r) {
-                        console.log('new event response', r)
-                        $scope.refCal()
-                    })
-            }, `<button class='button is-info' onclick='bulmabox.runCb(bulmabox.params.cb)'>Add</button><button class='button is-danger' onclick='bulmabox.kill("bulmabox-diag")'>Cancel</button>`)
-
-    }
     $scope.doAdd = () => {
         //send event!
         const today = new Date();
