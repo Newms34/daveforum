@@ -47,7 +47,7 @@ const cronny = setInterval(function() {
         console.log(now, 'all lottos', lottos.map(e => e.eventDate), 'expiring/expired', lottosExp.map(e => e.eventDate));
         if (lottosExp.length) {
             lottosExp.forEach(lto => {
-                mongoose.model('User').find({ isBanned: false, confirmed: true, user: { $ne: lto.user } }, function(err, usrs) {
+                mongoose.model('User').find({ isBanned: false, confirmed: true }, function(err, usrs) {
                     console.log('Users available to win this contest are:', usrs);
                     //'win' one
                     const theWinner = usrs[Math.floor(Math.random() * usrs.length)];
