@@ -51,7 +51,7 @@
                     </div>
                 <button class="button is-light" ng-click='newPost()'><i class='fa fa-plus'></i>&nbsp;Post</button>
             </div>
-            <div class="notification has-background-grey-darker has-text-white">
+            <div class="notification has-background-grey-darker has-text-white" ng-if='!thr.open'>
                 (This thread has been locked by a mod!)
             </div>
         </div>

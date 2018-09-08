@@ -31,3 +31,7 @@ lastSignon stat for usrs
 VOTING:
 redesign calendar to have ONLY one add button. confirm location of each based on time.
 event types, including GIVEAWAY. Event CREATOR will be giveaway manager
+
+cronish job checks events, edits desc of events that are 'lotto', sends mail to winner
+
+do we want MULTIPLE roles (i.e., plebs who can just view, users who can view+make events, mods who can view, make events, ban+etc)

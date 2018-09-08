@@ -46,6 +46,8 @@ app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
         $scope.newThr.md = $scope.newThr.txt;
         $scope.newThr.text = new showdown.Converter().makeHtml($scope.newThr.txt);
         $scope.newThr.grp = $scope.currCat;
+        console.log('newThr:',$scope.newThr);
+        // return false;
         $http.post('/forum/newThread', $scope.newThr)
             .then(function(r) {
                 console.log('new thred response', r)

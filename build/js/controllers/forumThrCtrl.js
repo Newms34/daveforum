@@ -49,11 +49,17 @@ app.controller('forum-thr-cont', function($scope, $http, $state, $location, $sce
     })
     $scope.newPost = () => {
         let theText = document.querySelector('#postTxt').value;
+        console.log('new POST',theText,$scope.fileread);
+        if(!theText && !$scope.file){
+            bulmabox.alert('Say Something',`You can't just post nothing!`);
+            return false;
+        }
+        // return false;
         $http.post('/forum/newPost', {
                 thread: $scope.thr._id,
                 text: new showdown.Converter().makeHtml(theText),
                 md:theText,
-                file:$scope.file||null
+                file:$scope.fileread||null
             })
             .then((r) => {
                 window.location.reload();

@@ -133,13 +133,21 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
                         let theURI = loadEvent.target.result;
                         console.log('URI before optional resize', theURI, theURI.length)
                         if (scope.$parent.needsResize) {
-                            //needs to resize img
+                            //needs to resize img (usually for avatar)
                             resizeDataUrl(scope, theURI, scope.$parent.needsResize, scope.$parent.needsResize, tempName);
                         } else {
+                            console.log('APPLYING file to $parent')
                             scope.$apply(function() {
-                                scope.$parent.loadingFile = false;
+                                if(scope.$parent && scope.$parent.$parent && scope.$parent.$parent.avas){
+
+                                scope.$parent.$parent.loadingFile = false;
+                                scope.$parent.$parent.fileName = 'Loaded:' + tempName;
+                                scope.$parent.$parent.fileread = theURI;
+                                }else{
+                                    scope.$parent.loadingFile = false;
                                 scope.$parent.fileName = 'Loaded:' + tempName;
-                                scope.fileread = theURI;
+                                scope.$parent.fileread = theURI;
+                                }
                                 if (scope.$parent.saveDataURI && typeof scope.$parent.saveDataURI == 'function') {
                                     scope.$parent.saveDataURI(dataURI);
                                 }
@@ -196,15 +204,12 @@ const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
         ctx.drawImage(this, 0, 0, wantedWidth, wantedHeight);
 
         const dataURI = canvas.toDataURL();
-
-        /////////////////////////////////////////
-        // Use and treat your Data URI here !! //
-        /////////////////////////////////////////
         scope.$apply(function() {
             scope.$parent.loadingFile = false;
             scope.$parent.fileName = 'Loaded:' + tempName;
             scope.fileread = dataURI;
             if (scope.$parent.saveDataURI && typeof scope.$parent.saveDataURI == 'function') {
+                //only for avatar
                 scope.$parent.saveDataURI(dataURI);
             }
         });

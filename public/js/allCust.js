@@ -133,13 +133,21 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
                         let theURI = loadEvent.target.result;
                         console.log('URI before optional resize', theURI, theURI.length)
                         if (scope.$parent.needsResize) {
-                            //needs to resize img
+                            //needs to resize img (usually for avatar)
                             resizeDataUrl(scope, theURI, scope.$parent.needsResize, scope.$parent.needsResize, tempName);
                         } else {
+                            console.log('APPLYING file to $parent')
                             scope.$apply(function() {
-                                scope.$parent.loadingFile = false;
+                                if(scope.$parent && scope.$parent.$parent && scope.$parent.$parent.avas){
+
+                                scope.$parent.$parent.loadingFile = false;
+                                scope.$parent.$parent.fileName = 'Loaded:' + tempName;
+                                scope.$parent.$parent.fileread = theURI;
+                                }else{
+                                    scope.$parent.loadingFile = false;
                                 scope.$parent.fileName = 'Loaded:' + tempName;
-                                scope.fileread = theURI;
+                                scope.$parent.fileread = theURI;
+                                }
                                 if (scope.$parent.saveDataURI && typeof scope.$parent.saveDataURI == 'function') {
                                     scope.$parent.saveDataURI(dataURI);
                                 }
@@ -196,15 +204,12 @@ const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
         ctx.drawImage(this, 0, 0, wantedWidth, wantedHeight);
 
         const dataURI = canvas.toDataURL();
-
-        /////////////////////////////////////////
-        // Use and treat your Data URI here !! //
-        /////////////////////////////////////////
         scope.$apply(function() {
             scope.$parent.loadingFile = false;
             scope.$parent.fileName = 'Loaded:' + tempName;
             scope.fileread = dataURI;
             if (scope.$parent.saveDataURI && typeof scope.$parent.saveDataURI == 'function') {
+                //only for avatar
                 scope.$parent.saveDataURI(dataURI);
             }
         });
@@ -973,6 +978,8 @@ app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
         $scope.newThr.md = $scope.newThr.txt;
         $scope.newThr.text = new showdown.Converter().makeHtml($scope.newThr.txt);
         $scope.newThr.grp = $scope.currCat;
+        console.log('newThr:',$scope.newThr);
+        // return false;
         $http.post('/forum/newThread', $scope.newThr)
             .then(function(r) {
                 console.log('new thred response', r)
@@ -1104,11 +1111,17 @@ app.controller('forum-thr-cont', function($scope, $http, $state, $location, $sce
     })
     $scope.newPost = () => {
         let theText = document.querySelector('#postTxt').value;
+        console.log('new POST',theText,$scope.fileread);
+        if(!theText && !$scope.file){
+            bulmabox.alert('Say Something',`You can't just post nothing!`);
+            return false;
+        }
+        // return false;
         $http.post('/forum/newPost', {
                 thread: $scope.thr._id,
                 text: new showdown.Converter().makeHtml(theText),
                 md:theText,
-                file:$scope.file||null
+                file:$scope.fileread||null
             })
             .then((r) => {
                 window.location.reload();
