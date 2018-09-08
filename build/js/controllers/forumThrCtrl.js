@@ -50,7 +50,7 @@ app.controller('forum-thr-cont', function($scope, $http, $state, $location, $sce
     $scope.newPost = () => {
         let theText = document.querySelector('#postTxt').value;
         console.log('new POST',theText,$scope.fileread);
-        if(!theText && !$scope.file){
+        if(!theText && !$scope.fileread){
             bulmabox.alert('Say Something',`You can't just post nothing!`);
             return false;
         }
