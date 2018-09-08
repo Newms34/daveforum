@@ -277,6 +277,19 @@ const routeExp = function(io) {
             })
         })
     })
+    router.delete('/deleteThread',authbit,isMod,(req,res,next)=>{
+        if(!req.query.id){
+            res.send('err');
+            return false;
+        }
+        console.log('FIND AND REMOVE---------',mongoose.model('post').remove)
+        // res.send('no')
+        mongoose.model('thread').findByIdAndRemove(req.query.id,(err,doc)=>{
+            mongoose.model('post').remove({thread:req.query._id},(perr,pdoc)=>{
+                res.send('done')
+            })
+        })
+    })
     return router;
 }
 module.exports = routeExp;

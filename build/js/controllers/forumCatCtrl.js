@@ -42,11 +42,26 @@ app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
         $scope.loadingFile = true;
         const fr = new FileReader();
     }
+    $scope.deleteThread = (e, thr) => {
+        e.stopPropagation();
+        e.preventDefault();
+        bulmabox.confirm('Delete Thread', `Are you absolutely sure you wish to delete the thread '${thr.title}'? <br>Please note that this process is <em>not</em> reversable!`, (resp) => {
+            if (!resp || resp == null) {
+                return false;
+            } else {
+                console.log('Deleting thread', thr)
+                $http.delete('/forum/deleteThread?id=' + thr._id)
+                    .then(r => {
+                        $state.go($state.current, {}, { reload: true });
+                    })
+            }
+        })
+    }
     $scope.makeThread = () => {
         $scope.newThr.md = $scope.newThr.txt;
         $scope.newThr.text = new showdown.Converter().makeHtml($scope.newThr.txt);
         $scope.newThr.grp = $scope.currCat;
-        console.log('newThr:',$scope.newThr);
+        // console.log('newThr:',$scope.newThr);
         // return false;
         $http.post('/forum/newThread', $scope.newThr)
             .then(function(r) {

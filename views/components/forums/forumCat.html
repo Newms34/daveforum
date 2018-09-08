@@ -30,11 +30,14 @@
                         <td>{{thr.user}}</td>
                         <td>{{thr.time.toLocaleString()||'N/A'}}</td>
                         <td ng-if='user.mod'>
-                            <button class='button is-light is-small' ng-click='toggleSticky($event,thr._id);'>
-                                <i class="fa fa-thumb-tack" title='Sticky/unsticky thread' ng-click='$event.preventDefault()'></i>
+                            <button class='button is-light is-small' ng-click='toggleSticky($event,thr._id);' title='Sticky/unsticky thread'>
+                                <i class="fa fa-thumb-tack" ng-click='$event.preventDefault()'></i>
                             </button> &nbsp;
-                            <button class='button is-danger is-small' ng-click='toggleLock($event,thr._id);'>
-                                <i class="fa fa-lock" title='Lock/unlock thread' ng-click='$event.preventDefault()'></i>
+                            <button class='button is-danger is-small' ng-click='toggleLock($event,thr._id);' title='Lock/unlock thread'>
+                                <i class="fa fa-lock" ng-click='$event.preventDefault()'></i>
+                            </button>
+                            <button class='button is-dark-red has-text-white is-small' ng-click='deleteThread($event,thr);' title='Delete thread'>
+                                <i class="fa fa-trash" ng-click='$event.preventDefault()'></i>
                             </button>
                         </td>
                     </tr>
