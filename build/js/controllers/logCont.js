@@ -34,7 +34,7 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                     console.log('LOGIN RESPONSE',r.data)
                     socket.emit('chatMsg', { msg: `${$scope.user} logged in!` })
                     if(r.data.news){
-                        bulmabox.alert('Updates/News',`Since you last logged in, the following updates have been implemented:<br><ul><li>${r.data.news.join('</li><li>')}</li></ul>`)
+                        bulmabox.alert('Updates/News',`Since you last logged in, the following updates have been implemented:<br><ul style='list-style:disc;'><li>${r.data.news.join('</li><li>')}</li></ul>`)
                     }
                     localStorage.brethUsr = JSON.stringify(r.data.usr);
                     $state.go('app.dash');
