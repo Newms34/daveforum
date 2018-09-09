@@ -1,4 +1,4 @@
-app.controller('cal-cont', function($scope, $http) {
+app.controller('cal-cont', function($scope, $http,$state) {
     $scope.cal = [];
     $scope.days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     $scope.calLoaded = false;
@@ -9,6 +9,12 @@ app.controller('cal-cont', function($scope, $http) {
                 $scope.makeCalendar(r.data);
             })
     };
+    socket.on('refCal',(e)=>{
+        // bulmabox.alert('Refreshing Calendar',`There's been a change to the calendar, so we're refreshing!`,function(r){
+            // $state.go($state.current, {}, { reload: true });
+        // })
+        $scope.refCal()
+    })
     $scope.refCal();
     $scope.makeCalendar = (data) => {
         //make the calendar object using the data from /cal/all

@@ -32,6 +32,7 @@ const routeExp = function(io) {
     router.post('/new', authbit, (req, res, next) => {
         req.body.user = req.session.user.user;
         mongoose.model('cal').create(req.body, function(err, resp) {
+            io.emit('refCal',{})
             console.log('ERR',err)
             res.send(resp);
         })
@@ -56,6 +57,7 @@ const routeExp = function(io) {
                     kind:req.body.kind,
                     lastUpd:Date.now()
                 },function(err,upd){
+                    io.emit('refCal',{})
                     res.send('done')
                 })
             }
@@ -64,6 +66,7 @@ const routeExp = function(io) {
     router.get('/del', authbit, isMod, (req, res, next) => {
         console.log('deleting',req.query.id)
         mongoose.model('cal').remove({_id:req.query.id}, function(err, resp) {
+            io.emit('refCal',{})
             res.send(resp);
         })
     })

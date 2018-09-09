@@ -31,9 +31,12 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                     bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Incorrect Login', 'Either your username or password (or both!) are incorrect');
                 } else {
                     // delete r.data.msgs;
-                    // console.log(io)
+                    console.log('LOGIN RESPONSE',r.data)
                     socket.emit('chatMsg', { msg: `${$scope.user} logged in!` })
-                    localStorage.brethUsr = JSON.stringify(r.data);
+                    if(r.data.news){
+                        bulmabox.alert('Updates/News',`Since you last logged in, the following updates have been implemented:<br><ul><li>${r.data.news.join('</li><li>')}</li></ul>`)
+                    }
+                    localStorage.brethUsr = JSON.stringify(r.data.usr);
                     $state.go('app.dash');
                 }
             })

@@ -26,7 +26,16 @@ var usrSchema = new mongoose.Schema({
         date: Number,
         msg: String,
         isRep: { type: Boolean, default: false },
-        read:{type:Boolean,default:false}
+        read:{type:Boolean,default:false},
+        msgId:String
+    }],
+    outBox:[{
+        to:String,
+        date: Number,
+        msg: String,
+        isRep: { type: Boolean, default: false },
+        read:{type:Boolean,default:false},
+        msgId:String
     }],
     tz:{type:Number,default:-5},
     ints: [{ type: Number, default: 0 }]

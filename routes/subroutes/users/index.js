@@ -16,6 +16,7 @@ const router = express.Router(),
         },
         silent: false
     }),
+    fs=require('fs'),
     isMod = (req, res, next) => {
         mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
             if (!err && usr.mod) {
@@ -224,21 +225,32 @@ const routeExp = function(io) {
                 console.log(usr, err)
                 res.send('err');
             } else {
+                const msgId = Math.floor(Math.random() * 9999999999999999).toString(32);
                 usr.msgs.push({
                     from: req.session.user.user,
                     date: Date.now(),
-                    msg: req.body.msg
+                    msg: req.body.msg,
+                    msgId: msgId
                 })
                 usr.save(function(err, usr) {
                     console.log('User updated!', usr, err)
-                    io.emit('msgRef', { who: req.body.to }); //send out to trigger refresh
+                    mongoose.model('User').findOne({ user: req.session.user.user }, function(err, fusr) {
+                        fusr.outBox.push({
+                            to: req.body.to,
+                            date: Date.now(),
+                            msg: req.body.msg,
+                            msgId: msgId
+                        })
+                        io.emit('sentMsg', { user: req.body.to, from: req.session.user.user })
+                        fusr.save();
+                    })
                     res.send('done');
                 });
             }
         });
     });
     router.get('/delMsg', this.authbit, (req, res, next) => {
-        //user deletes an old message by user and id.
+        //user deletes an old message sent TO them by user and id. this removes from inbox
         mongoose.model('User').findOne({ 'user': req.session.user.user }, function(err, usr) {
             if (!usr || err) {
                 res.send('err');
@@ -257,6 +269,25 @@ const routeExp = function(io) {
             }
         })
     });
+    router.get('/delMyMsg', this.authbit, (req, res, next) => {
+        //user deletes an old message sent FROM them by user and id. This removes from outbox
+        mongoose.model('User').findOne({ 'user': req.session.user.user }, function(err, usr) {
+            if (!usr || err) {
+                res.send('err');
+            } else {
+                for (var i = 0; i < usr.outBox.length; i++) {
+                    if (usr.outBox[i]._id == req.query.id) {
+                        usr.outBox.splice(i, 1);
+                        break;
+                    }
+                }
+                usr.save(function(err, usr) {
+                    req.session.user = usr;
+                    res.send(usr);
+                })
+            }
+        })
+    });
     router.post('/repMsg', this.authbit, (req, res, next) => {
         //sends a message to all users flagged as 'mods' with message body, to, from
         mongoose.model('User').findOne({ user: req.session.user.user }, (erru, usr) => {
@@ -265,11 +296,20 @@ const routeExp = function(io) {
                 res.send('dupRep');
                 return false;
             }
+            console.log(theMsg, '---THE MSG')
+            theMsg.isRep = true;
+            console.log("REPORTING MESSAGE", req.body)
+            // console.log('SET ISREP TO TRUE: usr', usr, 'ID', req.body._id, 'MSG', usr.msgs.filter(m => m._id == req.body._id)[0])
+            usr.save((errfrm, usrfrm) => {
+                console.log('Saved FROM report', usrfrm, errfrm, 'ORIGINAL USER REPORTING', usr, 'END USER REPING')
+                io.emit('sentMsg', { user: req.session.user.user })
+            });
+            // throw new Error('err!')
             mongoose.model('User').find({ mod: true }, (err, mods) => {
                 //send to each of the mods
                 mods.forEach(mod => {
                     mod.msgs.push({
-                        from: req.session.user.user,
+                        from: 'System',
                         msg: `<h3>Reported Message</h3>
                     <br>Date:${new Date(req.body.date).toLocaleString()}
                     <br>From:${req.body.from}
@@ -279,12 +319,17 @@ const routeExp = function(io) {
                     });
                     mod.save();
                 })
-                //set this msg's report status to true
-                theMsg.isRep = true;
-                console.log('SET ISREP TO TRUE: usr', usr, 'ID', req.body._id, 'MSG', usr.msgs.filter(m => m._id == req.body._id)[0])
-                usr.save((err, usr) => {
-                    res.send(usr);
-                });
+                //now find on the SENT (outbox) of sending user
+                mongoose.model('User').findOne({ user: req.body.from }, (ferr, fusr) => {
+                    console.log('tryin to find message');
+                    let repd = fusr.outBox.filter(orp => orp.msgId == theMsg.msgId)[0];
+                    console.log(repd, fusr);
+                    repd.isRep = true;
+                    fusr.save((oerr, ousr) => {
+                        io.emit('sentMsg', { user: req.body.from})
+                        res.send(usr);
+                    })
+                })
             })
         })
     })
@@ -303,13 +348,18 @@ const routeExp = function(io) {
         })
     })
     router.get('/usrData', function(req, res, next) {
-        mongoose.model('User').findOne({ 'user': req.query.name }, function(err, usr) {
-            console.log('found:', usr)
+        if (!req.session) {
+            console.log(req.session)
+            throw new(err, 'BROKE!')
+        }
+        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
+            req.session.user = usr;
             delete req.session.user.pass;
             delete req.session.user.salt;
             delete req.session.user.reset;
-            res.send(usr);
-        });
+            delete req.session.user.email;
+            res.send(req.session.user);
+        })
     });
     router.get('/chkLog', (req, res, next) => {
         console.log(req.session)
@@ -371,9 +421,16 @@ const routeExp = function(io) {
                         res.status(403).send('banned');
                         return false;
                     }
+                    const prevLog = usr.lastLogin;
                     usr.lastLogin = Date.now();
+                    const lastNews = new Date(fs.statSync('./news.txt').mtime).getTime();
+                    console.log('NEWS',lastNews,lastNews-prevLog);
+                    let news=null;
+                    if(lastNews-prevLog>1000){
+                        news = fs.readFileSync('./news.txt','utf8').split(/\n/);
+                    }
                     usr.save((err, usrsv) => {
-                        res.send(req.session.user)
+                        res.send({usr:req.session.user,news:news})
                     })
                 })
             }
@@ -406,7 +463,7 @@ const routeExp = function(io) {
                 for (var i = 0; i < 15; i++) {
                     jrrToken += Math.floor(Math.random() * 99999).toString(32);
                 }
-                if(!email){
+                if (!email) {
                     res.send('noEmail');
                     return false;
                 }
@@ -420,7 +477,7 @@ const routeExp = function(io) {
                         subject: 'Password reset for ' + usr.name,
                         html: 'Someone (hopefully you!) requested a reset email for your Brethren [PAIN] account. <br>If you did not request this, just ignore this email.<br>Otherwise, click <a href="' + resetUrl + '">here</a>',
                     }, function(err, reply) {
-                        console.log('REPLY IS', reply,'ERR IS',err)
+                        console.log('REPLY IS', reply, 'ERR IS', err)
                     });
                     res.end('done')
                 });
@@ -474,14 +531,14 @@ const routeExp = function(io) {
             })
         }
     })
-    router.get('/setEmail',authbit,(req,res,next)=>{
-        if(!req.query.email || !req.query.email.match(/((\w+)\.*)+@(\w*)(\.\w+)+/g)||req.query.email.match(/((\w+)\.*)+@(\w*)(\.\w+)+/g)[0].length!=req.query.email.length){
+    router.get('/setEmail', authbit, (req, res, next) => {
+        if (!req.query.email || !req.query.email.match(/((\w+)\.*)+@(\w*)(\.\w+)+/g) || req.query.email.match(/((\w+)\.*)+@(\w*)(\.\w+)+/g)[0].length != req.query.email.length) {
             res.send('err');
             return false;
         }
-        mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
-            usr.email= req.query.email;
-            usr.save((errsv,usrsv)=>{
+        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
+            usr.email = req.query.email;
+            usr.save((errsv, usrsv) => {
                 res.send(usrsv);
             })
         })

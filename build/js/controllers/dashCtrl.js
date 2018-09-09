@@ -1,6 +1,6 @@
 app.controller('dash-cont', function($scope, $http, $state, $filter) {
         $scope.showDups = localStorage.brethDups; //show this user in 'members' list (for testing)
-        $http.get('/user/getUsr')
+        $http.get('/user/usrData')
             .then(r => {
                 $scope.doUser(r.data);
                 console.log('user', $scope.user)
@@ -20,8 +20,18 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                     c.active = true;
                 }
             })
-            $scope.numUnreadMsgs = u.msgs.filter(m=>!m.read).length;
+            $scope.numUnreadMsgs = u.msgs.filter(m => !m.read).length;
         }
+        socket.on('sentMsg', function(u) {
+            console.log('SOCKET USER',u,'this user',$scope.user)
+            if (u.user == $scope.user.user || u.from==$scope.user.user) {
+                console.log('re-getting user')
+                $http.get('/user/usrData')
+                    .then(r => {
+                        $scope.doUser(r.data);
+                    });
+            }
+        })
         $scope.tabs = [{
             name: 'Profile/Characters',
             icon: 'user'
@@ -29,7 +39,7 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
             name: 'Members',
             icon: 'users'
         }, {
-            name: 'Inbox',
+            name: 'Mail',
             icon: 'envelope'
         }, {
             name: 'Upcoming Events',
@@ -397,15 +407,17 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                         })
                 }, `<button class='button is-info' onclick='bulmabox.runCb(bulmabox.params.cb)'>Send</button><button class='button is-danger' onclick='bulmabox.kill("bulmabox-diag")'>Cancel</button>`)
         }
-        $scope.viewMsg = (m) => {
+        $scope.viewMsg = (m,t) => {
             bulmabox.alert(`Message from ${m.from}`, m.msg || '(No message)')
-            $http.get('/user/setOneRead?id='+m._id)
-                .then(r=>{
+            if(t){
+                return false;
+            }
+            $http.get('/user/setOneRead?id=' + m._id)
+                .then(r => {
                     $scope.doUser(r.data);
                 })
         }
         $scope.delMsg = (m) => {
-            console.log('user wishes to delete msg', m)
             bulmabox.confirm('Delete Message', 'Are you sure you wish to delete this message?', (resp) => {
                 console.log('resp', resp);
                 if (resp && resp != null) {
@@ -416,10 +428,20 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                 }
             })
         }
+        $scope.delMyMsg = (m) => {
+            bulmabox.confirm('Delete Message', 'Are you sure you wish to delete this message?', (resp) => {
+                console.log('resp', resp);
+                if (resp && resp != null) {
+                    $http.get('/user/delMyMsg?id=' + m._id)
+                        .then(r => {
+                            $scope.doUser(r.data);
+                        })
+                }
+            })
+        }
         $scope.repMsg = (m) => {
             console.log('user wishes to report msg', m)
             bulmabox.confirm('Report Message', 'Reporting a message sends a notification to the moderators, including the details of the message.<br>It will then be up to the moderators to determine if you\'re being uncool to each other.<br>Are you sure you wish to report this message?', (resp) => {
-                console.log('resp', resp)
                 $http.post('/user/repMsg', m)
                     .then(r => {
                         //done
@@ -432,16 +454,16 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         $scope.viewEvent = (ev) => {
             bulmabox.alert(`Event: ${ev.title}`, `Date:${$filter('numToDate')(ev.eventDate)}<br>Description:${ev.text}`);
         }
-        $scope.emailTimer = ()=>{
-            if($scope.updEmail){
+        $scope.emailTimer = () => {
+            if ($scope.updEmail) {
                 clearTimeout($scope.updEmail);
             }
-            $scope.updEmail = setTimeout(function(){
-                $http.get('/user/setEmail?email='+$scope.user.email)
-                    .then(r=>{
+            $scope.updEmail = setTimeout(function() {
+                $http.get('/user/setEmail?email=' + $scope.user.email)
+                    .then(r => {
                         $scope.doUser(r.data);
                     })
-            },500);
+            }, 500);
         }
     })
     .filter('numToDate', function() {

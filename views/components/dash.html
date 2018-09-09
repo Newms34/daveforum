@@ -7,7 +7,7 @@
                 <a href="#" ng-click='showTab(tab.name)' class=''>
                     <i class="fa fa-{{tab.icon}}"></i>&nbsp;
                     <span class="is-hidden-mobile">{{tab.name}}</span>&nbsp;
-                    <div class='button is-small is-rounded has-background-danger' ng-if='tab.name=="Inbox" && numUnreadMsgs' title='You have {{numUnreadMsgs}} unread message{{numUnreadMsgs>1?"s":""}}!'>{{numUnreadMsgs}}</div>
+                    <div class='button is-small is-rounded has-background-danger' ng-if='tab.name=="Mail" && numUnreadMsgs' title='You have {{numUnreadMsgs}} unread message{{numUnreadMsgs>1?"s":""}}!'>{{numUnreadMsgs}}</div>
                 </a>
             </li>
         </ul>
@@ -143,18 +143,20 @@
             </table>
         </div>
     </div>
-    <div class="panel dash-panel" ng-show='currTab=="Inbox"'>
-        <!-- Inbox panel -->
+    <div class="panel dash-panel" ng-show='currTab=="Mail"'>
+        <!-- Mail panel -->
         <div class="panel-heading has-text-white has-background-grey-darker">
-            <i class="fa fa-envelope"></i>&nbsp; Inbox
+            <i class="fa fa-envelope"></i>&nbsp; Mail
         </div>
         <div class="panel-block has-text-white">
             <div class="columns">
                 <!-- <div class="column is-one-fifth"></div> -->
                 <div class="column is-four-fifths">
+                    <h3 class="is-size-5">Inbox</h3>
                     <table class="is-fullwidth table has-text-white has-background-grey-darker">
                         <thead>
                             <tr>
+                                <th>&nbsp;</th>
                                 <th>From</th>
                                 <th>Date</th>
                                 <th>Actions</th>
@@ -162,7 +164,8 @@
                         </thead>
                         <tbody>
                             <tr ng-repeat='msg in user.msgs'>
-                                <td>
+                                <td><i class="fa fa-exclamation-triangle" ng-if='msg.isRep' title="You've reported this message."></i></td>
+                                <td ng-class='{"has-text-danger":msg.from=="System"}'>
                                     {{msg.from}}
                                 </td>
                                 <td>
@@ -175,13 +178,50 @@
                                     <button class="button is-small is-default" title='Delete Message' ng-click='delMsg(msg)'>
                                         <i class="fa fa-trash"></i>
                                     </button>&nbsp;
-                                    <button class="button is-small is-danger" title='Report Message' ng-click='repMsg(msg)' ng-disabled='msg.isRep'>
+                                    <button class="button is-small is-danger" title='Report Message' ng-click='repMsg(msg)' ng-disabled='msg.isRep' ng-show='msg.from!="System"'>
                                         <i class="fa fa-exclamation"></i>
                                     </button>
                                 </td>
                             </tr>
                             <tr ng-if='!user.msgs.length'>
-                                <td colspan='3'>
+                                <td colspan='4'>
+                                    <i>
+                                    You have no messages right now!
+                                    </i>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h3 class="is-size-5">Outbox</h3>
+                    <table class="is-fullwidth table has-text-white has-background-grey-darker">
+                        <thead>
+                            <tr>
+                                <th>&nbsp;</th>
+                                <th>To</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat='msg in user.outBox'>
+                                <td><i class="fa fa-exclamation-triangle" ng-if='msg.isRep' title='This message was reported to the moderator team'></i></td>
+                                <td>
+                                    {{msg.to}}
+                                </td>
+                                <td>
+                                    {{msg.date|numToDate}}
+                                </td>
+                                <td>
+                                    <button class="button is-small is-info" title='View Message' ng-click='viewMsg(msg,true)'>
+                                        <i class="fa fa-eye"></i>
+                                    </button>&nbsp;
+                                    <button class="button is-small is-default" title='Delete Message' ng-click='delMyMsg(msg)'>
+                                        <i class="fa fa-trash"></i>
+                                    </button>&nbsp;
+                                </td>
+                            </tr>
+                            <tr ng-if='!user.outBox.length'>
+                                <td colspan='4'>
                                     <i>
                                     You have no messages right now!
                                     </i>
