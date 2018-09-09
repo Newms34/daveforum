@@ -6,7 +6,7 @@
                 <div class='column is-one-fifth has-background-grey-darker'>
                     <img src="{{avas[pst.user]||defaultPic}}" class='prof-pic'>
                     <br> {{pst.user}}
-                    <div ng-if='user.mod' class='has-text-danger'>
+                    <div ng-if='pst.byMod' class='has-text-danger'>
                         Moderator
                     </div>
                     <div>

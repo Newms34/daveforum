@@ -70,6 +70,34 @@
                             </select>
                         </p>
                     </div>
+                    <div class="field" ng-show='user.mod'>
+                        <label class='label'>
+                            Should this event repeat?
+                        </label>
+                        <div class="toggle-bg">
+                            <div class="toggle-slider is-pulled-left" ng-class="{'is-pulled-right':newEventObj.repeatOn}" ng-click='newEventObj.repeatOn=!newEventObj.repeatOn;'>{{newEventObj.repeatOn?'Yes':'No'}}</div>
+                        </div>
+                        <div ng-show='newEventObj.repeatOn' class='has-background-grey-lighter'>
+                            <br>
+                            <label>
+                            How often? &nbsp;
+                            <p class="select">
+                                <select ng-model='newEventObj.repFreq' ng-init='newEventObj.repFreq=wkOpts[0].n' ng-options='w.n as w.lbl for w in wkOpts'>
+                                </select>
+                            </p>
+                            </label>
+                            <br><br>
+                            <label>
+                            How many times?
+                            <p class="control has-icons-left">
+                                <input class="number" type="number" min='0' ng-model='newEventObj.repeatNum'>
+                                <span class="icon is-small is-left">
+                                    <i class="fa fa-repeat"></i>
+                                </span>
+                            </p>
+                            </label>
+                        </div>
+                    </div>
                     <div class="field">
                         <label class='label'>
                             What kind of event is this?
@@ -79,14 +107,13 @@
                                 <option disabled selected>Select a time</option>
                             </select>
                             <div class="notification is-pulled-right column is-two-thirds">
-                                
-                            {{newEventObj.kind.desc}}
+                                {{newEventObj.kind.desc}}
                             </div>
                         </p>
                     </div>
                     <div class="is-fullwidth">
-                        
-                    <button class='button is-info' ng-click='doAdd()'><i class="fa fa-check"></i>&nbsp;Add</button><button class='button is-danger' ng-click='clearAdd()'><i class="fa fa-times"></i>&nbsp;Cancel</button>
+                        <button class='button is-info' ng-click='doAdd()'><i class="fa fa-check"></i>&nbsp;Add</button>
+                        <button class='button is-danger' ng-click='clearAdd()'><i class="fa fa-times"></i>&nbsp;Cancel</button>
                     </div>
                 </div>
             </div>
@@ -97,7 +124,7 @@
         <div class="modal-content">
             <div class="panel">
                 <div class="panel-heading">
-                   Edit Event
+                    Edit Event
                 </div>
                 <div class="panel-block has-background-white">
                     <div class="field">
@@ -143,14 +170,13 @@
                                 <option disabled selected>Select a time</option>
                             </select>
                             <div class="notification is-pulled-right column is-two-thirds">
-                                
-                            {{editEventObj.kind.desc}}
+                                {{editEventObj.kind.desc}}
                             </div>
                         </p>
                     </div>
                     <div class="is-fullwidth">
-                        
-                    <button class='button is-info' ng-click='doEdit()'><i class="fa fa-check"></i>&nbsp;Edit</button><button class='button is-danger' ng-click='clearEdit()'><i class="fa fa-times"></i>&nbsp;Cancel</button>
+                        <button class='button is-info' ng-click='doEdit()'><i class="fa fa-check"></i>&nbsp;Edit</button>
+                        <button class='button is-danger' ng-click='clearEdit()'><i class="fa fa-times"></i>&nbsp;Cancel</button>
                     </div>
                 </div>
             </div>

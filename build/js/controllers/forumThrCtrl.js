@@ -34,6 +34,7 @@ app.controller('forum-thr-cont', function($scope, $http, $state, $location, $sce
                     const thePst = r.data.psts.filter(psps => psps._id == psth.id)[0];
                     thePst.votesUp = psth.votesUp;
                     thePst.votesDown = psth.votesDown;
+                    thePst.byMod = r.data.mods.indexOf(thePst.user)>-1;
                     thePst.order = psth.order;
                     return r.data.psts.filter(psps => psps._id == psth.id)[0];
                 }).sort((a, b) => {

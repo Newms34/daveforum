@@ -20,11 +20,11 @@ module.exports = function(io) {
     });
     //cron stuff
     const cronny = setInterval(function() {
-        console.log('Checking upcoming events at', new Date().toLocaleString())
+        // console.log('Checking upcoming events at', new Date().toLocaleString())
         let now = Date.now();
         mongoose.model('cal').find({ kind: 'lotto' }, function(err, lottos) {
             lottosExp = lottos.filter(lt => lt.eventDate < now && !lt.expired)
-            console.log(now, 'all lottos', lottos.map(e => e.eventDate), 'expiring/expired', lottosExp.map(e => e.eventDate));
+            // console.log(now, 'all lottos', lottos.map(e => e.eventDate), 'expiring/expired', lottosExp.map(e => e.eventDate));
             if (lottosExp.length) {
                 lottosExp.forEach(lto => {
                     mongoose.model('User').find({ isBanned: false, confirmed: true }, function(err, usrs) {

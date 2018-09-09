@@ -100,18 +100,10 @@ const routeExp = function(io) {
                     const usrList = _.map(_.uniqBy(psts, 'user'), 'user');
                     console.log('RESULT OF usrList', usrList)
                     mongoose.model('User').find({ user: { $in: usrList } }, function(err, ufp) {
-                        // console.log('results of user uniq stuff for thred',_.map(ufp,(u)=>{
-                        //     return u.user+u.pass.length
-                        // }),usrList);
-                        // ufpr = ufp.map(u=>{
-                        //     return {u:u.user,a:u.avatar||false}
-                        // })
+                        //user forum post avatar (ufpa)
                         let ufpa = _.zipObject(_.map(ufp, 'user'), ufp.map(u => u.avatar || false));
-                        // console.log('USERS IN THIS THRED',ufpa)
-                        // psts.forEach(function(psta){
-                        //     psta.profPic = ufpa[psta.user];
-                        // })
-                        res.send({ thrd: thrd, psts: psts, ava: ufpa })
+
+                        res.send({ thrd: thrd, psts: psts, ava: ufpa, mods:ufp.filter(um=>um.mod).map(umn=>umn.user)})
                     })
                 })
             }

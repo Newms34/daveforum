@@ -218,10 +218,31 @@ const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
     // We put the Data URI in the image's src attribute
     img.src = datas;
 }
-app.controller('cal-cont', function($scope, $http,$state) {
+app.controller('cal-cont', function($scope, $http, $state) {
     $scope.cal = [];
     $scope.days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     $scope.calLoaded = false;
+    // $scope.repEvent = false;
+    $scope.wkOpts = [{
+        lbl: 'Every week',
+        n: 1
+    }, {
+        lbl: 'Every two weeks',
+        n: 2
+    }, {
+        lbl: 'Every three weeks',
+        n: 3
+    }, {
+        lbl: 'Every four weeks',
+        n: 4
+    }, {
+        lbl: 'Every five weeks',
+        n: 5
+    }]
+    $http.get('/user/usrData')
+        .then(r => {
+            $scope.user = r.data;
+        })
     $scope.refCal = () => {
         $http.get('/cal/all')
             .then((r) => {
@@ -229,9 +250,9 @@ app.controller('cal-cont', function($scope, $http,$state) {
                 $scope.makeCalendar(r.data);
             })
     };
-    socket.on('refCal',(e)=>{
+    socket.on('refCal', (e) => {
         // bulmabox.alert('Refreshing Calendar',`There's been a change to the calendar, so we're refreshing!`,function(r){
-            // $state.go($state.current, {}, { reload: true });
+        // $state.go($state.current, {}, { reload: true });
         // })
         $scope.refCal()
     })
@@ -292,20 +313,20 @@ app.controller('cal-cont', function($scope, $http,$state) {
     $scope.editEvent = (ev) => {
         $scope.editEventAct = true;
         console.log('Edit event', ev)
-        const beginningOfDay =  new Date(ev.eventDate).setHours(0,0,0,0),
-        now = Date.now();
+        const beginningOfDay = new Date(ev.eventDate).setHours(0, 0, 0, 0),
+            now = Date.now();
         $scope.editEventObj = {
-            title:ev.title,
-            desc:ev.text,
-            kind:$scope.kindOpts.find(k=>k.kind==ev.kind),
-            time:Math.floor((ev.eventDate-beginningOfDay)/(30*60*1000)),
-            day:Math.round((ev.eventDate-now)/(3600*1000*24)),
-            id:ev._id,
-            user:ev.user
+            title: ev.title,
+            desc: ev.text,
+            kind: $scope.kindOpts.find(k => k.kind == ev.kind),
+            time: Math.floor((ev.eventDate - beginningOfDay) / (30 * 60 * 1000)),
+            day: Math.round((ev.eventDate - now) / (3600 * 1000 * 24)),
+            id: ev._id,
+            user: ev.user
         }
     };
-    $scope.doEdit = ()=>{
-        console.log('Input edit event',$scope.editEventObj)
+    $scope.doEdit = () => {
+        console.log('Input edit event', $scope.editEventObj)
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         let time = today.getTime() + ($scope.editEventObj.time * 1800 * 1000) + ($scope.editEventObj.day * 3600 * 1000 * 24);
@@ -316,13 +337,13 @@ app.controller('cal-cont', function($scope, $http,$state) {
                 text: $scope.editEventObj.desc,
                 eventDate: time,
                 kind: $scope.editEventObj.kind.kind,
-                id:$scope.editEventObj.id,
-                user:$scope.editEventObj.user
+                id: $scope.editEventObj.id,
+                user: $scope.editEventObj.user
             })
             .then(function(r) {
                 console.log('edit event response', r)
-                if(r.data=='wrongUser'){
-                    bulmabox.alert('<i class="fa fa-exclamation-triangle"></i> Wrong User','You cannot edit this event, as you are not its creator and are not a moderator.');
+                if (r.data == 'wrongUser') {
+                    bulmabox.alert('<i class="fa fa-exclamation-triangle"></i> Wrong User', 'You cannot edit this event, as you are not its creator and are not a moderator.');
                 }
                 $scope.refCal()
                 $scope.clearEdit()
@@ -348,7 +369,10 @@ app.controller('cal-cont', function($scope, $http,$state) {
         desc: '',
         day: 0,
         time: (new Date().getHours() + (new Date().getMinutes() < 30 ? 0.5 : 0)) * 2,
-        kind: 'lotto'
+        kind: 'lotto',
+        repeatNum: 1,
+        repeatOn:false,
+        repeatFreq: 1
     };
     $scope.hourOpts = new Array(48).fill(100).map((c, i) => {
         let post = i < 24 ? 'AM' : 'PM',
@@ -391,11 +415,15 @@ app.controller('cal-cont', function($scope, $http,$state) {
         today.setHours(0, 0, 0, 0);
         let time = today.getTime() + ($scope.newEventObj.time * 1800 * 1000) + ($scope.newEventObj.day * 3600 * 1000 * 24);
         console.log('Sending event', $scope.newEventObj, time)
-        $http.post('/cal/new', {
+        let theUrl = $scope.newEventObj.repeatOn?'/cal/newRep':'/cal/new';
+        $http.post(theUrl, {
                 title: $scope.newEventObj.title,
                 text: $scope.newEventObj.desc,
                 eventDate: time,
-                kind: $scope.newEventObj.kind.kind
+                kind: $scope.newEventObj.kind.kind,
+                repeatNum: $scope.newEventObj.repeatNum,
+                repeatFreq: $scope.newEventObj.repeatFreq,
+                repeatOn:$scope.newEventObj.repeatOn
             })
             .then(function(r) {
                 console.log('new event response', r)
@@ -410,7 +438,10 @@ app.controller('cal-cont', function($scope, $http,$state) {
             desc: '',
             day: 0,
             time: (new Date().getHours() + (new Date().getMinutes() < 30 ? 0.5 : 0)) * 2,
-            kind: 'lotto'
+            kind: 'lotto',
+            repeatNum:1,
+            repeatFreq:1,
+            repeatOn:false
         }
     }
 })
@@ -1139,6 +1170,7 @@ app.controller('forum-thr-cont', function($scope, $http, $state, $location, $sce
                     const thePst = r.data.psts.filter(psps => psps._id == psth.id)[0];
                     thePst.votesUp = psth.votesUp;
                     thePst.votesDown = psth.votesDown;
+                    thePst.byMod = r.data.mods.indexOf(thePst.user)>-1;
                     thePst.order = psth.order;
                     return r.data.psts.filter(psps => psps._id == psth.id)[0];
                 }).sort((a, b) => {

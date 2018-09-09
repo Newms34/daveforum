@@ -25,7 +25,7 @@ const express = require('express'),
             }
         })
     };
-
+mongoose.Promise
 
 const routeExp = function(io) {
     //TODO: need way to only let admins (?) add events. All others should get rejected?
@@ -36,6 +36,26 @@ const routeExp = function(io) {
             console.log('ERR',err)
             res.send(resp);
         })
+    });
+    router.post('/newRep', authbit, isMod, (req, res, next) => {
+        req.body.user = req.session.user.user;
+        console.log('User (hopefully a mod) wants to create a repeating event',req.body)
+        const oneWeek = 1000*3600*24*7,
+        mProms = [],currDate = req.body.eventDate;
+        for(let i=0;i<req.body.repeatNum;i++){
+            mProms.push(mongoose.model('cal').create(req.body));
+            req.body.eventDate+=oneWeek*req.body.repeatFreq;
+            console.log('EVENT now',req.body)
+        }
+        Promise.all(mProms)
+            .then(r=>{
+                res.send(r);
+            })
+        // mongoose.model('cal').create(req.body, function(err, resp) {
+        //     io.emit('refCal',{})
+        //     console.log('ERR',err)
+        //     res.send(resp);
+        // })
     })
     // title: $scope.editEventObj.title,
     // text: $scope.editEventObj.desc,

@@ -344,3 +344,27 @@ $races: Asura Charr Human Norn Sylvari;
     base: 255,221,87
     act:  255,216,61
 */
+.toggle-bg{
+    width:100px;
+    height:30px;
+    padding:2px;
+    border-radius:4px;
+    background:#333;
+    border: 2px inset #555;
+    .toggle-slider{
+        width:48%;
+        height:26px;
+        border-radius:4px;
+        background:#999;
+        transition-duration:.3s;
+        border:2px;
+        line-height:15px;
+        text-align:center;
+        height:100%;
+        cursor:pointer;
+        border:2px outset #999;
+        &:hover{
+            background:#aaa;
+        }
+    }
+}
