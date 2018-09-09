@@ -132,7 +132,10 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         $scope.intSearchToggle = false;
         $scope.charSearchToggle = false;
         $scope.memFilter = (m) => {
-            if ($scope.charSearch && !hasChars.length) {
+            //two options to 'filter out' this item
+            let hasChars = !!m.chars.filter(c=>c.name.toLowerCase().indexOf($scope.charSearch.toLowerCase())>-1).length;
+            if ($scope.charSearch && !hasChars) {
+                //char search filter has been applied, and none of the user's chars match this
                 return false;
             }
             if ($scope.pickedInts.filter(r => !!r).length) {
@@ -143,9 +146,10 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                         okay = false;
                     }
                 })
-                if (!okay) {
-                    return false;
-                }
+                return okay;
+                // if (!okay) {
+                //     return false;
+                // }
             }
             return true;
         }
