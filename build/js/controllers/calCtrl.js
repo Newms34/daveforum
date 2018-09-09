@@ -55,7 +55,7 @@ app.controller('cal-cont', function($scope, $http,$state) {
     };
     $scope.viewEvent = (ev) => {
         console.log('View event', ev)
-        bulmabox.alert(`Event: ${ev.title}`, `Time:${new Date(ev.eventDate).toString()}<hr>${ev.text}`)
+        bulmabox.alert(`Event: ${ev.title}`, `Time:${new Date(ev.eventDate).toLocaleString()}<hr>${ev.text}`)
     };
     $scope.editEventObj = {
         title: '',
