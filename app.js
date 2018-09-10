@@ -2,8 +2,7 @@ const express = require('express'),
     app = express(),
     http = require('http'),
     server = http.Server(app),
-    io = require('socket.io')(server);
-var routes = require('./routes')(io),
+    io = require('socket.io')(server),
     path = require('path'),
     cookieParser = require('cookie-parser'),
     cookie = require('cookie'),
@@ -17,15 +16,21 @@ app.use(compression());
 const sesh = session({
     secret: 'ea augusta est et carissima'
 });
+const usrModel = require('./models/users')
 app.use(sesh);
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
+// passport.use(new LocalStrategy(usrModel.authenticate()))
+// passport.serializeUser(usrModel.serializeUser());
+// passport.deserializeUser(usrModel.deserializeUser());
 app.use(cookieParser('spero eam beatam esse'))
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.set('view engine', 'html');
 app.set('views', path.join(__dirname, 'views'));
 app.set('io', io)
+// app.set('pp', passport)
+const routes = require('./routes')(io);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'views')));
 app.use('/', routes);

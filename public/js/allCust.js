@@ -660,9 +660,6 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                     }
                 })
                 return okay;
-                // if (!okay) {
-                //     return false;
-                // }
             }
             return true;
         }
@@ -1292,8 +1289,10 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
         $http.post('/user/login', { user: $scope.user, pass: $scope.pwd })
             .then((r) => {
                 console.log(r);
-                if (!r.data) {
-                    bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Incorrect Login', 'Either your username or password (or both!) are incorrect');
+                if (r.data=='authErr') {
+                    bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Incorrect Login', 'Either your username or password (or both!) are incorrect.<hr><span style="font-weight:bold;">Note to Previous Users:</span><br> Your account MAY have been reset due to an issue with the authentication software we were using. For security reasons, I had to wipe the database (including accounts). Really sorry! <br> - Dave (HealyUnit)');
+                }else if(r.data=='banned'){
+                    bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Banned', "You've been banned! We're a pretty laid-back guild, so you must have <i>really</i> done something to piss us off!")
                 } else {
                     // delete r.data.msgs;
                     console.log('LOGIN RESPONSE',r.data)
@@ -1306,7 +1305,7 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                 }
             })
             .catch(e => {
-                bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Banned', "You've been banned! We're a pretty laid-back guild, so you must have <i>really</i> done something to piss us off!")
+                bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Error', "There's been some sort of error logging in. This is <i>probably</i> not an issue necessarily with your credentials. Blame Dave!")
                 console.log(e);
             })
     }
@@ -1393,24 +1392,27 @@ app.controller('nav-cont',function($scope,$http,$state){
     //     })
     // })
 })
-resetApp.controller('reset-contr',function($scope,$http){
-	$scope.key = window.location.href.slice(window.location.href.lastIndexOf('/')+1)
-	$http.get('/user/resetUsr/'+$scope.key).then(function(u){
+resetApp.controller('reset-contr',function($scope,$http,$location){
+	$scope.key = window.location.search.slice(3);
+
+	$http.get('/user/resetUsr?key='+$scope.key).then(function(u){
+		console.log('getting reset user status?',u)
 		$scope.user=u.data;
 	});
 	$scope.doReset = function(){
 		if(!$scope.user || !$scope.pwd || !$scope.pwdDup || $scope.pwdDup!=$scope.pwd ||!$scope.key){
-			bootbox.alert('Error: Missing data. Make sure you&rsquo;ve reached this page from a password reset link, and that you have entered the same password in both fields!');
+			bulmabox.alert('Error: Missing data','Make sure you&rsquo;ve reached this page from a password reset link, and that you have entered the same password in both fields!');
 		}else{
 			$http.post('/user/resetPwd',{
-				acct:$scope.user.name,
+				acct:$scope.user.user,
 				pwd:$scope.pwd,
 				key:$scope.key
 			}).then(function(r){
+				console.log('')
 				if(r.data=='err'){
-					bootbox.alert('There was an error resetting your password.');
+					// bulmabox.alert('Error resetting password','There was an error resetting your password. Please contact a mod');
 				}else{
-					window.location.href='../../login';
+					// window.location.href='../../login';
 				}
 			})
 		}

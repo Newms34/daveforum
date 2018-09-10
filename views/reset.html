@@ -3,42 +3,60 @@
 
 <head>
     <title>Brethren [PAIN] Guild</title>
-    <link rel="icon" href="/img/icon.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="/img/icons/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/img/icons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/img/icons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/img/icons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/img/icons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/img/icons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/img/icons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/img/icons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/img/icons/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/icons/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/img/icons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/img/icons/favicon-16x16.png">
+    <!-- <link rel="manifest" href="/img/icons/manifest.json"> -->
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/img/icons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
     <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="/css/styles.css">
 </head>
 
 <body ng-app='reset-app' ng-controller='reset-contr'>
-    <div class='container'>
-        <div class='col-md-8 col-md-offset-2 panel panel-danger'>
-            <div class='panel-heading'>
-                <h3>Reset Password</h3></div>
-            <div class='panel-body'>
-            <form>
-                <div class='col-md-8 col-md-offset-2 panel panel-danger panel-body'>&nbsp;Account: {{user.name}}</div>
-                <div class='row'>
-                    <div class='input-group col-md-8 col-md-offset-2'>
-                        <span class='input-group-addon'>Enter Password</span>
-                        <input type="password" placeholder='Enter a password' ng-model='pwd' class='form-control' required>
-                    </div>
+    <div class="panel">
+        <div class="panel-heading">Reset Password for Account: {{user.user}}</div>
+        <div class="panel-block has-background-white">
+            <form class='columns is-multiline'>
+                <div class='column is-one-fifth'>Enter a password: </div>
+                <div class="field column is-three-fifths">
+                    <p class="control has-icons-left">
+                        <input class="input" type="password" placeholder="Password" ng-model='pwd'>
+                        <span class="icon is-small is-left">
+                            <i class="fa fa-lock"></i>
+                        </span>
+                    </p>
                 </div>
-                <br>
-                <div class='row'>
-                    <div class='input-group col-md-8 col-md-offset-2'>
-                        <span class='input-group-addon'>Repeat Password</span>
-                        <input type="password" placeholder='Enter password again, just to make sure!' ng-model='pwdDup' class='form-control' required>
-                    </div>
-                    <div class='alert alert-danger col-md-8 col-md-offset-2' ng-if='pwd && pwdDup && pwd!=pwdDup'>Error: Your passwords don't match!</div>
+                <div class='column is-one-fifth'></div>
+                <div class='column is-one-fifth'>Repeat your password: </div>
+                <div class="field column is-three-fifths">
+                    <p class="control has-icons-left">
+                        <input class="input" type="text" placeholder="Password (again)" ng-model='pwdDup'>
+                        <span class="icon is-small is-left">
+                            <i class="fa fa-lock"></i>
+                        </span>
+                    </p>
                 </div>
-                <br>
-                <button class='btn btn-danger col-md-2 col-md-offset-5' ng-click='doReset()'>
-                	Reset
-                </button>
+                <div class='column is-one-fifth'></div>
+                <div class='column is-two-fifths'></div>
+                <button class='button is-info column is-one-fifth' ng-click='doReset()'>Reset</button>
+                <br><br>
             </form>
-            </div>
-        </div>
+        </div>      
     </div>
     <script src="/js/all.min.js"></script>
+
 </body>
 
 </html>

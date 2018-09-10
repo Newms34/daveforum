@@ -6,11 +6,15 @@ const router = express.Router(),
     async = require('async'),
     mongoose = require('mongoose');
 
-module.exports = function(io) {
-    router.use('/user', require('./subroutes/users')(io));
-    router.use('/forum', require('./subroutes/forums')(io));
-    router.use('/tool', require('./subroutes/tools')(io));
-    router.use('/cal', require('./subroutes/cal')(io));
+module.exports = function(io,pp) {
+    router.use('/user', require('./subroutes/users')(io,pp));
+    router.use('/forum', require('./subroutes/forums')(io,pp));
+    router.use('/tool', require('./subroutes/tools')(io,pp));
+    router.use('/cal', require('./subroutes/cal')(io,pp));
+    router.get('/reset', function(req, res, next) {
+        console.log('reset page!')
+        res.sendFile('reset.html', { root: './views' })
+    });
     router.get('*', function(req, res, next) {
         console.log('trying to get main page!')
         res.sendFile('index.html', { root: './views' })

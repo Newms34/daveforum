@@ -4,6 +4,7 @@
   "description": "Brethren [PAIN] guild site",
   "main": "app.js",
   "dependencies": {
+    "@sendgrid/mail": "^6.3.1",
     "async": "^2.6.1",
     "axios": "^0.18.0",
     "babel-core": "^6.26.3",
@@ -28,6 +29,7 @@
     "password-hash-and-salt": "^0.1.4",
     "password-reset": "^0.1.4",
     "q": "^1.5.1",
+    "sendgrid": "^5.2.3",
     "sendmail": "^1.4.1",
     "socket.io": "^2.1.1",
     "uuid": "^3.3.2"

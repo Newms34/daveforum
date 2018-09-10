@@ -147,9 +147,6 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                     }
                 })
                 return okay;
-                // if (!okay) {
-                //     return false;
-                // }
             }
             return true;
         }

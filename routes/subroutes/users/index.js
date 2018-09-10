@@ -7,16 +7,8 @@ const router = express.Router(),
     mongoose = require('mongoose'),
     session = require('express-session'),
     axios = require('axios'),
-    sendpie = require('sendmail')({
-        logger: {
-            debug: console.log,
-            info: console.info,
-            warn: console.warn,
-            error: console.error
-        },
-        silent: false
-    }),
-    fs=require('fs'),
+    fs = require('fs'),
+    // SparkPost = require('sparkpost'),
     isMod = (req, res, next) => {
         mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
             if (!err && usr.mod) {
@@ -26,8 +18,27 @@ const router = express.Router(),
             }
         })
     };
+const oldUsers = JSON.parse(fs.readFileSync('oldUsers.json', 'utf-8'))
+let sgApi;
+if (fs.existsSync('sparky.json')) {
+    sparkyConf = JSON.parse(fs.readFileSync('sparky.json', 'utf-8'));
+} else {
+    sparkyConf = {
+        SPARKPOST_API_KEY: process.env.SPARKPOST_API_KEY,
+        SPARKPOST_API_URL: process.env.SPARKPOST_API_URL,
+        SPARKPOST_SANDBOX_DOMAIN: process.env.SPARKPOST_SANDBOX_DOMAIN,
+        SPARKPOST_SMTP_HOST: process.env.SPARKPOST_SMTP_HOST,
+        SPARKPOST_SMTP_PASSWORD: process.env.SPARKPOST_SMTP_PASSWORD,
+        SPARKPOST_SMTP_PORT: proces.env.SPARKPOST_SMTP_PORT,
+        SPARKPOST_SMTP_USERNAME: process.env.SPARKPOST_SMTP_USERNAME,
+        SENDGRID_API: process.env.SENDGRID_API
+    }
+}
+const sgMail = require('@sendgrid/mail');
+sgMail.setApiKey(sparkyConf.SENDGRID_API);
 
-const routeExp = function(io) {
+
+const routeExp = function(io, pp) {
     this.authbit = (req, res, next) => {
         if (req.session && req.session.user && req.session.user._id) {
             if (req.session.user.isBanned) {
@@ -326,7 +337,7 @@ const routeExp = function(io) {
                     console.log(repd, fusr);
                     repd.isRep = true;
                     fusr.save((oerr, ousr) => {
-                        io.emit('sentMsg', { user: req.body.from})
+                        io.emit('sentMsg', { user: req.body.from })
                         res.send(usr);
                     })
                 })
@@ -338,12 +349,34 @@ const routeExp = function(io) {
         if (!req.query.u) {
             res.status(400).send('err')
         }
-        mongoose.model('User').findOneAndUpdate({ 'user': req.query.u }, { confirmed: true }, function(err, usr) {
+        //find user and confirm them, then resend all users
+        //check for old user from before db wipe
+
+        mongoose.model('User').findOne({ 'user': req.query.u }, function(err, usr) {
             if (err) {
                 res.send(err);
             }
-            mongoose.model('User').find({}, (erra, usra) => {
-                res.send(usra);
+            let oldOrigUsr = oldUsers.find(u => u.user == req.query.u); //copy old users over so we dont have to
+            usr.confirmed = true;
+            if (oldOrigUsr) {
+                usr.tz = oldOrigUsr.tz;
+                usr.msgs = _.cloneDeep(oldOrigUsr.msgs);
+                usr.chars = _.cloneDeep(oldOrigUsr.chars);
+                usr.ints = _.cloneDeep(oldOrigUsr.ints);
+                usr.lastLogin = oldOrigUsr.lastLogin;
+                usr.otherInfo = oldOrigUsr.otherInfo;
+                usr.avatar = oldOrigUsr.avatar;
+                usr.outBox = oldOrigUsr.outBox;
+                usr.mod = !!oldOrigUsr.mod;
+                // um.create(oldOrigUsr, (err, nusr) => {
+                //     res.send(nusr);
+                // })
+                // usr = oldOrigUsr;
+            }
+            usr.save((cerr, cusr) => {
+                mongoose.model('User').find({}, (erra, usra) => {
+                    res.send(usra);
+                })
             })
         })
     })
@@ -385,15 +418,19 @@ const routeExp = function(io) {
                 delete req.body.pass;
                 console.log(req.body)
                 req.body.ints = [0, 0, 0, 0, 0, 0];
-                um.register(new um(req.body), pwd, function(err, usr) {
-                    console.log(err, usr)
-                    if (err) {
-                        console.log(err);
-                        res.send('err');
-                    } else {
-                        res.send('Usr is:' + usr)
-                    }
-                });
+                req.body.salt = um.generateSalt();
+                req.body.pass = mongoose.model('User').encryptPassword(pwd, req.body.salt)
+                // if (oldOrigUsr) {
+                //     oldOrigUsr.pass = req.body.pass;
+                //     oldOrigUsr.salt = req.body.salt;
+                //     um.create(oldOrigUsr, (err, nusr) => {
+                //         res.send(nusr);
+                //     })
+                // } else {
+                um.create(req.body, (err, nusr) => {
+                    res.send(nusr);
+                })
+                // }
             }
         })
     });
@@ -404,38 +441,64 @@ const routeExp = function(io) {
         });
     });
     router.post('/login', function(req, res, next) {
-        mongoose.model('User').findOne({ 'user': req.body.user }, function(err, usr) {
-            if (!usr || err) {
-                res.send(false);
-            } else {
-                usr.authenticate(req.body.pass, function(err, resp) {
-                    console.log('LOGIN RESPONSE', usr, 'ERR', err)
-                    if (usr) {
-                        req.session.user = usr;
-                        delete req.session.user.pass;
-                        delete req.session.user.salt;
-                        delete req.session.user.reset;
-                        delete req.session.user.email;
-                    }
-                    if (usr.isBanned) {
-                        res.status(403).send('banned');
-                        return false;
-                    }
+            mongoose.model('User').findOne({ 'user': req.body.user }, function(err, usr) {
+                if (!err && usr && !usr.isBanned && usr.correctPassword(req.body.pass)) {
                     const prevLog = usr.lastLogin;
                     usr.lastLogin = Date.now();
                     const lastNews = new Date(fs.statSync('./news.txt').mtime).getTime();
-                    console.log('NEWS',lastNews,lastNews-prevLog);
-                    let news=null;
-                    if(lastNews-prevLog>1000){
-                        news = fs.readFileSync('./news.txt','utf8').split(/\n/);
+                    console.log('NEWS', lastNews, lastNews - prevLog);
+                    let news = null;
+                    if (lastNews - prevLog > 1000) {
+                        news = fs.readFileSync('./news.txt', 'utf8').split(/\n/);
                     }
+                    req.session.user = usr;
+                    delete req.session.user.pass;
+                    delete req.session.user.salt;
+                    delete req.session.user.reset;
+                    delete req.session.user.email;
                     usr.save((err, usrsv) => {
-                        res.send({usr:req.session.user,news:news})
+                        res.send({ usr: req.session.user, news: news })
                     })
-                })
-            }
-        })
-    });
+                } else if (usr && usr.isBanned) {
+                    res.send('banned')
+                } else {
+                    res.send('authErr');
+                    // usr.authenticate(req.body.pass, function(err, resp) {
+                    //     console.log('LOGIN RESPONSE', usr, 'ERR', err,'END of report')
+                    //     res.send('err');
+                    //     return false;
+                    //     // throw new Error('STOP')
+                    //     if (usr) {
+                    //         req.session.user = usr;
+                    //         delete req.session.user.pass;
+                    //         delete req.session.user.salt;
+                    //         delete req.session.user.reset;
+                    //         delete req.session.user.email;
+                    //     }
+                    //     if (usr.isBanned) {
+                    //         res.status(403).send('banned');
+                    //         return false;
+                    //     }
+                    //     const prevLog = usr.lastLogin;
+                    //     usr.lastLogin = Date.now();
+                    //     const lastNews = new Date(fs.statSync('./news.txt').mtime).getTime();
+                    //     console.log('NEWS', lastNews, lastNews - prevLog);
+                    //     let news = null;
+                    //     if (lastNews - prevLog > 1000) {
+                    //         news = fs.readFileSync('./news.txt', 'utf8').split(/\n/);
+                    //     }
+                    //     usr.save((err, usrsv) => {
+                    //         res.send({ usr: req.session.user, news: news })
+                    //     })
+                    // })
+                }
+            })
+        },
+        function(err, req, res, next) {
+            // handle error
+            console.log(err)
+            res.status(401).send('DIDNT WORK')
+        });
     router.get('/logout', function(req, res, next) {
         /*this function logs out the user. It has no confirmation stuff because
         1) this is on the backend
@@ -458,27 +521,57 @@ const routeExp = function(io) {
                 res.send('err');
                 return;
             } else {
-                const email = usr.email;
                 let jrrToken = Math.floor(Math.random() * 99999).toString(32);
                 for (var i = 0; i < 15; i++) {
                     jrrToken += Math.floor(Math.random() * 99999).toString(32);
                 }
-                if (!email) {
+                if (!usr.email) {
                     res.send('noEmail');
                     return false;
                 }
                 console.log(jrrToken)
-                var resetUrl = 'http://localhost:8080/user/reset/' + jrrToken;
+                // var resetUrl = 'https://brethrenpain.herokuapp.com/reset?t=' + jrrToken;
+                const resetUrl = 'http://localhost:8080/reset?t=' + jrrToken;
                 usr.reset = jrrToken;
                 usr.save(function() {
-                    sendpie({
+                    // sparky.transmissions.send({
+                    //         options: {
+                    //             sandbox: true
+                    //         },
+                    //         content: {
+                    //             from: 'no-reply@' + sparkyConf.SPARKPOST_SANDBOX_DOMAIN,
+                    //             subject: 'Brethren [PAIN] Password Reset Request',
+                    //             // html: 'Someone (hopefully you!) requested a reset email for your Brethren [PAIN] account. <br>If you did not request this, just ignore this email.<br>Otherwise, click <a href="' + resetUrl + '" target="_blank">here</a>'
+                    //             html:'TEST email for resetting password'
+                    //         },
+                    //         recipients: [
+                    //             { address: usr.email }
+                    //         ]
+                    //     })
+                    //     .then(data => {
+                    //         console.log('Woohoo! You just sent your first mailing!');
+                    //         console.log(data);
+                    //     })
+                    //     .catch(err => {
+                    //         console.log('Whoops! Something went wrong');
+                    //         console.log(err);
+                    //     });
+                    // sendpie({
+                    //     from: 'no-reply@brethrenpain.herokuapp.com',
+                    //     to: email,
+                    //     subject: 'Password reset for ' + usr.name,
+                    //     html: 'Someone (hopefully you!) requested a reset email for your Brethren [PAIN] account. <br>If you did not request this, just ignore this email.<br>Otherwise, click <a href="' + resetUrl + '">here</a>',
+                    // }, function(err, reply) {
+                    //     console.log('REPLY IS', reply, 'ERR IS', err)
+                    // });
+                    const msg = {
+                        to: usr.email,
                         from: 'no-reply@brethrenpain.herokuapp.com',
-                        to: email,
-                        subject: 'Password reset for ' + usr.name,
+                        subject: 'Password Reset',
+                        text: 'Someone (hopefully you!) requested a reset email for your Brethren [PAIN] account. If you did not request this, just ignore this email. Otherwise, go to ' + resetUrl + '!',
                         html: 'Someone (hopefully you!) requested a reset email for your Brethren [PAIN] account. <br>If you did not request this, just ignore this email.<br>Otherwise, click <a href="' + resetUrl + '">here</a>',
-                    }, function(err, reply) {
-                        console.log('REPLY IS', reply, 'ERR IS', err)
-                    });
+                    };
+                    sgMail.send(msg);
                     res.end('done')
                 });
             }
@@ -517,7 +610,7 @@ const routeExp = function(io) {
             res.send('err');
         } else {
             mongoose.model('User').findOne({ reset: req.body.key }, function(err, usr) {
-                if (err || !usr || usr.name !== req.body.acct) {
+                if (err || !usr || usr.user !== req.body.acct) {
                     res.send('err');
                 } else {
                     console.log('usr before set:', usr)
