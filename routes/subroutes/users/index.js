@@ -451,11 +451,12 @@ const routeExp = function(io, pp) {
                 if (!err && usr && !usr.isBanned && usr.correctPassword(req.body.pass)) {
                     const prevLog = usr.lastLogin;
                     usr.lastLogin = Date.now();
-                    const lastNews = new Date(fs.statSync('./news.txt').mtime).getTime();
+                    // usr.lastLogin=0;
+                    const lastNews = fs.readFileSync('./news.txt', 'utf8').split(/\n/);
                     console.log('NEWS', lastNews, lastNews - prevLog);
                     let news = null;
-                    if (lastNews - prevLog > 1000) {
-                        news = fs.readFileSync('./news.txt', 'utf8').split(/\n/);
+                    if (Number(lastNews[0]) - prevLog > 1000) {
+                        news = lastNews.slice(1).map(d=>d.replace(/\r/,''));
                     }
                     req.session.user = usr;
                     delete req.session.user.pass;
