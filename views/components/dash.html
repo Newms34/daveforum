@@ -59,25 +59,55 @@
                         </div>
                         <div class="panel panel-heading">
                             <h3 class="is-size-5">Account Info</h3>
-                            <div class="field is-half">
-                                <p class="control has-icons-left">
-                                    <input class="input" type="text" placeholder="Email" ng-model='user.email' ng-change='emailTimer()'>
-                                    <span class="icon is-small is-left">
-                                        <i class="fa fa-envelope"></i>
-                                    </span>
-                                </p>
-                            </div>
-                        <br>
-                        <label class="label">
-                            Time zone
-                            <div class="select">
-                                <select ng-model='user.tz' ng-options='tz.value as tz.text for tz in tzs' ng-change='changeTz()'>
-                                    <!-- <option ng-repeat='tz in tzs' value='tz.abbr'>
+                            <div class="columns is-multiline">
+                                <div class="column is-one-fifth">Email: </div>
+                                <div class="field column is-four-fifths">
+                                    <p class="control has-icons-left">
+                                        <input class="input" type="text" placeholder="Email" ng-model='user.email' ng-change='emailTimer()'>
+                                        <span class="icon is-small is-left">
+                                            <i class="fa fa-envelope"></i>
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class='column is-one-fifth'>Time Zone</div>
+                                <div class="column is-four-fifths">
+                                    <div class="select is-small">
+                                        <select ng-model='user.tz' ng-options='tz.value as tz.text for tz in tzs' ng-change='changeTz()'>
+                                            <!-- <option ng-repeat='tz in tzs' value='tz.abbr'>
                                         {{tz.value}} <span class="has-text-bold">(GMT{{tz.offset < 0 ?tz.offset:'+'+tz.offset}})</span>
                                     </option> -->
-                                </select>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class='column is-one-fifth'>Password</div>
+                                <div class="column is-four-fifths" ng-if='!newPwd.changin'>
+                                    <button class="button has-background-light" ng-click='newPwd.changin=true;'>Change</button>
+                                </div>
+                                <div class="field column is-four-fifths" ng-if='newPwd.changin'>
+                                    <p class="control has-icons-left">
+                                        <input class="input" type="password" placeholder="Old password" ng-model='newPwd.old'>
+                                        <span class="icon is-small is-left">
+                                            <i class="fa fa-unlock-alt"></i>
+                                        </span>
+                                    </p>
+                                    <p class="control has-icons-left">
+                                        <input class="input" type="password" placeholder="New password" ng-model='newPwd.pwd'>
+                                        <span class="icon is-small is-left">
+                                            <i class="fa fa-lock"></i>
+                                        </span>
+                                    </p>
+                                    <p class="control has-icons-left">
+                                        <input class="input" type="password" placeholder="New password (again)" ng-model='newPwd.pwdDup'>
+                                        <span class="icon is-small is-left">
+                                            <i class="fa fa-lock"></i>
+                                        </span>
+                                    </p>
+                                    <p class="control">
+                                        <button class="button has-background-light" ng-click='editPwd()'>Save Password</button>
+                                        <button class="button has-background-grey-darker has-text-white" ng-click='clearPwd();'>Cancel</button>
+                                    </p>
+                                </div>
                             </div>
-                        </label>
                         </div>
                     </div>
                 </div>

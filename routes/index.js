@@ -11,10 +11,10 @@ module.exports = function(io,pp) {
     router.use('/forum', require('./subroutes/forums')(io,pp));
     router.use('/tool', require('./subroutes/tools')(io,pp));
     router.use('/cal', require('./subroutes/cal')(io,pp));
-    router.get('/reset', function(req, res, next) {
-        console.log('reset page!')
-        res.sendFile('reset.html', { root: './views' })
-    });
+    // router.get('/reset', function(req, res, next) {
+    //     console.log('reset page!')
+    //     res.sendFile('reset.html', { root: './views' })
+    // });
     router.get('*', function(req, res, next) {
         console.log('trying to get main page!')
         res.sendFile('index.html', { root: './views' })

@@ -94,7 +94,7 @@ server.on('listening', function(lst) {
     console.log('Server is listening!')
 });
 server.on('request', function(req) {
-    // console.log(req.body);
+    // console.log(req.url);
 })
 
 app.use(function(req, res, next) {

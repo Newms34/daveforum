@@ -16,8 +16,8 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
         }
         $http.post('/user/forgot', { user: $scope.user }).then(function(r) {
             console.log('forgot route response', r)
-            if (r.data == 'noEmail') {
-                bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Forgot Password Error', "It looks like that account doesn't have an email registered with it! Contact a mod for further help.")
+            if (r.data == 'err') {
+                bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Forgot Password Error', "It looks like that account either doesn't exist, or doesn't have an email registered with it! Contact a mod for further help.")
             } else {
                 bulmabox.alert('Forgot Password', 'Check your email! If your username is registered, you should recieve an email from us with a password reset link.')
             }
@@ -58,16 +58,38 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                 })
         }, 500)
     }
+    $scope.emailBad=false;
+    $scope.checkEmail=()=>{
+        $scope.emailBad = $scope.email.length && !$scope.email.match(/(\w+\.*)+@(\w+\.)+\w+/g);
+    }
     $scope.register = () => {
         if (!$scope.pwd || !$scope.pwdDup || !$scope.user) {
-            bulmabox.alert('Missing Information', 'Please enter a username, and a password (twice).')
+            bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Missing Information', 'Please enter a username, and a password (twice).')
         } else if ($scope.pwd != $scope.pwdDup) {
             console.log('derp')
-            bulmabox.alert('Password Mismatch', 'Your passwords don\'t match, or are missing!');
+            bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Password Mismatch', 'Your passwords don\'t match, or are missing!');
+        }else if(!$scope.email || $scope.emailBad){
+            bulmabox.confirm('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Send Without Email?',`You've either not included an email, or the format you're using doesn't seem to match any we know. <br>While you can register without a valid email, it'll be much more difficult to recover your account.<br>Register anyway?`,function(resp){
+                if(!resp||resp==null){
+                    return false;
+                }
+                $http.post('/user/new', {
+                    user: $scope.user,
+                    pass: $scope.pwd,
+                    email:$scope.email
+                })
+                .then((r) => {
+                    $http.post('/user/login', { user: $scope.user, pass: $scope.pwd })
+                        .then(() => {
+                            $state.go('app.dash')
+                        })
+                })
+            })
         } else {
             $http.post('/user/new', {
                     user: $scope.user,
-                    pass: $scope.pwd
+                    pass: $scope.pwd,
+                    email:$scope.email
                 })
                 .then((r) => {
                     $http.post('/user/login', { user: $scope.user, pass: $scope.pwd })

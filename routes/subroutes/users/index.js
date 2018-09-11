@@ -420,17 +420,9 @@ const routeExp = function(io, pp) {
                 req.body.ints = [0, 0, 0, 0, 0, 0];
                 req.body.salt = um.generateSalt();
                 req.body.pass = mongoose.model('User').encryptPassword(pwd, req.body.salt)
-                // if (oldOrigUsr) {
-                //     oldOrigUsr.pass = req.body.pass;
-                //     oldOrigUsr.salt = req.body.salt;
-                //     um.create(oldOrigUsr, (err, nusr) => {
-                //         res.send(nusr);
-                //     })
-                // } else {
                 um.create(req.body, (err, nusr) => {
                     res.send(nusr);
                 })
-                // }
             }
         })
     });
@@ -440,6 +432,20 @@ const routeExp = function(io, pp) {
             res.send(!user.length)
         });
     });
+    router.post('/editPwd',this.authbit,(req,res,next)=>{
+        mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
+            if(usr && usr.correctPassword(req.body.old) && req.body.pwd == req.body.pwdDup){
+                console.log('got correct pwd, changing!')
+                usr.salt = mongoose.model('User').generateSalt();
+                usr.pass = mongoose.model('User').encryptPassword(req.body.pwd, usr.salt);
+                usr.save((err,usrsv)=>{
+                    res.send(usrsv);
+                })
+            }else{
+                res.send('err');
+            }
+        })
+    })
     router.post('/login', function(req, res, next) {
             mongoose.model('User').findOne({ 'user': req.body.user }, function(err, usr) {
                 if (!err && usr && !usr.isBanned && usr.correctPassword(req.body.pass)) {
@@ -509,7 +515,6 @@ const routeExp = function(io, pp) {
         req.session.destroy();
         res.send('logged');
     });
-
     router.post('/forgot', function(req, res, next) {
         //user enters password, requests reset email
         //this IS call-able without credentials, but
@@ -526,44 +531,15 @@ const routeExp = function(io, pp) {
                     jrrToken += Math.floor(Math.random() * 99999).toString(32);
                 }
                 if (!usr.email) {
-                    res.send('noEmail');
+                    res.send('err');
                     return false;
                 }
                 console.log(jrrToken)
                 // var resetUrl = 'https://brethrenpain.herokuapp.com/reset?t=' + jrrToken;
-                const resetUrl = 'http://localhost:8080/reset?t=' + jrrToken;
+                //req.protocol,req.get('host')
+                const resetUrl = req.protocol+'://'+req.get('host')+'/user/reset?key=' + jrrToken;
                 usr.reset = jrrToken;
                 usr.save(function() {
-                    // sparky.transmissions.send({
-                    //         options: {
-                    //             sandbox: true
-                    //         },
-                    //         content: {
-                    //             from: 'no-reply@' + sparkyConf.SPARKPOST_SANDBOX_DOMAIN,
-                    //             subject: 'Brethren [PAIN] Password Reset Request',
-                    //             // html: 'Someone (hopefully you!) requested a reset email for your Brethren [PAIN] account. <br>If you did not request this, just ignore this email.<br>Otherwise, click <a href="' + resetUrl + '" target="_blank">here</a>'
-                    //             html:'TEST email for resetting password'
-                    //         },
-                    //         recipients: [
-                    //             { address: usr.email }
-                    //         ]
-                    //     })
-                    //     .then(data => {
-                    //         console.log('Woohoo! You just sent your first mailing!');
-                    //         console.log(data);
-                    //     })
-                    //     .catch(err => {
-                    //         console.log('Whoops! Something went wrong');
-                    //         console.log(err);
-                    //     });
-                    // sendpie({
-                    //     from: 'no-reply@brethrenpain.herokuapp.com',
-                    //     to: email,
-                    //     subject: 'Password reset for ' + usr.name,
-                    //     html: 'Someone (hopefully you!) requested a reset email for your Brethren [PAIN] account. <br>If you did not request this, just ignore this email.<br>Otherwise, click <a href="' + resetUrl + '">here</a>',
-                    // }, function(err, reply) {
-                    //     console.log('REPLY IS', reply, 'ERR IS', err)
-                    // });
                     const msg = {
                         to: usr.email,
                         from: 'no-reply@brethrenpain.herokuapp.com',
@@ -579,12 +555,15 @@ const routeExp = function(io, pp) {
     });
 
     router.get('/reset', function(req, res, next) {
+        //trying to get reset page using req.query. incorrect token leads to resetFail
         var rst = req.query.key;
         if (!rst) {
+            console.log('NO KEY!')
             res.sendFile('resetFail.html', { root: './views' });
         } else {
             mongoose.model('User').findOne({ reset: rst }, function(err, usr) {
                 if (err || !usr) {
+                    console.log('NO USER!')
                     res.sendFile('resetFail.html', { root: './views' });
                 }
                 res.sendFile('reset.html', { root: './views' });
@@ -592,10 +571,12 @@ const routeExp = function(io, pp) {
         }
     });
     router.get('/resetUsr', function(req, res, next) {
+        // get user info by key for the reset.html page
         var rst = req.query.key;
         if (!rst) {
             res.send('err');
         } else {
+            console.log('lookin for key:',rst)
             mongoose.model('User').findOne({ reset: rst }, function(err, usr) {
                 if (err || !usr) {
                     res.send('err');
@@ -606,7 +587,7 @@ const routeExp = function(io, pp) {
         }
     });
     router.post('/resetPwd/', function(req, res, next) {
-        if (!req.body.acct || !req.body.pwd || !req.body.key) {
+        if (!req.body.acct || !req.body.pwd || !req.body.key||!req.body.pwdDup|| (req.body.pwdDup!=req.body.pwd)) {
             res.send('err');
         } else {
             mongoose.model('User').findOne({ reset: req.body.key }, function(err, usr) {
@@ -614,18 +595,22 @@ const routeExp = function(io, pp) {
                     res.send('err');
                 } else {
                     console.log('usr before set:', usr)
-                    usr.setPassword(req.body.pwd, function() {
+                    // usr.setPassword(req.body.pwd, function() {
+                        usr.salt = mongoose.model('User').generateSalt();
+                        usr.pass = mongoose.model('User').encryptPassword(req.body.pwd, usr.salt)
                         console.log('usr after set:', usr)
-                        usr.reset = null;
+                        // usr.reset = null;
                         usr.save();
                         res.send('done')
-                    });
+                    // });
                 }
             })
         }
     })
     router.get('/setEmail', authbit, (req, res, next) => {
-        if (!req.query.email || !req.query.email.match(/((\w+)\.*)+@(\w*)(\.\w+)+/g) || req.query.email.match(/((\w+)\.*)+@(\w*)(\.\w+)+/g)[0].length != req.query.email.length) {
+        ///(\w+\.*)+@(\w+\.)+\w+/g
+        ///(\w+\.*)+@(\w*)(\.\w+)+/g
+        if (!req.query.email || !req.query.email.match(/(\w+\.*)+@(\w+\.)+\w+/g) || (req.query.email.match(/(\w+\.*)+@(\w+\.)+\w+/g)[0].length!==req.query.email.length)) {
             res.send('err');
             return false;
         }

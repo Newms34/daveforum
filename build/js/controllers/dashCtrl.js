@@ -23,8 +23,8 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
             $scope.numUnreadMsgs = u.msgs.filter(m => !m.read).length;
         }
         socket.on('sentMsg', function(u) {
-            console.log('SOCKET USER',u,'this user',$scope.user)
-            if (u.user == $scope.user.user || u.from==$scope.user.user) {
+            console.log('SOCKET USER', u, 'this user', $scope.user)
+            if (u.user == $scope.user.user || u.from == $scope.user.user) {
                 console.log('re-getting user')
                 $http.get('/user/usrData')
                     .then(r => {
@@ -133,7 +133,7 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         $scope.charSearchToggle = false;
         $scope.memFilter = (m) => {
             //two options to 'filter out' this item
-            let hasChars = !!m.chars.filter(c=>c.name.toLowerCase().indexOf($scope.charSearch.toLowerCase())>-1).length;
+            let hasChars = !!m.chars.filter(c => c.name.toLowerCase().indexOf($scope.charSearch.toLowerCase()) > -1).length;
             if ($scope.charSearch && !hasChars) {
                 //char search filter has been applied, and none of the user's chars match this
                 return false;
@@ -408,9 +408,9 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                         })
                 }, `<button class='button is-info' onclick='bulmabox.runCb(bulmabox.params.cb)'>Send</button><button class='button is-danger' onclick='bulmabox.kill("bulmabox-diag")'>Cancel</button>`)
         }
-        $scope.viewMsg = (m,t) => {
+        $scope.viewMsg = (m, t) => {
             bulmabox.alert(`Message from ${m.from}`, m.msg || '(No message)')
-            if(t){
+            if (t) {
                 return false;
             }
             $http.get('/user/setOneRead?id=' + m._id)
@@ -452,6 +452,36 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                     })
             })
         }
+        $scope.newPwd = {
+            pwd: null,
+            pwdDup: null,
+            old: null,
+            changin: false
+        }
+        $scope.clearPwd = () => {
+            $scope.newPwd = {
+                pwd: null,
+                pwdDup: null,
+                old: null,
+                changin: false
+            }
+        }
+        $scope.editPwd = ()=>{
+            if(!$scope.newPwd.pwd || !$scope.newPwd.pwdDup || $scope.newPwd.pwd != $scope.newPwd.pwdDup){
+            bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Password Mismatch', 'Your passwords don\'t match, or are missing!');
+            }else{
+                $http.post('/user/editPwd',$scope.newPwd).then(r=>{
+                    if(r.data && r.data!='err'){
+                        $scope.clearPwd();
+                        bulmbox.alert('Password Changed!','Your password was successfully changed!')
+                        $scope.doUser(r.data)
+                    }else{
+                        bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Error Changing Password','There was a problem changing your password. Your old one probably still works, but if you\'re still having an issue, contact a moderator!')
+                    }
+                })
+            }
+
+        }
         $scope.viewEvent = (ev) => {
             bulmabox.alert(`Event: ${ev.title}`, `Date:${$filter('numToDate')(ev.eventDate)}<br>Description:${ev.text}`);
         }
@@ -460,9 +490,13 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                 clearTimeout($scope.updEmail);
             }
             $scope.updEmail = setTimeout(function() {
+                console.log($scope.user.email);
                 $http.get('/user/setEmail?email=' + $scope.user.email)
                     .then(r => {
-                        $scope.doUser(r.data);
+                        console.log(r);
+                        if (r.data && r.data != 'err') {
+                            $scope.doUser(r.data);
+                        }
                     })
             }, 500);
         }

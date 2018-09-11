@@ -1,5 +1,5 @@
 resetApp.controller('reset-contr',function($scope,$http,$location){
-	$scope.key = window.location.search.slice(3);
+	$scope.key = window.location.search.slice(5);
 
 	$http.get('/user/resetUsr?key='+$scope.key).then(function(u){
 		console.log('getting reset user status?',u)
@@ -12,15 +12,21 @@ resetApp.controller('reset-contr',function($scope,$http,$location){
 			$http.post('/user/resetPwd',{
 				acct:$scope.user.user,
 				pwd:$scope.pwd,
+				pwdDup:$scope.pwdDup,
 				key:$scope.key
 			}).then(function(r){
 				console.log('')
 				if(r.data=='err'){
-					// bulmabox.alert('Error resetting password','There was an error resetting your password. Please contact a mod');
+					bulmabox.alert('Error resetting password','There was an error resetting your password. Please contact a mod');
 				}else{
-					// window.location.href='../../login';
+					bulmabox.alert('Password Reset','Your password was successfully reset! We\'re redirecting you to login now.',function(){
+						$scope.goLogin();
+					})
 				}
 			})
 		}
+	}
+	$scope.goLogin = ()=>{
+		window.location.href='../../login';
 	}
 })

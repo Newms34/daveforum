@@ -4,7 +4,7 @@
         <div class='panel-heading is-primary'>
             <h3 class='card-header-title is-primary'>Register</h3>
         </div>
-        <div class='panel-block has-background-grey-darker'>
+        <div class='panel-block has-background-white'>
             <form name='regForm' novalidate>
                 <div class='card card-content' ng-if='!noWarn'>
                     Warning:
@@ -12,18 +12,26 @@
                     <div class='is-size-7'>
                         
                      Do <i>not</i> use your Guild Wars 2 account information! I (Dave) hold <i>no</i> responsibility for your accounts!<br>
-                    Please note that you will <i>not</i> be able to post in general forum sections until you're approved by a moderator.</div>
+                    Please note that you will <i>not</i> be able to view the site until you're approved by a moderator.</div>
                     </div>
-                <h4 class='col-md-offset-2 col-md-8 alert reg-grp has-text-white'>Account Information</h4>
+                <h4 class='col-md-offset-2 col-md-8 alert reg-grp'>Account Information</h4>
                 <div class="field">
                     <p class="control has-icons-left">
                         <input class="input" type="text" placeholder="Username" ng-model='user' ng-change='checkUser();'>
                         <span class="icon is-small is-left">
                             <i class="fa fa-user"></i>
                         </span>
-                        <div class='notification is-danger' ng-if='!nameOkay'>This username is already in use!</div>
                     </p>
-
+                        <div class='notification is-danger' ng-if='!nameOkay'>This username is already in use!</div>
+                </div>
+                <div class="field">
+                    <p class="control has-icons-left">
+                        <input class="input" type="text" placeholder="Email" ng-model='email' ng-blur='checkEmail();' title='Your email will not be show to others, and is only used for security purposes!'>
+                        <span class="icon is-small is-left">
+                            <i class="fa fa-envelope-o"></i>
+                        </span>
+                    </p>
+                    <div class='notification is-danger' ng-if='emailBad'>This email doesn't appear to be valid!</div>
                 </div>
                 <div class="field">
                     <p class="control has-icons-left">

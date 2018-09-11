@@ -536,8 +536,8 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
             $scope.numUnreadMsgs = u.msgs.filter(m => !m.read).length;
         }
         socket.on('sentMsg', function(u) {
-            console.log('SOCKET USER',u,'this user',$scope.user)
-            if (u.user == $scope.user.user || u.from==$scope.user.user) {
+            console.log('SOCKET USER', u, 'this user', $scope.user)
+            if (u.user == $scope.user.user || u.from == $scope.user.user) {
                 console.log('re-getting user')
                 $http.get('/user/usrData')
                     .then(r => {
@@ -646,7 +646,7 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         $scope.charSearchToggle = false;
         $scope.memFilter = (m) => {
             //two options to 'filter out' this item
-            let hasChars = !!m.chars.filter(c=>c.name.toLowerCase().indexOf($scope.charSearch.toLowerCase())>-1).length;
+            let hasChars = !!m.chars.filter(c => c.name.toLowerCase().indexOf($scope.charSearch.toLowerCase()) > -1).length;
             if ($scope.charSearch && !hasChars) {
                 //char search filter has been applied, and none of the user's chars match this
                 return false;
@@ -921,9 +921,9 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                         })
                 }, `<button class='button is-info' onclick='bulmabox.runCb(bulmabox.params.cb)'>Send</button><button class='button is-danger' onclick='bulmabox.kill("bulmabox-diag")'>Cancel</button>`)
         }
-        $scope.viewMsg = (m,t) => {
+        $scope.viewMsg = (m, t) => {
             bulmabox.alert(`Message from ${m.from}`, m.msg || '(No message)')
-            if(t){
+            if (t) {
                 return false;
             }
             $http.get('/user/setOneRead?id=' + m._id)
@@ -965,6 +965,36 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                     })
             })
         }
+        $scope.newPwd = {
+            pwd: null,
+            pwdDup: null,
+            old: null,
+            changin: false
+        }
+        $scope.clearPwd = () => {
+            $scope.newPwd = {
+                pwd: null,
+                pwdDup: null,
+                old: null,
+                changin: false
+            }
+        }
+        $scope.editPwd = ()=>{
+            if(!$scope.newPwd.pwd || !$scope.newPwd.pwdDup || $scope.newPwd.pwd != $scope.newPwd.pwdDup){
+            bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Password Mismatch', 'Your passwords don\'t match, or are missing!');
+            }else{
+                $http.post('/user/editPwd',$scope.newPwd).then(r=>{
+                    if(r.data && r.data!='err'){
+                        $scope.clearPwd();
+                        bulmbox.alert('Password Changed!','Your password was successfully changed!')
+                        $scope.doUser(r.data)
+                    }else{
+                        bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Error Changing Password','There was a problem changing your password. Your old one probably still works, but if you\'re still having an issue, contact a moderator!')
+                    }
+                })
+            }
+
+        }
         $scope.viewEvent = (ev) => {
             bulmabox.alert(`Event: ${ev.title}`, `Date:${$filter('numToDate')(ev.eventDate)}<br>Description:${ev.text}`);
         }
@@ -973,9 +1003,13 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                 clearTimeout($scope.updEmail);
             }
             $scope.updEmail = setTimeout(function() {
+                console.log($scope.user.email);
                 $http.get('/user/setEmail?email=' + $scope.user.email)
                     .then(r => {
-                        $scope.doUser(r.data);
+                        console.log(r);
+                        if (r.data && r.data != 'err') {
+                            $scope.doUser(r.data);
+                        }
                     })
             }, 500);
         }
@@ -1278,8 +1312,8 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
         }
         $http.post('/user/forgot', { user: $scope.user }).then(function(r) {
             console.log('forgot route response', r)
-            if (r.data == 'noEmail') {
-                bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Forgot Password Error', "It looks like that account doesn't have an email registered with it! Contact a mod for further help.")
+            if (r.data == 'err') {
+                bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Forgot Password Error', "It looks like that account either doesn't exist, or doesn't have an email registered with it! Contact a mod for further help.")
             } else {
                 bulmabox.alert('Forgot Password', 'Check your email! If your username is registered, you should recieve an email from us with a password reset link.')
             }
@@ -1320,16 +1354,38 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                 })
         }, 500)
     }
+    $scope.emailBad=false;
+    $scope.checkEmail=()=>{
+        $scope.emailBad = $scope.email.length && !$scope.email.match(/(\w+\.*)+@(\w+\.)+\w+/g);
+    }
     $scope.register = () => {
         if (!$scope.pwd || !$scope.pwdDup || !$scope.user) {
-            bulmabox.alert('Missing Information', 'Please enter a username, and a password (twice).')
+            bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Missing Information', 'Please enter a username, and a password (twice).')
         } else if ($scope.pwd != $scope.pwdDup) {
             console.log('derp')
-            bulmabox.alert('Password Mismatch', 'Your passwords don\'t match, or are missing!');
+            bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Password Mismatch', 'Your passwords don\'t match, or are missing!');
+        }else if(!$scope.email || $scope.emailBad){
+            bulmabox.confirm('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Send Without Email?',`You've either not included an email, or the format you're using doesn't seem to match any we know. <br>While you can register without a valid email, it'll be much more difficult to recover your account.<br>Register anyway?`,function(resp){
+                if(!resp||resp==null){
+                    return false;
+                }
+                $http.post('/user/new', {
+                    user: $scope.user,
+                    pass: $scope.pwd,
+                    email:$scope.email
+                })
+                .then((r) => {
+                    $http.post('/user/login', { user: $scope.user, pass: $scope.pwd })
+                        .then(() => {
+                            $state.go('app.dash')
+                        })
+                })
+            })
         } else {
             $http.post('/user/new', {
                     user: $scope.user,
-                    pass: $scope.pwd
+                    pass: $scope.pwd,
+                    email:$scope.email
                 })
                 .then((r) => {
                     $http.post('/user/login', { user: $scope.user, pass: $scope.pwd })
@@ -1393,7 +1449,7 @@ app.controller('nav-cont',function($scope,$http,$state){
     // })
 })
 resetApp.controller('reset-contr',function($scope,$http,$location){
-	$scope.key = window.location.search.slice(3);
+	$scope.key = window.location.search.slice(5);
 
 	$http.get('/user/resetUsr?key='+$scope.key).then(function(u){
 		console.log('getting reset user status?',u)
@@ -1406,16 +1462,22 @@ resetApp.controller('reset-contr',function($scope,$http,$location){
 			$http.post('/user/resetPwd',{
 				acct:$scope.user.user,
 				pwd:$scope.pwd,
+				pwdDup:$scope.pwdDup,
 				key:$scope.key
 			}).then(function(r){
 				console.log('')
 				if(r.data=='err'){
-					// bulmabox.alert('Error resetting password','There was an error resetting your password. Please contact a mod');
+					bulmabox.alert('Error resetting password','There was an error resetting your password. Please contact a mod');
 				}else{
-					// window.location.href='../../login';
+					bulmabox.alert('Password Reset','Your password was successfully reset! We\'re redirecting you to login now.',function(){
+						$scope.goLogin();
+					})
 				}
 			})
 		}
+	}
+	$scope.goLogin = ()=>{
+		window.location.href='../../login';
 	}
 })
 const timezoneList = [
