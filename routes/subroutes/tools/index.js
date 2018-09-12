@@ -554,8 +554,6 @@ const routeExp = function(io) {
                     const minUsrLvl = usr.chars && usr.chars.length ? _.minBy(usr.chars, 'lvl').lvl : 1,
                         maxUsrLvl = usr.chars && usr.chars.length ? _.maxBy(usr.chars, 'lvl').lvl : 80;
                     modes.forEach(mode => r.data[mode] = r.data[mode].filter(dl => {
-                        // console.log('Lookin at daily', dl.id, dl.level.min, dl.level.max, minUsrLvl, maxUsrLvl)
-                        //1,80 daily vs 48,80 usr
                         return dl.level.min <= maxUsrLvl && dl.level.max >= minUsrLvl;
                     }))
                     let achieveIds = [];

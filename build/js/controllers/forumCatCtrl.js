@@ -25,6 +25,9 @@ app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
                     else if (a.stickied)
                         return -1;
                     else return 1;
+                }).map(t=>{
+                    t.time = new Date(t.lastUpd)
+                    return t;
                 });
                 // $scope.$apply();
             })

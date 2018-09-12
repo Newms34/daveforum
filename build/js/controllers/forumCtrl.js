@@ -11,11 +11,12 @@ app.controller('forum-cont', function($scope, $http, $state,$sce) {
     $http.get('/forum/cats')
         .then((r) => {
             const forCats = Object.keys(r.data);
+            console.log('CATS',r)
             $scope.forObj = forCats.map(ct => {
                 return {
                     name: ct,
                     count: r.data[ct].n,
-                    time: r.data[ct] > 0 ? new Date(r.data[ct]) : null
+                    time: r.data[ct].t > 0 ? new Date(r.data[ct].t) : null
                 }
             })
         })

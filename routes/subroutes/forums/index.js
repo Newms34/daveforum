@@ -184,7 +184,7 @@ const routeExp = function(io) {
             }
         })
     })
-    router.get('/cats', authbit, (req, res, next) => {
+    router.get('/cats', (req, res, next) => {
         mongoose.model('thread').find({}, function(err, grps) {
             const cats = {
                 'general': { n: 0, t: -1 },
@@ -193,6 +193,7 @@ const routeExp = function(io) {
                 'management': { n: 0, t: -1 }
             };
             if (err || !grps || !grps.length) {
+                console.log('NOCATS')
                 res.send(cats);
             } else {
                 //we COULD use model.collection.distinct, but that doesnt seem to return numbers in each category.
@@ -202,7 +203,7 @@ const routeExp = function(io) {
                     } else {
                         cats[g.grp].n++;
                     }
-                    cats[g.grp].t = Math.max(g.createDate, cats[g.grp].t);
+                    cats[g.grp].t = Math.max(g.lastUpd, cats[g.grp].t);
                 })
                 console.log('CATEGORIES', cats, 'GROUPS', grps);
                 res.send(cats);
