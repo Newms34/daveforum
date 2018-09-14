@@ -153,10 +153,7 @@
     "user": "DjSnowpants",
     "chars": [],
     "msgs": [],
-    "lastLogin":
-    {
-        "$numberLong": "1536361340578"
-    }
+    "lastLogin":1536361340578
 },
 {
     "isBanned": false,
@@ -504,8 +501,5 @@
     "chars": [],
     "msgs": [],
     "outBox": [],
-    "lastLogin":
-    {
-        "$numberLong": "1536529857158"
-    }
+    "lastLogin":1536529857158
 }]
