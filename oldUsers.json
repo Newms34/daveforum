@@ -178,10 +178,6 @@
     {
         "isRep": false,
         "read": false,
-        "_id":
-        {
-            "$oid": "5b956a15af297f00209eb2fd"
-        },
         "to": "Slick",
         "date": 1536518677412,
         "msg": "Hiyas slickaroo :)",
@@ -190,10 +186,6 @@
     {
         "isRep": false,
         "read": false,
-        "_id":
-        {
-            "$oid": "5b956a1eaf297f00209eb2ff"
-        },
         "to": "Arausio",
         "date": 1536518686053,
         "msg": "ello",
