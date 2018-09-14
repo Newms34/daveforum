@@ -376,6 +376,7 @@ const routeExp = function(io, pp) {
                 // usr = oldOrigUsr;
             }
             usr.save((cerr, cusr) => {
+                console.log('err saving conf usr',cerr,'User',cusr)
                 mongoose.model('User').find({}, (erra, usra) => {
                     res.send(usra);
                 })
