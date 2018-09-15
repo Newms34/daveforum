@@ -274,9 +274,10 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
     }]
     //Dailies
     $scope.dailyRestrict = {};
+    $scope.tmrw=false;
     $scope.regetDaily = () => {
         const spd = Object.keys($scope.dailyRestrict).filter(sp => $scope.dailyRestrict[sp]);
-        $http.get('/tool/daily' + (spd.length ? '?modes=' + spd.join(',') : '')).then(r => {
+        $http.get('/tool/daily'+($scope.tmrw?'/tomorrow':'') + (spd.length ? '?modes=' + spd.join(',') : '')).then(r => {
             console.log('dailyObj',r.data)
             $scope.dailies = r.data;
         })

@@ -545,10 +545,14 @@ const routeExp = function(io) {
             res.status(401).send('err')
         }
     };
-    router.get('/daily', this.authbit, (req, res, next) => {
-        axios.get('https://api.guildwars2.com/v2/achievements/daily')
+    router.get(['/daily','/daily/tomorrow'], this.authbit, (req, res, next) => {
+        console.log('URL:',req.url)
+        // res.send('HI')
+        // return false
+        const tmrw = req.url.indexOf('tomorrow')>-1;
+        axios.get('https://api.guildwars2.com/v2/achievements/daily'+(tmrw?'/tomorrow':''))
             .then((r) => {
-                console.log('RESULT', r.data)
+                // console.log('RESULT', r.data)
                 let modes = ['pve', 'pvp', 'wvw', 'fractals', 'special'];
                 mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
                     const minUsrLvl = usr.chars && usr.chars.length ? _.minBy(usr.chars, 'lvl').lvl : 1,
@@ -571,12 +575,12 @@ const routeExp = function(io) {
                     axios.get('https://api.guildwars2.com/v2/achievements?ids=' + achieveIds.join(','))
                         .then(ds => {
                             const fracIds =r.data.fractals.map(fi=>fi.id);
-                            console.log('Fractal Achieve IDs',fracIds)
+                            // console.log('Fractal Achieve IDs',fracIds)
                             fracIds.forEach(fli=>{
                                 let thisFrac = ds.data.find(fld=>fld.id==fli);
                                 //now we have the fractal daily. We need to find the fl associated with it!
                                if(thisFrac.name.indexOf('Recommended')>-1){
-                                console.log('num frac:',thisFrac)
+                                // console.log('num frac:',thisFrac)
                                 thisFrac.lvl = Number(thisFrac.name.slice(thisFrac.name.indexOf('Scale')+6))
                                 thisFrac.requirement += ` (${fraclvl.find(flo=>flo.Level==thisFrac.lvl).Fractal})`;
                                }

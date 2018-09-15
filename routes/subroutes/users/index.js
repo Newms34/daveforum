@@ -363,9 +363,6 @@ const routeExp = function(io, pp) {
                 console.log('Old user found! is',oldOrigUsr)
                 usr.tz = oldOrigUsr.tz;
                 usr.msgs = _.cloneDeep(oldOrigUsr.msgs);
-                // usr.msgs.map(m=>{
-                //     delete m.
-                // })
                 usr.chars = _.cloneDeep(oldOrigUsr.chars);
                 usr.ints = _.cloneDeep(oldOrigUsr.ints);
                 usr.lastLogin = oldOrigUsr.lastLogin;

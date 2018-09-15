@@ -27,6 +27,11 @@
                 </button>
                 <button class='button is-light' ng-class='{"has-background-grey-lighter":dailyRestrict.special}' ng-click='dailyRestrict.special=!dailyRestrict.special;regetDaily()'><i class="fa fa-square-o" ng-if='!dailyRestrict.special'></i><i class="fa fa-check-square-o" ng-if='dailyRestrict.special'></i> Special
                 </button>
+                <br>
+                <br>
+                When?:<div class="toggle-bg" style='width:200px;'>
+                    <div class="toggle-slider is-pulled-left" ng-class="{'is-pulled-right':tmrw}" ng-click='tmrw=!tmrw; regetDaily()'>{{tmrw?'Tomorrow':'Today'}}</div>
+                </div>
             </div>
             <div class="tile is-ancestor" style='flex-wrap:wrap;'>
                 <div class="tile is-6 is-12-mobile is-parent" ng-repeat='d in dailies'>
@@ -135,7 +140,7 @@
                         <canvas id="doughnut" class="chart chart-doughnut is-hidden-mobile" chart-data="wvw.skirmishes[currentMatch].scoreArr" chart-labels="wvw.labels" chart-options='wvwPie' chart-colors='wvwPie.backgroundColor'>
                         </canvas>
                         <h3 class='has-text-white is-size-4'>Match History</h3>
-                        <canvas class="chart chart-line grey-chart" chart-data="wvw.history" chart-labels="wvw.histLabels" chart-colors='wvw.histColors' chart-series="wvw.labels" chart-options ='lineOpts' chart-click='histClick'></canvas>
+                        <canvas class="chart chart-line grey-chart" chart-data="wvw.history" chart-labels="wvw.histLabels" chart-colors='wvw.histColors' chart-series="wvw.labels" chart-options='lineOpts' chart-click='histClick'></canvas>
                     </div>
                 </div>
             </div>
