@@ -577,7 +577,6 @@ const routeExp = function(io) {
                     axios.get('https://api.guildwars2.com/v2/achievements?ids=' + achieveIds.join(','))
                         .then(ds => {
                             if(modes.indexOf('fractals')>-1){
-                                
                             const fracIds =r.data.fractals.map(fi=>fi.id);
                             // console.log('Fractal Achieve IDs',fracIds)
                             fracIds.forEach(fli=>{
@@ -627,7 +626,12 @@ const routeExp = function(io) {
         console.log('world', req.query.world, 'id', theWorld)
         axios.get('https://api.guildwars2.com/v2/wvw/matches?world=' + theWorld.id)
             .then(r => {
+                console.log('RESULT',r)
                 res.send({ data: r.data, world: theWorld.name });
+            })
+            .catch(e=>{
+                console.log('ERR',e)
+                res.send('newMatch')
             })
     })
     return router;

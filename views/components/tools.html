@@ -106,14 +106,14 @@
             </table>
         </div>
     </div>
-    <div class="panel dash-panel" ng-show='currTab=="WvW Matchups"'>
+    <div class="panel dash-panel" ng-show='currTab=="WvW Current Match History"'>
         <div class="panel-heading has-text-white has-background-grey-darker">
-            <i class="fa fa-money"></i>&nbsp;WvW Matchups
+            <i class="fa fa-money"></i>&nbsp;WvW Current Match History
         </div>
         <div class="panel-block has-text-white">
             <div class="columns">
                 <div class='column is-one-fifth'></div>
-                <div class='column is-three-fifths content'>
+                <div class='column is-three-fifths content' ng-if='!wvwDisabled'>
                     <div class='wvw-bg'>
                         <div class="wvw-bar red">
                             <div class='is-pulled-left is-size-4-mobile' style='max-width:200px;' title='{{wvw.labels[0]}}'>{{wvw.labels[0].split(',')[0]}}...
@@ -141,6 +141,13 @@
                         </canvas>
                         <h3 class='has-text-white is-size-4'>Match History</h3>
                         <canvas class="chart chart-line grey-chart" chart-data="wvw.history" chart-labels="wvw.histLabels" chart-colors='wvw.histColors' chart-series="wvw.labels" chart-options='lineOpts' chart-click='histClick'></canvas>
+                    </div>
+                </div>
+                <div class="column is-three-fifths content" ng-if='wvwDisabled'>
+                    <div class="notification has-background-grey-darker has-text-white has-text-centered is-size-5">
+                       <i class="fa is-size-1 fa-exclamation-triangle">&nbsp;</i> WvW Match History is currently disabled, as we've only recently reset!
+                       <br>
+                       <img src="./img/Valley Ruins.jpg" style='opacity:.5;'>
                     </div>
                 </div>
             </div>

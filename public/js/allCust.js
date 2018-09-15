@@ -1875,7 +1875,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         name: 'Dailies',
         icon: 'calendar-check-o'
     }, {
-        name: 'WvW Matchups',
+        name: 'WvW Current Match History',
         icon: 'fort-awesome'
     }, {
         name: 'Core/Lodestone Upgrade',
@@ -1928,11 +1928,19 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
             }
         }
     }
+    $scope.wvwDisabled=false;
     //NOTE: slice 'size' is current accumulated score for that skirimish; i.e., the score at end of skirimish
     $scope.refWvw = () => {
         $http.get('/tool/wvw' + ($scope.wvwWorld ? '?world=' + $scope.wvwWorld : ''))
             .then(r => {
-                console.log('WVW STUFF', r, r.data.data.scores)
+                console.log('WVW STUFF', r, r.data)
+                if(r.data=='newMatch'){
+                    $scope.wvwDisabled =true;
+                    $scope.wvw=null;
+                    return false;
+                }else{
+                    $scope.wvwDisabled=false;
+                }
                 $scope.wvw = r.data.data;
                 $scope.currentMatch = $scope.wvw.skirmishes.length - 1;
 
