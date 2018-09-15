@@ -568,12 +568,16 @@ const routeExp = function(io) {
                         });
                         modes = desiredModes;
                     }
+                    console.log('DATA NOW',r.data)
                     _.each(modes, md => {
                         achieveIds = _.uniq(achieveIds.concat(r.data[md].map(mdi => mdi.id)))
                     })
+                    console.log('ACHIEVES',achieveIds)
                     //now have a list of all desired achievs (or all achieves). Get actual info;
                     axios.get('https://api.guildwars2.com/v2/achievements?ids=' + achieveIds.join(','))
                         .then(ds => {
+                            if(modes.indexOf('fractals')>-1){
+                                
                             const fracIds =r.data.fractals.map(fi=>fi.id);
                             // console.log('Fractal Achieve IDs',fracIds)
                             fracIds.forEach(fli=>{
@@ -585,6 +589,7 @@ const routeExp = function(io) {
                                 thisFrac.requirement += ` (${fraclvl.find(flo=>flo.Level==thisFrac.lvl).Fractal})`;
                                }
                             })
+                            }
                             res.send(ds.data)
                         })
                 })
