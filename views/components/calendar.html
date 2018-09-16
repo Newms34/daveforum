@@ -23,7 +23,7 @@
                         <button class="button flex is-danger is-tiny is-pulled-right" title='Delete this event' ng-click='delEvent(ev)'><i class='fa fa-times'></i></button>
                         <button class="button flex is-success is-tiny is-pulled-right" title='Add a Paid user' ng-if='user.mod && ev.kind=="payLotto"' ng-click='addPaid(ev)' ng-disabled='ev.expired'>$</button>
                         <button class="button flex is-link is-tiny is-pulled-right" title='Edit this event' ng-click='editEvent(ev)' ng-disabled='ev.expired'><i class='fa fa-pencil'></i></button>
-                        <button class="button flex is-info is-tiny is-pulled-right" title='View this event' ng-click='viewEvent(ev)' ng-disabled='ev.expired'><i class='fa fa-eye'></i></button>
+                        <button class="button flex is-info is-tiny is-pulled-right" title='View this event' ng-click='viewEvent(ev)'><i class='fa fa-eye'></i></button>
                     </div>
                 </td>
             </tr>
