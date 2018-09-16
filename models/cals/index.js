@@ -9,6 +9,8 @@ var calSchema = new mongoose.Schema({
     createDate:{type:Number,default:Date.now()},
     lastUpd:{type:Number,default:Date.now()},
     kind:{type:String, default:'lotto'},
-    expired:{type:Boolean,default:false}
+    expired:{type:Boolean,default:false},
+    paid:[String],//if this is a PAID contest, list of users that have paid to enter,
+    winner:String
 }, { collection: 'cal' });
 mongoose.model('cal', calSchema);

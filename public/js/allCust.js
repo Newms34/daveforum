@@ -218,6 +218,64 @@ const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
     // We put the Data URI in the image's src attribute
     img.src = datas;
 }
+app.factory('socketFac', function ($rootScope) {
+  var socket = io.connect();
+  return {
+    on: function (eventName, callback) {
+      socket.on(eventName, function () { 
+        var args = arguments;
+        $rootScope.$apply(function () {
+          callback.apply(socket, args);
+        });
+      });
+    },
+    emit: function (eventName, data, callback) {
+      socket.emit(eventName, data, function () {
+        var args = arguments;
+        $rootScope.$apply(function () {
+          if (callback) {
+            callback.apply(socket, args);
+          }
+        });
+      })
+    }
+  };
+});
+app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact', function($rootScope, $state, $stateParams, $transitions, $q,userFact) {
+    $transitions.onBefore({ to: 'app.**' }, function(trans) {
+        let def = $q.defer();
+        console.log('TRANS',trans)
+        const usrCheck = trans.injector().get('userFact')
+        usrCheck.getUser().then(function(r) {
+            console.log('response from login chck',r)
+            if (r.data && r.data.confirmed) {
+                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
+                def.resolve(true)
+            } else if(r.data){
+                def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
+            }else{
+                // User isn't authenticated. Redirect to a new Target State
+                def.resolve($state.target('appSimp.login', undefined, { location: true }))
+            }
+        }).catch(e=>{
+            def.resolve($state.target('appSimp.login', undefined, { location: true }))
+        });
+        return def.promise;
+    });
+    // $transitions.onFinish({ to: '*' }, function() {
+    //     document.body.scrollTop = document.documentElement.scrollTop = 0;
+    // });
+}]);
+app.factory('userFact', function($http) {
+    return {
+        getUser: function() {
+            return $http.get('/user/getUsr').then(function(s) {
+                console.log('getUser in fac says:', s)
+                return s;
+            })
+        }
+    };
+});
 app.controller('cal-cont', function($scope, $http, $state) {
     $scope.cal = [];
     $scope.days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -296,7 +354,13 @@ app.controller('cal-cont', function($scope, $http, $state) {
     };
     $scope.viewEvent = (ev) => {
         console.log('View event', ev)
-        bulmabox.alert(`Event: ${ev.title}`, `Time:${new Date(ev.eventDate).toLocaleString()}<br>Type:${ev.kind}<hr>${ev.text}`)
+        let payers = null;
+        if(ev.paid && ev.paid.length){
+            payers = `<ul class='ul'>
+                ${ev.paid.map(up=>'<li> - '+up+'</li>').join('')}
+            </ul>`;
+        }
+        bulmabox.alert(`Event: ${ev.title}`, `Time:${new Date(ev.eventDate).toLocaleString()}<br>Type:${$scope.kindOpts.find(k=>k.kind==ev.kind).kindLong}<br>${payers?'Paid Users<br>'+payers:''}<hr> Description: ${ev.text}`)
     };
     $scope.editEventObj = {
         title: '',
@@ -371,9 +435,24 @@ app.controller('cal-cont', function($scope, $http, $state) {
         time: (new Date().getHours() + (new Date().getMinutes() < 30 ? 0.5 : 0)) * 2,
         kind: 'lotto',
         repeatNum: 1,
-        repeatOn:false,
+        repeatOn: false,
         repeatFreq: 1
     };
+    $http.get('/user/allUsrs')
+        .then(au => {
+            $scope.allUsrs = au.data.map(u=>u.user);
+        })
+
+    $scope.addPaid = (ev)=>{
+        const lto = $scope.allUsrs.filter(pu=>!ev.paid || !ev.paid.length || ev.paid.indexOf(pu)<0).map(uo=>{
+            return `<option value='${uo}'>${uo}</option>`
+        }).join('');//find all users where the event either HAS no paid users, OR the user is not in the list yet.
+        bulmabox.custom('Add Paid User',`Select a user from the list below to add them to this lotto\'s candidates:<br><p class='select'><select id='payusr'>${lto}</select></p>`,function(){
+            let pyusr = document.querySelector('#payusr').value;
+            console.log('User wishes to add',pyusr)
+            $http.post('/cal/lottoPay',{lottoId:ev._id,pusr:pyusr})
+        })
+    }
     $scope.hourOpts = new Array(48).fill(100).map((c, i) => {
         let post = i < 24 ? 'AM' : 'PM',
             hr = Math.floor((i) / 2) < 13 ? Math.floor((i) / 2) : Math.floor((i) / 2) - 12;
@@ -397,6 +476,10 @@ app.controller('cal-cont', function($scope, $http, $state) {
         desc: 'An item or items will be given away by a [PAIN] member to one lucky guild member!',
         kindLong: 'Lottery/Giveaway'
     }, {
+        kind: 'payLotto',
+        desc: 'Try your luck! One lucky winner will win the pool of donations!',
+        kindLong: 'Paid Lottery/Giveaway'
+    }, {
         kind: 'announce',
         desc: 'Someone needs to make an important announcement!',
         kindLong: 'Announcement'
@@ -415,7 +498,7 @@ app.controller('cal-cont', function($scope, $http, $state) {
         today.setHours(0, 0, 0, 0);
         let time = today.getTime() + ($scope.newEventObj.time * 1800 * 1000) + ($scope.newEventObj.day * 3600 * 1000 * 24);
         console.log('Sending event', $scope.newEventObj, time)
-        let theUrl = $scope.newEventObj.repeatOn?'/cal/newRep':'/cal/new';
+        let theUrl = $scope.newEventObj.repeatOn ? '/cal/newRep' : '/cal/new';
         $http.post(theUrl, {
                 title: $scope.newEventObj.title,
                 text: $scope.newEventObj.desc,
@@ -423,7 +506,7 @@ app.controller('cal-cont', function($scope, $http, $state) {
                 kind: $scope.newEventObj.kind.kind,
                 repeatNum: $scope.newEventObj.repeatNum,
                 repeatFreq: $scope.newEventObj.repeatFreq,
-                repeatOn:$scope.newEventObj.repeatOn
+                repeatOn: $scope.newEventObj.repeatOn
             })
             .then(function(r) {
                 console.log('new event response', r)
@@ -439,9 +522,9 @@ app.controller('cal-cont', function($scope, $http, $state) {
             day: 0,
             time: (new Date().getHours() + (new Date().getMinutes() < 30 ? 0.5 : 0)) * 2,
             kind: 'lotto',
-            repeatNum:1,
-            repeatFreq:1,
-            repeatOn:false
+            repeatNum: 1,
+            repeatFreq: 1,
+            repeatOn: false
         }
     }
 })
@@ -2219,61 +2302,3 @@ app.controller('unconf-cont', function($scope, $http, $state) {
         })
     }
 })
-app.factory('socketFac', function ($rootScope) {
-  var socket = io.connect();
-  return {
-    on: function (eventName, callback) {
-      socket.on(eventName, function () { 
-        var args = arguments;
-        $rootScope.$apply(function () {
-          callback.apply(socket, args);
-        });
-      });
-    },
-    emit: function (eventName, data, callback) {
-      socket.emit(eventName, data, function () {
-        var args = arguments;
-        $rootScope.$apply(function () {
-          if (callback) {
-            callback.apply(socket, args);
-          }
-        });
-      })
-    }
-  };
-});
-app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact', function($rootScope, $state, $stateParams, $transitions, $q,userFact) {
-    $transitions.onBefore({ to: 'app.**' }, function(trans) {
-        let def = $q.defer();
-        console.log('TRANS',trans)
-        const usrCheck = trans.injector().get('userFact')
-        usrCheck.getUser().then(function(r) {
-            console.log('response from login chck',r)
-            if (r.data && r.data.confirmed) {
-                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
-                def.resolve(true)
-            } else if(r.data){
-                def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
-            }else{
-                // User isn't authenticated. Redirect to a new Target State
-                def.resolve($state.target('appSimp.login', undefined, { location: true }))
-            }
-        }).catch(e=>{
-            def.resolve($state.target('appSimp.login', undefined, { location: true }))
-        });
-        return def.promise;
-    });
-    // $transitions.onFinish({ to: '*' }, function() {
-    //     document.body.scrollTop = document.documentElement.scrollTop = 0;
-    // });
-}]);
-app.factory('userFact', function($http) {
-    return {
-        getUser: function() {
-            return $http.get('/user/getUsr').then(function(s) {
-                console.log('getUser in fac says:', s)
-                return s;
-            })
-        }
-    };
-});

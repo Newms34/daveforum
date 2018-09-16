@@ -37,6 +37,23 @@ const routeExp = function(io) {
             res.send(resp);
         })
     });
+    router.post('/lottoPay',authbit,(req,res,next)=>{
+        //route to designate a particular user as having 'paid' for a lottery (that requires pay)
+        if (!req.body.pusr|| !req.body.lottoId){
+            res.send('err');//no lotto OR no user to pay.
+            return false;
+        }
+        mongoose.model('cal').findOne({_id:req.body.lottoId},(err,lt)=>{
+            console.log('LOTTO FOUND IS',lt)
+            if(lt.paid.indexOf(req.body.pusr)<0){
+                lt.paid.push(req.body.pusr);
+            }
+            lt.save((err,ltsv)=>{
+                io.emit('refCal',{})
+                res.send(ltsv);
+            })
+        })
+    })
     router.post('/newRep', authbit, isMod, (req, res, next) => {
         req.body.user = req.session.user.user;
         console.log('User (hopefully a mod) wants to create a repeating event',req.body)
