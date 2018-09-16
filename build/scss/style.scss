@@ -2,6 +2,7 @@
 // @import "../../bower_components/components-font-awesome/scss/font-awesome.scss";
 @import './components/bulma';
 @import './components/chat';
+@import './components/leaflet.css';
 html,
 body {
     width: 100%;
@@ -368,4 +369,8 @@ $races: Asura Charr Human Norn Sylvari;
             background:#aaa;
         }
     }
+}
+#wvw-map{
+    width:100%;
+    height:400px;
 }

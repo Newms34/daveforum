@@ -545,12 +545,12 @@ const routeExp = function(io) {
             res.status(401).send('err')
         }
     };
-    router.get(['/daily','/daily/tomorrow'], this.authbit, (req, res, next) => {
-        console.log('URL:',req.url)
+    router.get(['/daily', '/daily/tomorrow'], this.authbit, (req, res, next) => {
+        console.log('URL:', req.url)
         // res.send('HI')
         // return false
-        const tmrw = req.url.indexOf('tomorrow')>-1;
-        axios.get('https://api.guildwars2.com/v2/achievements/daily'+(tmrw?'/tomorrow':''))
+        const tmrw = req.url.indexOf('tomorrow') > -1;
+        axios.get('https://api.guildwars2.com/v2/achievements/daily' + (tmrw ? '/tomorrow' : ''))
             .then((r) => {
                 // console.log('RESULT', r.data)
                 let modes = ['pve', 'pvp', 'wvw', 'fractals', 'special'];
@@ -568,26 +568,26 @@ const routeExp = function(io) {
                         });
                         modes = desiredModes;
                     }
-                    console.log('DATA NOW',r.data)
+                    console.log('DATA NOW', r.data)
                     _.each(modes, md => {
                         achieveIds = _.uniq(achieveIds.concat(r.data[md].map(mdi => mdi.id)))
                     })
-                    console.log('ACHIEVES',achieveIds)
+                    console.log('ACHIEVES', achieveIds)
                     //now have a list of all desired achievs (or all achieves). Get actual info;
                     axios.get('https://api.guildwars2.com/v2/achievements?ids=' + achieveIds.join(','))
                         .then(ds => {
-                            if(modes.indexOf('fractals')>-1){
-                            const fracIds =r.data.fractals.map(fi=>fi.id);
-                            // console.log('Fractal Achieve IDs',fracIds)
-                            fracIds.forEach(fli=>{
-                                let thisFrac = ds.data.find(fld=>fld.id==fli);
-                                //now we have the fractal daily. We need to find the fl associated with it!
-                               if(thisFrac.name.indexOf('Recommended')>-1){
-                                // console.log('num frac:',thisFrac)
-                                thisFrac.lvl = Number(thisFrac.name.slice(thisFrac.name.indexOf('Scale')+6))
-                                thisFrac.requirement += ` (${fraclvl.find(flo=>flo.Level==thisFrac.lvl).Fractal})`;
-                               }
-                            })
+                            if (modes.indexOf('fractals') > -1) {
+                                const fracIds = r.data.fractals.map(fi => fi.id);
+                                // console.log('Fractal Achieve IDs',fracIds)
+                                fracIds.forEach(fli => {
+                                    let thisFrac = ds.data.find(fld => fld.id == fli);
+                                    //now we have the fractal daily. We need to find the fl associated with it!
+                                    if (thisFrac.name.indexOf('Recommended') > -1) {
+                                        // console.log('num frac:',thisFrac)
+                                        thisFrac.lvl = Number(thisFrac.name.slice(thisFrac.name.indexOf('Scale') + 6))
+                                        thisFrac.requirement += ` (${fraclvl.find(flo=>flo.Level==thisFrac.lvl).Fractal})`;
+                                    }
+                                })
                             }
                             res.send(ds.data)
                         })
@@ -617,7 +617,7 @@ const routeExp = function(io) {
             res.send({ p: priceObjs })
         }
     })
-    router.get('/wvw', this.authbit, (req, res, next) => {
+    router.get('/wvw', /*this.authbit,*/ (req, res, next) => {
         //https://api.guildwars2.com/v2/worlds?ids=all
         // https://api.guildwars2.com/v2/wvw/matches/scores?world=1008
         req.query.world = req.query.world || 'Henge of Denravi';
@@ -626,11 +626,31 @@ const routeExp = function(io) {
         console.log('world', req.query.world, 'id', theWorld)
         axios.get('https://api.guildwars2.com/v2/wvw/matches?world=' + theWorld.id)
             .then(r => {
-                console.log('RESULT',r)
-                res.send({ data: r.data, world: theWorld.name });
+                const objectiveIds = _.flatten(r.data.maps.map(mp=>{
+                    return mp.objectives.map(mpo=>mpo.id);
+                }))
+                console.log(objectiveIds)
+                axios.get('https://api.guildwars2.com/v2/wvw/objectives?ids=' + objectiveIds.join(',')).then(mps => {
+                    // console.log('MAP IDS', r.data.maps.map(m => m.id));
+                    //mps.data is list of all objectives and their 'picture' info
+                    r.data.maps.forEach(wmp=>{
+                        wmp.objectives.forEach(wmo=>{
+                            thisObj = mps.data.find(mpso=>mpso.id==wmo.id);
+                            console.log('COORD',thisObj);
+                            wmo.marker = thisObj.marker||null;
+                            wmo.name = thisObj.name;
+                            if(thisObj.coord){
+                            wmo.coord = thisObj.coord.slice(0,2);
+                            }
+                            wmo.chat = thisObj.chat_link;
+                        })
+                    })
+                    res.send({ wvw: r.data, objs: mps.data ,uniqMps:_.uniqBy(mps.data,'marker').filter(mpu=>!!mpu.marker).map(mpm=>mpm.marker)});
+                })
+                // res.send({wvw:r.data})
             })
-            .catch(e=>{
-                console.log('ERR',e)
+            .catch(e => {
+                console.log('ERR', e)
                 res.send('newMatch')
             })
     })

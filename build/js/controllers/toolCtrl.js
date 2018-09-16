@@ -257,6 +257,9 @@ const worlds = [{
 app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $window) {
     $scope.showTab = (t) => {
         $scope.currTab = t;
+        if($scope.currTab=='WvW Current Match History'){
+            $scope.refWvw()
+        }
     }
     $scope.currTab = 'Dailies'
     $scope.tabs = [{
@@ -274,11 +277,11 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
     }]
     //Dailies
     $scope.dailyRestrict = {};
-    $scope.tmrw=false;
+    $scope.tmrw = false;
     $scope.regetDaily = () => {
         const spd = Object.keys($scope.dailyRestrict).filter(sp => $scope.dailyRestrict[sp]);
-        $http.get('/tool/daily'+($scope.tmrw?'/tomorrow':'') + (spd.length ? '?modes=' + spd.join(',') : '')).then(r => {
-            console.log('dailyObj',r.data)
+        $http.get('/tool/daily' + ($scope.tmrw ? '/tomorrow' : '') + (spd.length ? '?modes=' + spd.join(',') : '')).then(r => {
+            console.log('dailyObj', r.data)
             $scope.dailies = r.data;
         })
     }
@@ -316,24 +319,60 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
             }
         }
     }
-    $scope.wvwDisabled=false;
+    $scope.wvwDisabled = false;
     //NOTE: slice 'size' is current accumulated score for that skirimish; i.e., the score at end of skirimish
+    $scope.makeMarkers = () => {
+        const icons = ['camp-blue.png',
+            'camp-green.png',
+            'camp-netural.png',
+            'camp-red.png',
+            'castle-blue.png',
+            'castle-green.png',
+            'castle-neutral.png',
+            'castle-red.png',
+            'keep-blue.png',
+            'keep-green.png',
+            'keep-netural.png',
+            'keep-red.png',
+            'ruins-blue.png',
+            'ruins-green.png',
+            'ruins-neutral.png',
+            'ruins-red.png',
+            'tower-blue.png',
+            'tower-green.png',
+            'tower-neutral.png',
+            'tower-red.png'
+        ]
+        $scope.mapMarkers = icons.map(mm => {
+            return L.icon({
+                iconUrl: './img/wvw/' + mm,
+                iconName: mm.replace('.png',''),
+                // shadowUrl: null,
+                iconSize: [32, 32], // size of the icon
+                // shadowSize: [32,32], // size of the shadow
+                iconAnchor: [15, 15], // point of the icon which will correspond to marker's location
+                // shadowAnchor: [15,15], // the same for the shadow
+                popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
+            });
+        });
+        console.log('Map Markers', $scope.mapMarkers)
+    }
     $scope.refWvw = () => {
         $http.get('/tool/wvw' + ($scope.wvwWorld ? '?world=' + $scope.wvwWorld : ''))
             .then(r => {
                 console.log('WVW STUFF', r, r.data)
-                if(r.data=='newMatch'){
-                    $scope.wvwDisabled =true;
-                    $scope.wvw=null;
+                if (r.data == 'newMatch') {
+                    $scope.wvwDisabled = true;
+                    $scope.wvw = null;
                     return false;
-                }else{
-                    $scope.wvwDisabled=false;
+                } else {
+                    $scope.wvwDisabled = false;
                 }
-                $scope.wvw = r.data.data;
+                $scope.wvw = r.data.wvw;
                 $scope.currentMatch = $scope.wvw.skirmishes.length - 1;
 
                 $scope.wvw.labels = $scope.wvwColors.map(cl => {
-                    return r.data.data.all_worlds[cl].map(clw => {
+                    return r.data.wvw.all_worlds[cl].map(clw => {
                         return worlds.find(wld => wld.id == clw).name;
                     }).join(', ')
                 });
@@ -358,7 +397,14 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                     pointBackgroundColor: '#00f'
                 }]
                 console.log('WVW', $scope.wvw)
-                // $scope.currSkirm = {s:$scope.wvwColors.map(c=>r.data.data.scores[c]),l:labels,v:$scope.wvwColors.map(c=>r.data.data.victory_points[c])}
+                // $scope.currSkirm = {s:$scope.wvwColors.map(c=>r.data.wvw.scores[c]),l:labels,v:$scope.wvwColors.map(c=>r.data.data.victory_points[c])}
+                $scope.mapMarkers = [];
+
+                $scope.makeMarkers()
+                let mapDiv = document.querySelector('#wvw-map');
+                console.log('mapDiv', mapDiv, mapDiv.offsetWidth)
+                // mapDiv.style.height = mapDiv.getBoundingClientRect().right +'px';
+                $scope.doMap( $scope.wvw.maps)
             })
     }
     $scope.nextSkirm = () => {
@@ -466,7 +512,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                 // console.log('CHART',JSON.stringify(chart))
                 const ctx = chart.canvas.getContext("2d");
                 ctx.moveTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), 5)
-                ctx.lineTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), $scope.lineHeight+5);
+                ctx.lineTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), $scope.lineHeight + 5);
                 ctx.strokeStyle = '#fff';
                 ctx.stroke();
             }
@@ -487,10 +533,68 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                 },
             }]
         },
-        hover:{
-        	animationDuration:0
+        hover: {
+            animationDuration: 0
         }
     }
     $scope.refPrices();
-    $scope.refWvw();
+    // $scope.refWvw();
+    $scope.getMapState=()=>{
+        //
+        console.log('ZOOM',$scope.map.getZoom(),'BOUNDS',$scope.map.getBounds())
+    }
+    $scope.unproject = function(m, c) {
+        return m.unproject(c, m.getMaxZoom())
+    }
+    $scope.doMap = function(mapObjs) {
+        "use strict";
+        // const unproject = function (coord) {
+        //     return map.unproject(coord, map.getMaxZoom());
+        // }
+        let southWest, northEast;
+
+        $scope.map = L.map("wvw-map", {
+            minZoom: 0,
+            maxZoom: 6,
+            // zoomSnap: 0,
+            // zoomDelta: 0.3,
+            /* wheelPxPerZoomLevel: 140,
+            maxBoundsViscosity: 1.0,
+            bounceAtZoomLimits: false,
+            zoomControl: false,
+            attributionControl: false, */
+        });
+
+        northEast = $scope.unproject($scope.map, [15700, 8900]);
+        southWest = $scope.unproject($scope.map, [5100, 15900]);
+
+        const renderBounds = new L.LatLngBounds($scope.unproject($scope.map, [16384, 0]), $scope.unproject($scope.map, [0, 16384]));
+        L.tileLayer("https://tiles.guildwars2.com/2/3/{z}/{x}/{y}.jpg", {
+            /* minZoom: 0,
+            maxZoom: 7,
+            continuousWorld: true */
+            subdomains: ["tiles1", "tiles2", "tiles3", "tiles4"],
+            bounds: renderBounds,
+            minNativeZoom: 4,
+            noWrap: true
+        }).addTo($scope.map);
+        $scope.map.setMaxBounds(new L.LatLngBounds(southWest, northEast));
+        $scope.map.setView(new L.LatLng(
+                (northEast.lat - southWest.lat) / 2,
+                (northEast.lng - southWest.lng) / 2),
+            0);
+        // map.on("click", onMapClick);
+
+        mapObjs.forEach(mp => {
+            mp.objectives.filter(mpf => !!mpf.marker).forEach(mpo => {
+                let theMarker = $scope.mapMarkers.find(mmr => mmr.options.iconName == mpo.type.toLowerCase()+'-'+mpo.owner.toLowerCase());
+                console.log('THIS OBJECTIVE',mpo,'MARKER (probly)',theMarker,'FROM', mpo.type.toLowerCase()+'-'+mpo.owner.toLowerCase())
+                L.marker($scope.unproject($scope.map, mpo.coord), { title: `${mpo.name} (owned by: ${mpo.owner})`, icon: theMarker }).addTo($scope.map)
+            })
+        })
+        setTimeout(function() {
+            $scope.map.invalidateSize();
+            $scope.map.setZoom(3);
+        }, 500)
+    }
 })

@@ -139,6 +139,9 @@
                         <button class="button is-light is-small" title='Last Skirmish' ng-disabled='currentMatch && currentMatch==wvw.skirmishes.length-1' ng-click='lastSkirm()'><i class="fa fa-angle-double-right"></i></button> </h3>
                         <canvas id="doughnut" class="chart chart-doughnut is-hidden-mobile" chart-data="wvw.skirmishes[currentMatch].scoreArr" chart-labels="wvw.labels" chart-options='wvwPie' chart-colors='wvwPie.backgroundColor'>
                         </canvas>
+                        <hr>
+                        <div id="wvw-map"></div>
+                        <hr>
                         <h3 class='has-text-white is-size-4'>Match History</h3>
                         <canvas class="chart chart-line grey-chart" chart-data="wvw.history" chart-labels="wvw.histLabels" chart-colors='wvw.histColors' chart-series="wvw.labels" chart-options='lineOpts' chart-click='histClick'></canvas>
                     </div>
