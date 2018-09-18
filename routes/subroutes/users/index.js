@@ -52,6 +52,15 @@ const routeExp = function(io, pp) {
     router.get('/getUsr', this.authbit, (req, res, next) => {
         res.send(req.session.user);
     });
+    // router.get('/setDaveOkay',(req,res,next)=>{
+    //     mongoose.model('User').findOne({'user':'dave'},(err,usr)=>{
+    //         usr.confirmed=true;
+    //         usr.mod=true;
+    //         usr.save((erru,svu)=>{
+    //             res.send(svu);
+    //         })
+    //     })
+    // })
     router.get('/allUsrs', this.authbit, (req, res, next) => {
         mongoose.model('User').find({}, function(err, usrs) {
             res.send(usrs.map(u => {

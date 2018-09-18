@@ -340,11 +340,6 @@ $races: Asura Charr Human Norn Sylvari;
         background:#890000;
     }
 }
-
-/*
-    base: 255,221,87
-    act:  255,216,61
-*/
 .toggle-bg{
     width:100px;
     height:30px;
@@ -376,4 +371,8 @@ $races: Asura Charr Human Norn Sylvari;
 }
 .exp-evt{
     filter:saturate(0.4) contrast(.5);
+}
+.pg-active{
+    background:#eee;
+    color:#333!important;
 }

@@ -218,64 +218,6 @@ const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
     // We put the Data URI in the image's src attribute
     img.src = datas;
 }
-app.factory('socketFac', function ($rootScope) {
-  var socket = io.connect();
-  return {
-    on: function (eventName, callback) {
-      socket.on(eventName, function () { 
-        var args = arguments;
-        $rootScope.$apply(function () {
-          callback.apply(socket, args);
-        });
-      });
-    },
-    emit: function (eventName, data, callback) {
-      socket.emit(eventName, data, function () {
-        var args = arguments;
-        $rootScope.$apply(function () {
-          if (callback) {
-            callback.apply(socket, args);
-          }
-        });
-      })
-    }
-  };
-});
-app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact', function($rootScope, $state, $stateParams, $transitions, $q,userFact) {
-    $transitions.onBefore({ to: 'app.**' }, function(trans) {
-        let def = $q.defer();
-        console.log('TRANS',trans)
-        const usrCheck = trans.injector().get('userFact')
-        usrCheck.getUser().then(function(r) {
-            console.log('response from login chck',r)
-            if (r.data && r.data.confirmed) {
-                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
-                def.resolve(true)
-            } else if(r.data){
-                def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
-            }else{
-                // User isn't authenticated. Redirect to a new Target State
-                def.resolve($state.target('appSimp.login', undefined, { location: true }))
-            }
-        }).catch(e=>{
-            def.resolve($state.target('appSimp.login', undefined, { location: true }))
-        });
-        return def.promise;
-    });
-    // $transitions.onFinish({ to: '*' }, function() {
-    //     document.body.scrollTop = document.documentElement.scrollTop = 0;
-    // });
-}]);
-app.factory('userFact', function($http) {
-    return {
-        getUser: function() {
-            return $http.get('/user/getUsr').then(function(s) {
-                console.log('getUser in fac says:', s)
-                return s;
-            })
-        }
-    };
-});
 app.controller('cal-cont', function($scope, $http, $state) {
     $scope.cal = [];
     $scope.days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -396,6 +338,11 @@ app.controller('cal-cont', function($scope, $http, $state) {
         let time = today.getTime() + ($scope.editEventObj.time * 1800 * 1000) + ($scope.editEventObj.day * 3600 * 1000 * 24);
         console.log('Sending event', $scope.editEventObj, time);
         // return false;
+        if(time < (Date.now()+(5*60*1000))){
+            //time selected is less than 5 minutes past "now"
+            bulmabox.alert('Time Expiring',`Your selected time, ${new Date(time).toLocaleString()}, occurs too soon! Please select a later time.`)
+            return false;
+        }
         $http.post('/cal/edit', {
                 title: $scope.editEventObj.title,
                 text: $scope.editEventObj.desc,
@@ -499,6 +446,11 @@ app.controller('cal-cont', function($scope, $http, $state) {
         let time = today.getTime() + ($scope.newEventObj.time * 1800 * 1000) + ($scope.newEventObj.day * 3600 * 1000 * 24);
         console.log('Sending event', $scope.newEventObj, time)
         let theUrl = $scope.newEventObj.repeatOn ? '/cal/newRep' : '/cal/new';
+        if(time < (Date.now()+(5*60*1000))){
+            //time selected is less than 5 minutes past "now"
+            bulmabox.alert('Time Expiring',`Your selected time, ${new Date(time).toLocaleString()}, occurs too soon! Please select a later time.`)
+            return false;
+        }
         $http.post(theUrl, {
                 title: $scope.newEventObj.title,
                 text: $scope.newEventObj.desc,
@@ -2302,3 +2254,61 @@ app.controller('unconf-cont', function($scope, $http, $state) {
         })
     }
 })
+app.factory('socketFac', function ($rootScope) {
+  var socket = io.connect();
+  return {
+    on: function (eventName, callback) {
+      socket.on(eventName, function () { 
+        var args = arguments;
+        $rootScope.$apply(function () {
+          callback.apply(socket, args);
+        });
+      });
+    },
+    emit: function (eventName, data, callback) {
+      socket.emit(eventName, data, function () {
+        var args = arguments;
+        $rootScope.$apply(function () {
+          if (callback) {
+            callback.apply(socket, args);
+          }
+        });
+      })
+    }
+  };
+});
+app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact', function($rootScope, $state, $stateParams, $transitions, $q,userFact) {
+    $transitions.onBefore({ to: 'app.**' }, function(trans) {
+        let def = $q.defer();
+        console.log('TRANS',trans)
+        const usrCheck = trans.injector().get('userFact')
+        usrCheck.getUser().then(function(r) {
+            console.log('response from login chck',r)
+            if (r.data && r.data.confirmed) {
+                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
+                def.resolve(true)
+            } else if(r.data){
+                def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
+            }else{
+                // User isn't authenticated. Redirect to a new Target State
+                def.resolve($state.target('appSimp.login', undefined, { location: true }))
+            }
+        }).catch(e=>{
+            def.resolve($state.target('appSimp.login', undefined, { location: true }))
+        });
+        return def.promise;
+    });
+    // $transitions.onFinish({ to: '*' }, function() {
+    //     document.body.scrollTop = document.documentElement.scrollTop = 0;
+    // });
+}]);
+app.factory('userFact', function($http) {
+    return {
+        getUser: function() {
+            return $http.get('/user/getUsr').then(function(s) {
+                console.log('getUser in fac says:', s)
+                return s;
+            })
+        }
+    };
+});
