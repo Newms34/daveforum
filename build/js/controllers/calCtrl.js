@@ -118,6 +118,11 @@ app.controller('cal-cont', function($scope, $http, $state) {
         let time = today.getTime() + ($scope.editEventObj.time * 1800 * 1000) + ($scope.editEventObj.day * 3600 * 1000 * 24);
         console.log('Sending event', $scope.editEventObj, time);
         // return false;
+        if(time < (Date.now()+(5*60*1000))){
+            //time selected is less than 5 minutes past "now"
+            bulmabox.alert('Time Expiring',`Your selected time, ${new Date(time).toLocaleString()}, occurs too soon! Please select a later time.`)
+            return false;
+        }
         $http.post('/cal/edit', {
                 title: $scope.editEventObj.title,
                 text: $scope.editEventObj.desc,
@@ -221,6 +226,11 @@ app.controller('cal-cont', function($scope, $http, $state) {
         let time = today.getTime() + ($scope.newEventObj.time * 1800 * 1000) + ($scope.newEventObj.day * 3600 * 1000 * 24);
         console.log('Sending event', $scope.newEventObj, time)
         let theUrl = $scope.newEventObj.repeatOn ? '/cal/newRep' : '/cal/new';
+        if(time < (Date.now()+(5*60*1000))){
+            //time selected is less than 5 minutes past "now"
+            bulmabox.alert('Time Expiring',`Your selected time, ${new Date(time).toLocaleString()}, occurs too soon! Please select a later time.`)
+            return false;
+        }
         $http.post(theUrl, {
                 title: $scope.newEventObj.title,
                 text: $scope.newEventObj.desc,
