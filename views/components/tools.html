@@ -111,9 +111,11 @@
             <i class="fa fa-money"></i>&nbsp;WvW Current Match History
         </div>
         <div class="panel-block has-text-white">
+
             <div class="columns">
                 <div class='column is-one-fifth'></div>
                 <div class='column is-three-fifths content' ng-if='!wvwDisabled'>
+                    <div class="is-fullwidth">Brethren [PAIN] currently owns: {{wvwOwned?wvwOwned.name:'Nothing'}}</div>
                     <div class='wvw-bg'>
                         <div class="wvw-bar red">
                             <div class='is-pulled-left is-size-4-mobile' style='max-width:200px;' title='{{wvw.labels[0]}}'>{{wvw.labels[0].split(',')[0]}}...

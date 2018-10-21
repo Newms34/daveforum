@@ -617,7 +617,7 @@ const routeExp = function(io) {
             res.send({ p: priceObjs })
         }
     })
-    router.get('/wvw', /*this.authbit,*/ (req, res, next) => {
+    router.get('/wvw', this.authbit, (req, res, next) => {
         //https://api.guildwars2.com/v2/worlds?ids=all
         // https://api.guildwars2.com/v2/wvw/matches/scores?world=1008
         req.query.world = req.query.world || 'Henge of Denravi';
@@ -626,26 +626,41 @@ const routeExp = function(io) {
         console.log('world', req.query.world, 'id', theWorld)
         axios.get('https://api.guildwars2.com/v2/wvw/matches?world=' + theWorld.id)
             .then(r => {
-                const objectiveIds = _.flatten(r.data.maps.map(mp=>{
-                    return mp.objectives.map(mpo=>mpo.id);
+                const objectiveIds = _.flatten(r.data.maps.map(mp => {
+                    return mp.objectives.map(mpo => mpo.id);
                 }))
                 console.log(objectiveIds)
                 axios.get('https://api.guildwars2.com/v2/wvw/objectives?ids=' + objectiveIds.join(',')).then(mps => {
                     // console.log('MAP IDS', r.data.maps.map(m => m.id));
                     //mps.data is list of all objectives and their 'picture' info
-                    r.data.maps.forEach(wmp=>{
-                        wmp.objectives.forEach(wmo=>{
-                            thisObj = mps.data.find(mpso=>mpso.id==wmo.id);
-                            console.log('COORD',thisObj);
-                            wmo.marker = thisObj.marker||null;
+                    r.data.maps.forEach(wmp => {
+                        wmp.objectives.forEach(wmo => {
+                            thisObj = mps.data.find(mpso => mpso.id == wmo.id);
+                            console.log('COORD', thisObj);
+                            wmo.marker = thisObj.marker || null;
                             wmo.name = thisObj.name;
-                            if(thisObj.coord){
-                            wmo.coord = thisObj.coord.slice(0,2);
+                            if (thisObj.coord) {
+                                wmo.coord = thisObj.coord.slice(0, 2);
                             }
                             wmo.chat = thisObj.chat_link;
                         })
                     })
-                    res.send({ wvw: r.data, objs: mps.data ,uniqMps:_.uniqBy(mps.data,'marker').filter(mpu=>!!mpu.marker).map(mpm=>mpm.marker)});
+                    //find objective we own
+                    const brethId = '8C57F3E8-75D7-4A8E-AC32-5D79119E8095',
+                        objOwned = _.flatten(r.data.maps.map(mp => {
+                            return mp.objectives;
+                        })).filter(oo=>oo.claimed_by==brethId)[0];
+                    // axios.get('')
+                    // console.log('OBJECTIVE OWNED IS:',objOwned)
+                    if(objOwned){
+                        objOwned.name = mps.data.find(oo=>oo.id==objOwned.id).name;
+                    }
+                    res.send({
+                        wvw: r.data,
+                        objs: mps.data,
+                        uniqMps: _.uniqBy(mps.data, 'marker').filter(mpu => !!mpu.marker).map(mpm => mpm.marker),
+                        owned:objOwned||null
+                    });
                 })
                 // res.send({wvw:r.data})
             })

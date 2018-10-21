@@ -42,14 +42,10 @@ let names = [];
 // });
 let isFirstCon=true;
 io.on('connection', function(socket) {
-    //death stuff
-    // socket.on('disconnect',()=>{
-    //     console.log('someone left q.q')
-    //     socket.emit('reqHeartBeat',{})
-    //     names = [];
-    // })
+
     if(isFirstCon) {
         isFirstCon=false;
+        // if this is the first new connection, log out everyone else (since this is likely a server restart/update)
         socket.emit('doLogout')
     }
     socket.on('hbResp',function(n){

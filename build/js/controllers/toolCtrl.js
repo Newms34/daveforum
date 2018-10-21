@@ -399,7 +399,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                 console.log('WVW', $scope.wvw)
                 // $scope.currSkirm = {s:$scope.wvwColors.map(c=>r.data.wvw.scores[c]),l:labels,v:$scope.wvwColors.map(c=>r.data.data.victory_points[c])}
                 $scope.mapMarkers = [];
-
+                $scope.wvwOwned = r.data.owned||null;//wot do we own
                 $scope.makeMarkers()
                 let mapDiv = document.querySelector('#wvw-map');
                 console.log('mapDiv', mapDiv, mapDiv.offsetWidth)
