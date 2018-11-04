@@ -276,6 +276,16 @@ app.factory('userFact', function($http) {
         }
     };
 });
+Date.prototype.stdTimezoneOffset = function() {
+    var jan = new Date(this.getFullYear(), 0, 1);
+    var jul = new Date(this.getFullYear(), 6, 1);
+    return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+}
+
+Date.prototype.isDstObserved = function() {
+    return this.getTimezoneOffset() < this.stdTimezoneOffset();
+}
+
 app.controller('cal-cont', function($scope, $http, $state) {
     $scope.cal = [];
     $scope.days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -355,7 +365,7 @@ app.controller('cal-cont', function($scope, $http, $state) {
     $scope.viewEvent = (ev) => {
         console.log('View event', ev)
         let payers = null;
-        if(ev.paid && ev.paid.length){
+        if (ev.paid && ev.paid.length) {
             payers = `<ul class='ul'>
                 ${ev.paid.map(up=>'<li> - '+up+'</li>').join('')}
             </ul>`;
@@ -376,7 +386,7 @@ app.controller('cal-cont', function($scope, $http, $state) {
     $scope.editEventAct = false;
     $scope.editEvent = (ev) => {
         $scope.editEventAct = true;
-        console.log('Edit event', ev)
+        console.log('Edit event', ev, 'hour options', $scope.hourOpts)
         const beginningOfDay = new Date(ev.eventDate).setHours(0, 0, 0, 0),
             now = Date.now();
         $scope.editEventObj = {
@@ -392,13 +402,22 @@ app.controller('cal-cont', function($scope, $http, $state) {
     $scope.doEdit = () => {
         console.log('Input edit event', $scope.editEventObj)
         const today = new Date();
+        let baseDay = $scope.editEventObj.day,
+        baseTime = $scope.editEventObj.time;
+        if (!new Date().isDstObserved()) {
+            baseTime += 2;
+            if (baseTime > 47) {
+                baseTime = baseTime % 47;
+                baseDay++;
+            }
+        }
         today.setHours(0, 0, 0, 0);
-        let time = today.getTime() + ($scope.editEventObj.time * 1800 * 1000) + ($scope.editEventObj.day * 3600 * 1000 * 24);
+        let time = today.getTime() + (baseTime * 1800 * 1000) + (baseDay * 3600 * 1000 * 24);
         console.log('Sending event', $scope.editEventObj, time);
         // return false;
-        if(time < (Date.now()+(5*60*1000))){
+        if (time < (Date.now() + (5 * 60 * 1000))) {
             //time selected is less than 5 minutes past "now"
-            bulmabox.alert('Time Expiring',`Your selected time, ${new Date(time).toLocaleString()}, occurs too soon! Please select a later time.`)
+            bulmabox.alert('Time Expiring', `Your selected time, ${new Date(time).toLocaleString()}, occurs too soon! Please select a later time.`)
             return false;
         }
         $http.post('/cal/edit', {
@@ -445,17 +464,17 @@ app.controller('cal-cont', function($scope, $http, $state) {
     };
     $http.get('/user/allUsrs')
         .then(au => {
-            $scope.allUsrs = au.data.map(u=>u.user);
+            $scope.allUsrs = au.data.map(u => u.user);
         })
 
-    $scope.addPaid = (ev)=>{
-        const lto = $scope.allUsrs.filter(pu=>!ev.paid || !ev.paid.length || ev.paid.indexOf(pu)<0).map(uo=>{
+    $scope.addPaid = (ev) => {
+        const lto = $scope.allUsrs.filter(pu => !ev.paid || !ev.paid.length || ev.paid.indexOf(pu) < 0).map(uo => {
             return `<option value='${uo}'>${uo}</option>`
-        }).join('');//find all users where the event either HAS no paid users, OR the user is not in the list yet.
-        bulmabox.custom('Add Paid User',`Select a user from the list below to add them to this lotto\'s candidates:<br><p class='select'><select id='payusr'>${lto}</select></p>`,function(){
+        }).join(''); //find all users where the event either HAS no paid users, OR the user is not in the list yet.
+        bulmabox.custom('Add Paid User', `Select a user from the list below to add them to this lotto\'s candidates:<br><p class='select'><select id='payusr'>${lto}</select></p>`, function() {
             let pyusr = document.querySelector('#payusr').value;
-            console.log('User wishes to add',pyusr)
-            $http.post('/cal/lottoPay',{lottoId:ev._id,pusr:pyusr})
+            console.log('User wishes to add', pyusr)
+            $http.post('/cal/lottoPay', { lottoId: ev._id, pusr: pyusr })
         })
     }
     $scope.hourOpts = new Array(48).fill(100).map((c, i) => {
@@ -500,15 +519,29 @@ app.controller('cal-cont', function($scope, $http, $state) {
     $scope.doAdd = () => {
         //send event!
         const today = new Date();
+        let baseTime = $scope.newEventObj.time,
+            baseDay = $scope.newEventObj.day;
+        // console.log('ORIGINAL DATE STUFF',baseTime,baseDay)
         today.setHours(0, 0, 0, 0);
-        let time = today.getTime() + ($scope.newEventObj.time * 1800 * 1000) + ($scope.newEventObj.day * 3600 * 1000 * 24);
-        console.log('Sending event', $scope.newEventObj, time)
+        //dst handlers
+        if (!new Date().isDstObserved()) {
+            baseTime += 2;
+            if (baseTime > 47) {
+                baseTime = baseTime % 47;
+                baseDay++;
+            }
+        }
+        // console.log('NOW DATE STUFF',baseTime,baseDay)
+        //end dst
+        let time = today.getTime() + (baseTime * 1800 * 1000) + (baseDay * 3600 * 1000 * 24);
         let theUrl = $scope.newEventObj.repeatOn ? '/cal/newRep' : '/cal/new';
-        if(time < (Date.now()+(5*60*1000))){
+        if (time < (Date.now() + (5 * 60 * 1000))) {
             //time selected is less than 5 minutes past "now"
-            bulmabox.alert('Time Expiring',`Your selected time, ${new Date(time).toLocaleString()}, occurs too soon! Please select a later time.`)
+            bulmabox.alert('Time Expiring', `Your selected time, ${new Date(time).toLocaleString()}, occurs too soon! Please select a later time.`)
             return false;
         }
+        console.log('Sending event', $scope.newEventObj, time)
+        // return false; //short circuit when we need to debug
         $http.post(theUrl, {
                 title: $scope.newEventObj.title,
                 text: $scope.newEventObj.desc,
