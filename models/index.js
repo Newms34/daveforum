@@ -1,4 +1,4 @@
-var mongoose = require('mongoose'),
+const mongoose = require('mongoose'),
 	http = require('https');
 require('./users/');
 require('./posts/');

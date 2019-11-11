@@ -1,14 +1,9 @@
 const express = require('express'),
     router = express.Router(),
-    path = require('path'),
-    models = require('../../../models/'),
-    async = require('async'),
     mongoose = require('mongoose'),
     multer = require('multer'),
-    session = require('express-session'),
     maxMsgLen = 50,
     _ = require('lodash'),
-    oid = mongoose.Types.ObjectId,
     cats = ['general', 'missions', 'random', 'management'],
     authbit = (req, res, next) => {
         if (req.session && req.session.user && req.session.user._id) {

@@ -8,11 +8,18 @@ const express = require('express'),
     cookie = require('cookie'),
     bodyParser = require('body-parser'),
     session = require('express-session'),
+    mangoStore = require('connect-mongodb-session')(session)
     passport = require('passport'),
     LocalStrategy = require('passport-local').Strategy,
-    compression = require('compression');
+    compression = require('compression'),
+    store = new mangoStore({
+        uri: process.env.NODE_ENV && process.env.NODE_ENV=='production'?process.env.MONGODB_URI:'mongodb://localhost:27017/codementormatch',
+        collection: 'cmmSeshes'
+    });
 app.use(compression());
-
+store.on('error', function (error) {
+    console.log(error);
+});
 const sesh = session({
     secret: 'ea augusta est et carissima'
 });

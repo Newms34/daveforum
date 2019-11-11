@@ -1,11 +1,7 @@
 const express = require('express');
 const router = express.Router(),
-    path = require('path'),
-    models = require('../../../models/'),
-    async = require('async'),
     _ = require('lodash'),
     mongoose = require('mongoose'),
-    session = require('express-session'),
     axios = require('axios'),
     fs = require('fs'),
     // SparkPost = require('sparkpost'),
@@ -548,8 +544,6 @@ const routeExp = function(io, pp) {
                     return false;
                 }
                 console.log(jrrToken)
-                // var resetUrl = 'https://brethrenpain.herokuapp.com/reset?t=' + jrrToken;
-                //req.protocol,req.get('host')
                 const resetUrl = req.protocol+'://'+req.get('host')+'/user/reset?key=' + jrrToken;
                 usr.reset = jrrToken;
                 usr.save(function() {
@@ -585,7 +579,7 @@ const routeExp = function(io, pp) {
     });
     router.get('/resetUsr', function(req, res, next) {
         // get user info by key for the reset.html page
-        var rst = req.query.key;
+        const rst = req.query.key;
         if (!rst) {
             res.send('err');
         } else {

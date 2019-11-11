@@ -1,82 +1,3 @@
-// /*GULP:
-// Gulp is a node package that concatenates your files. It basically can convert a whole bunch of files (i.e., your whole js tree structure) into just ONE, minified file. At the time of writing, that reduces the js payload from 22kb to just 7kb. 
-// More importantly, it also means our user's browser only needs to fetch ONE file (all.min.js), instead of... however many i create. 
-// */
-// // First, we'll just include gulp itself.
-// const gulp = require('gulp');
-
-// // Include Our Plugins
-// const jshint = require('gulp-jshint');
-// const sass = require('gulp-sass');
-// const concat = require('gulp-concat');
-// const uglify = require('gulp-uglify');
-// const gutil = require('gulp-util');
-// const rename = require('gulp-rename');
-// const kid = require('child_process');
-// const ps = require('ps-node');
-// const cleany = require('gulp-clean-css');
-// const babel = require('gulp-babel');
-// const addSrc = require('gulp-add-src')
-// const ngAnnotate = require('gulp-ng-annotate');
-
-// // Lint Task
-// gulp.task('lint', function() {
-//     return gulp.src(['build/js/*.js', 'build/js/**/*.js'])
-//         .pipe(jshint({esversion:6}))
-//         .pipe(jshint.reporter('default'));
-// });
-
-// // Compile Our Sass
-// gulp.task('sass', function() {
-//     return gulp.src('build/scss/*.scss')
-//         .pipe(sass())
-//         .pipe(concat('styles.css'))
-//         .pipe(cleany())
-//         .pipe(gulp.dest('public/css'));
-// });
-// // Concatenate & Minify JS
-// gulp.task('scripts', function() {
-//     return gulp.src(['build/js/*.js', 'build/js/**/*.js'])
-//         .pipe(concat('allCust.js'))
-//         .pipe(gulp.dest('public/js'))
-//         .pipe(babel({presets: ['es2015']}))
-//         .pipe(ngAnnotate())
-//         .pipe(uglify().on('error', gutil.log))
-//         .pipe(addSrc.prepend(['build/libs/*.js','build/libs/**/*.js']))
-//         .pipe(concat('all.js'))
-//         .pipe(rename('all.min.js'))
-//         .pipe(gulp.dest('public/js'));
-// });
-// gulp.task('checkDB', function() {
-//     if (process.platform == 'win32' && process.env.USERNAME == 'Newms') {
-//         console.log('Checking to see if mongod already running!');
-//         ps.lookup({ command: 'mongod' }, function(e, f) {
-//             if (!f.length){
-//                 //database not already running, so start it up!
-//                 kid.exec('c: && cd C:\Program Files\MongoDB\Server\4.2\bin && start mongod -dbpath "e:\mongodata" && pause',function(err,stdout,stderr){
-//                     if (err) console.log('Uh oh! An error of "',err,'" prevented the DB from starting!');
-//                 })
-//             }else{
-//                 console.log('mongod running!')
-//             }
-//         })
-//     }
-// })
-
-// // Watch Files For Changes
-// gulp.task('watch', function() {
-//     gulp.watch(['build/js/**/*.js', 'build/js/*.js'], ['lint', 'scripts']);
-//     gulp.watch(['build/scss/*.scss', 'build/scss/**/*.scss'], ['sass']);
-// });
-
-// //no watchin!
-// gulp.task('render', ['lint', 'sass', 'scripts'])
-
-// // Default Task
-// gulp.task('default', ['lint', 'sass', 'scripts', 'checkDB', 'watch']);
-
-
-
 // First, we'll just include gulp itself.
 const gulp = require('gulp');
 
@@ -84,8 +5,6 @@ const gulp = require('gulp');
 const jshint = require('gulp-jshint'),
     sass = require('gulp-sass'),
     concat = require('gulp-concat'),
-    uglify = require('gulp-uglify'),
-    gutil = require('gulp-util'),
     rename = require('gulp-rename'),
     terser = require('gulp-terser'),
     kid = require('child_process'),
@@ -95,8 +14,7 @@ const jshint = require('gulp-jshint'),
     addSrc = require('gulp-add-src'),
     iife = require('gulp-iife'),
     th2 = require('through2'),
-    chalk = require('chalk'),
-    ngAnnotate = require('gulp-ng-annotate');
+    chalk = require('chalk');
 let sassStart = 0,
     jsStart = 0;
 const reporterFn = function (results, data, opts = {}) {
@@ -153,7 +71,8 @@ gulp.task('lint', function () {
             return cb(null, file);
         }))
         .pipe(jshint({
-            esversion: 8
+            esversion: 8,
+            asi:true
         }))
         .pipe(jshint.reporter(reporterFn));
 });
@@ -171,7 +90,8 @@ gulp.task('lintBE', function () {
             return cb(null, file);
         }))
         .pipe(jshint({
-            esversion: 8
+            esversion: 8,
+            asi:true
         }))
         .pipe(jshint.reporter(reporterFn));
 });
@@ -231,25 +151,21 @@ gulp.task('scripts', function () {
         .pipe(babel({
             presets: [
                 [
-                    "@babel/preset-env",
+                    "@babel/preset-env"
+                ]
+            ],
+
+            plugins: ['angularjs-annotate']
+        }))
+        /* ,
                     {
                         useBuiltIns: "usage",
                         corejs: 2,
                         targets: {
                             firefox: "64", // or whatever target to choose .    
                         },
-                      }
-                ]
-            ],
-
-            plugins: ['angularjs-annotate']
-        }))
-        /* ,["transform-runtime", {
-                "regenerator": true
-              }] */
-        // .pipe(ngAnnotate())
+                    } */
         .pipe(terser())
-        // .pipe(uglify({warnings:true}).on('error', gutil.log))
         .pipe(th2.obj((file, enc, cb) => {
             // console.log('FILE IS',file._contents.toString('utf8'),'ENC',enc,'CB',cb);
             let jsEnd = file._contents.toString('utf8').length,
@@ -322,9 +238,9 @@ const drawTitle = (t, w) => {
             back = (dif + 1) / 2;
         }
         // console.log('dif', dif)
-        console.log(chalk.bgHsl(currColInd,100,50).black((' '.repeat(front)) + t + (' '.repeat(back))))
+        console.log(chalk.bgHsl(currColInd, 100, 50).black((' '.repeat(front)) + t + (' '.repeat(back))))
     }
-    currColInd+=40;
+    currColInd += 40;
     currColInd = currColInd % 360;
     if (w) {
         //draw caution bars

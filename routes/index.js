@@ -1,10 +1,6 @@
 const express = require('express');
 const router = express.Router(),
-    path = require('path'),
-    models = require('../models/'),
-    https = require('https'),
-    async = require('async'),
-    mongoose = require('mongoose');
+    mongoose = require('mongoose'), models = require('../models/');
 
 module.exports = function(io, pp) {
     router.use('/user', require('./subroutes/users')(io, pp));

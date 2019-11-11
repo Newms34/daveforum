@@ -1,9 +1,9 @@
 app.factory('socketFac', function ($rootScope) {
-  var socket = io.connect();
+  const socket = io.connect();
   return {
     on: function (eventName, callback) {
       socket.on(eventName, function () { 
-        var args = arguments;
+        const args = arguments;
         $rootScope.$apply(function () {
           callback.apply(socket, args);
         });
@@ -11,7 +11,7 @@ app.factory('socketFac', function ($rootScope) {
     },
     emit: function (eventName, data, callback) {
       socket.emit(eventName, data, function () {
-        var args = arguments;
+        const args = arguments;
         $rootScope.$apply(function () {
           if (callback) {
             callback.apply(socket, args);
