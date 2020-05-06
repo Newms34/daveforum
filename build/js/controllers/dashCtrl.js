@@ -28,6 +28,7 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                     $http.get('/user/setPasswordMod?user='+u.user)
                         .then(r=>{
                             console.log('user',u.user,'pwd set to',r.data)
+                            bulmabox.alert('User password reset',`User ${u.user}'s password has been set to: <br><pre>${r.data.pwd}</pre><hr/> Note that this is a one-time use password!`)
                         })
                 }
             })
