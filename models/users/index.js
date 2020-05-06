@@ -1,8 +1,8 @@
-var mongoose = require('mongoose'),
+const mongoose = require('mongoose'),
     crypto = require('crypto'),
     passportLocalMongoose = require('passport-local-mongoose');
 
-var usrSchema = new mongoose.Schema({
+const usrSchema = new mongoose.Schema({
     user: String, //(user)name of the user,
     pass: String,
     email:String,
@@ -11,6 +11,10 @@ var usrSchema = new mongoose.Schema({
     reset:String,
     avatar: String, //base64 avatar
     isBanned: { type: Boolean, default: false },
+    oneTimePwd: {
+        has: { type: Boolean, default: false },
+        expired: { type: Boolean, default: false },
+    },
     mod: { type: Boolean, default: false }, //only mods can sticky/unsticky and lock/unlock threds
     confirmed: { type: Boolean, default: false },
     lastLogin: Number,

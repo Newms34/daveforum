@@ -4,6 +4,12 @@ const router = express.Router(),
     mongoose = require('mongoose'),
     axios = require('axios'),
     fs = require('fs'),
+    keys = fs.existsSync('config.json')?JSON.parse(fs.readFileSync('config.json','utf-8')):{
+        apiCodes:{
+            guild:process.env.GUILDAPI,
+            usr:process.env.USRAPI
+        }
+    },
     // SparkPost = require('sparkpost'),
     isMod = (req, res, next) => {
         mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
@@ -14,6 +20,7 @@ const router = express.Router(),
             }
         })
     };
+console.log('KEYS ARE',keys)
 const oldUsers = JSON.parse(fs.readFileSync('oldUsers.json', 'utf-8'))
 let sgApi;
 if (fs.existsSync('sparky.json')) {
@@ -48,15 +55,16 @@ const routeExp = function(io, pp) {
     router.get('/getUsr', this.authbit, (req, res, next) => {
         res.send(req.session.user);
     });
-    // router.get('/setDaveOkay',(req,res,next)=>{
-    //     mongoose.model('User').findOne({'user':'dave'},(err,usr)=>{
-    //         usr.confirmed=true;
-    //         usr.mod=true;
-    //         usr.save((erru,svu)=>{
-    //             res.send(svu);
-    //         })
-    //     })
-    // })
+    router.get('/memberCount',this.authbit,(req,res,next)=>{
+        //gets the count of brethren members
+        // console.log('kEYS nAoOW',keys)
+        axios.get(`https://api.guildwars2.com/v2/guild/${keys.apiCodes.guild}/members?access_token=${keys.apiCodes.usr}`)
+        .then(r=>{
+            // console.log(r,'MEMBERS!')
+            // const memberCount = _.zipObject(_.uniqBy(r.data,'rank').map(q=>q.rank))
+            res.send(_.countBy(r.data,'rank'))
+        })
+    })
     router.get('/allUsrs', this.authbit, (req, res, next) => {
         mongoose.model('User').find({}, function(err, usrs) {
             res.send(usrs.map(u => {
@@ -445,6 +453,8 @@ const routeExp = function(io, pp) {
             if(usr && usr.correctPassword(req.body.old) && req.body.pwd == req.body.pwdDup){
                 console.log('got correct pwd, changing!')
                 usr.salt = mongoose.model('User').generateSalt();
+                usr.oneTimePwd.has = false;
+                usr.oneTimePwd.expired = false;
                 usr.pass = mongoose.model('User').encryptPassword(req.body.pwd, usr.salt);
                 usr.save((err,usrsv)=>{
                     res.send(usrsv);
@@ -456,7 +466,7 @@ const routeExp = function(io, pp) {
     })
     router.post('/login', function(req, res, next) {
             mongoose.model('User').findOne({ 'user': req.body.user }, function(err, usr) {
-                if (!err && usr && !usr.isBanned && usr.correctPassword(req.body.pass)) {
+                if (!err && usr && !usr.isBanned && usr.correctPassword(req.body.pass) && !usr.oneTimePwd.expired) {
                     const prevLog = usr.lastLogin;
                     usr.lastLogin = Date.now();
                     // usr.lastLogin=0;
@@ -471,12 +481,17 @@ const routeExp = function(io, pp) {
                     delete req.session.user.salt;
                     delete req.session.user.reset;
                     delete req.session.user.email;
+                    if(usr.oneTimePwd.has){
+                        usr.oneTimePwd.expired=true;
+                    }
                     usr.save((err, usrsv) => {
                         res.send({ usr: req.session.user, news: news })
                     })
                 } else if (usr && usr.isBanned) {
                     res.send('banned')
-                } else {
+                } else if(usr.oneTimePwd.expired){
+                    res.send('expPwd')
+                }else {
                     res.send('authErr');
                     // usr.authenticate(req.body.pass, function(err, resp) {
                     //     console.log('LOGIN RESPONSE', usr, 'ERR', err,'END of report')
@@ -560,7 +575,7 @@ const routeExp = function(io, pp) {
             }
         })
     });
-
+    router.userCount = 
     router.get('/reset', function(req, res, next) {
         //trying to get reset page using req.query. incorrect token leads to resetFail
         var rst = req.query.key;
@@ -605,6 +620,8 @@ const routeExp = function(io, pp) {
                     // usr.setPassword(req.body.pwd, function() {
                         usr.salt = mongoose.model('User').generateSalt();
                         usr.pass = mongoose.model('User').encryptPassword(req.body.pwd, usr.salt)
+                        usr.oneTimePwd.has=false;
+                        usr.oneTimePwd.expired=false;
                         console.log('usr after set:', usr)
                         // usr.reset = null;
                         usr.save();
@@ -613,6 +630,27 @@ const routeExp = function(io, pp) {
                 }
             })
         }
+    })
+    router.get('/setPasswordMod',this.authbit, isMod,(req,res,next)=>{
+        console.log('SET PWD',req.query)
+        if(!req.query.user){
+            return res.status(400).send('err');
+        }
+        mongoose.model('User').findOne({user:req.query.user},(err,usr)=>{
+            console.log('USR',usr,'ERR',err)
+            if(!usr||err){
+                return res.status(400).send('err');
+            }
+            const tempPwd = Math.floor(Math.random()*99999999999).toString(32).toUpperCase().replace('O',0).replace('I','L')//generate new pwd with no lowercase, no "I", and no "O";
+            
+            usr.salt = mongoose.model('User').generateSalt();
+            usr.pass = mongoose.model('User').encryptPassword(tempPwd, usr.salt);
+            usr.oneTimePwd.has = true;
+            usr.oneTimePwd.expired = false;
+            usr.save((err,usv)=>{
+                res.send({pwd:tempPwd})
+            })
+        })
     })
     router.get('/setEmail', authbit, (req, res, next) => {
         ///(\w+\.*)+@(\w+\.)+\w+/g

@@ -22,6 +22,16 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
             })
             $scope.numUnreadMsgs = u.msgs.filter(m => !m.read).length;
         }
+        $scope.setPwd = u=>{
+            bulmabox.confirm('Reset Password',`Are you sure you wish to create a temporary, one-time-use password for ${u.user}?`,r=>{
+                if(!!r){
+                    $http.get('/user/setPasswordMod?user='+u.user)
+                        .then(r=>{
+                            console.log('user',u.user,'pwd set to',r.data)
+                        })
+                }
+            })
+        }
         socket.on('sentMsg', function(u) {
             console.log('SOCKET USER', u, 'this user', $scope.user)
             if (u.user == $scope.user.user || u.from == $scope.user.user) {

@@ -1,0 +1,27 @@
+<div ng-controller='home-cont'>
+    <div class="panel">
+        <div class="panel-body has-background-grey-darker has-text-white" id='bg-video-panel'>
+            <div class="is-fullwidth has-text-centered">
+                <div ng-show='memberCount.types' id='fadey-count' class="is-size-3 is-italic fader">{{memberCount.types[currMems]}}:&nbsp;{{memberCount.counts[memberCount.types[currMems]]}}</div>
+            </div>
+            <!-- <video loop muted autoplay playsinline id="video"></video> -->
+            <div class="video-background">
+                <div class="video-foreground">
+                  <iframe src="https://www.youtube.com/embed/SB4Sv5-010c?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&playlist=SB4Sv5-010c&mute=1" frameborder="0" allowfullscreen></iframe>
+                </div>
+              </div>
+        </div>
+    </div>
+    <!-- <div id="bg-vid-cont"> -->
+        <!-- <iframe id='vid' src="https://www.youtube.com/embed/SB4Sv5-010c?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&playlist=SB4Sv5-010c&mute=1" frameborder="0" 
+        allowfullscreen="allowfullscreen"
+        mozallowfullscreen="mozallowfullscreen" 
+        msallowfullscreen="msallowfullscreen" 
+        oallowfullscreen="oallowfullscreen" 
+        webkitallowfullscreen="webkitallowfullscreen"></iframe> -->
+    <!-- </div> -->
+    <!-- HOMEPAGE! needs:
+    member count (api), proto utube, discord info
+https://www.youtube.com/watch?v=SB4Sv5-010c
+-->
+</div>

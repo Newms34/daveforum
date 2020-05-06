@@ -53,12 +53,16 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
                 abstract: true,
                 templateUrl: 'layouts/full.html'
             })
+            // .state('app.home', {
+            //     url: '/', //default route, if not 404
+            //     templateUrl: 'components/home.html'
+            // })
             .state('app.dash', {
-                url: '/', //default route, if not 404
+                url: '/dash', 
                 templateUrl: 'components/dash.html'
             })
             .state('app.chat', {
-                url: '/chat', //default route, if not 404
+                url: '/chat', 
                 templateUrl: 'components/chat.html'
             })
             .state('app.calendar', {
@@ -97,7 +101,7 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
                 templateUrl: 'components/layout/simp.html'
             })
             .state('appSimp.login', {
-                url: '/login',
+                url: '/',
                 templateUrl: 'components/login.html'
             })
             .state('appSimp.register', {
@@ -605,6 +609,16 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                 }
             })
             $scope.numUnreadMsgs = u.msgs.filter(m => !m.read).length;
+        }
+        $scope.setPwd = u=>{
+            bulmabox.confirm('Reset Password',`Are you sure you wish to create a temporary, one-time-use password for ${u.user}?`,r=>{
+                if(!!r){
+                    $http.get('/user/setPasswordMod?user='+u.user)
+                        .then(r=>{
+                            console.log('user',u.user,'pwd set to',r.data)
+                        })
+                }
+            })
         }
         socket.on('sentMsg', function(u) {
             console.log('SOCKET USER', u, 'this user', $scope.user)
@@ -1328,6 +1342,100 @@ app.controller('forum-thr-cont', function($scope, $http, $state, $location, $sce
         document.querySelector('#postTxt').value = '>'+ pst.md;
     }
 })
+app.controller('home-cont', function ($scope, $http, $state, $sce) {
+    $http.get('/user/memberCount').then(r => {
+        $scope.memberCount = { counts: r.data, types: Object.keys(r.data) };
+        $scope.currMems = 0;
+        setInterval(function () {
+            document.querySelector('#fadey-count').classList.add('fader-on')
+            setTimeout(function () {
+                $scope.currMems = ($scope.currMems + 1) % ($scope.memberCount.types.length - 1);
+                $scope.$digest()
+                document.querySelector('#fadey-count').classList.remove('fader-on')
+            }, 760)
+        }, 10000)
+    })
+
+    const vid = "SB4Sv5-010c",
+        video_tag = document.getElementById("video");
+    let streams = null;
+
+    fetch("https://images" + ~~(Math.random() * 33) + "-focus-opensocial.googleusercontent.com/gadgets/proxy?container=none&url=https%3A%2F%2Fwww.youtube.com%2Fget_video_info%3Fvideo_id%3D" + vid).then(response => response.text()).then(function (data) {
+        if (data) {
+            streams = parse_youtube_meta(data);
+            video_tag.src = streams['1080p'] || streams['720p'] || streams['360p'];
+        } else {
+            alert('Youtube API Error');
+        }
+    });
+
+    function parse_youtube_meta(rawdata) {
+        var data = parse_str(rawdata),
+            player_response = JSON.parse(data.player_response),
+            streams = [],
+            result = {};
+
+        data.player_response = player_response;
+
+        if (data.hasOwnProperty('adaptive_fmts')) {
+            streams = streams.concat(data.adaptive_fmts.split(',').map(function (s) {
+                return parse_str(s)
+            }));
+        } else {
+            if (player_response.streamingData && player_response.streamingData.adaptiveFormats) {
+                streams = streams.concat(player_response.streamingData.adaptiveFormats);
+            }
+        }
+        if (data.hasOwnProperty('url_encoded_fmt_stream_map')) {
+            streams = streams.concat(data.url_encoded_fmt_stream_map.split(',').map(function (s) {
+                return parse_str(s)
+            }));
+        } else {
+            if (player_response.streamingData && player_response.streamingData.formats) {
+                streams = streams.concat(player_response.streamingData.formats);
+            }
+        }
+
+        streams.forEach(function (stream, n) {
+            var itag = stream.itag * 1,
+                quality = false,
+                itag_map = {
+                    18: '360p',
+                    22: '720p',
+                    37: '1080p',
+                    38: '3072p',
+                    82: '360p3d',
+                    83: '480p3d',
+                    84: '720p3d',
+                    85: '1080p3d',
+                    133: '240pna',
+                    134: '360pna',
+                    135: '480pna',
+                    136: '720pna',
+                    137: '1080pna',
+                    264: '1440pna',
+                    298: '720p60',
+                    299: '1080p60na',
+                    160: '144pna',
+                    139: "48kbps",
+                    140: "128kbps",
+                    141: "256kbps"
+                };
+            if (itag_map[itag]) result[itag_map[itag]] = stream.url;
+        });
+        return result;
+    };
+
+    function parse_str(str) {
+        return str.split('&').reduce(function (params, param) {
+            var paramSplit = param.split('=').map(function (value) {
+                return decodeURIComponent(value.replace('+', ' '));
+            });
+            params[paramSplit[0]] = paramSplit[1];
+            return params;
+        }, {});
+    }
+})
 app.controller('inbox-cont',function($scope,$http,userFact){
 	$scope.currMsg = 0;
 	console.log('PARENT USER IS:',$scope.$parent.user);
@@ -1402,6 +1510,8 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                     bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Incorrect Login', 'Either your username or password (or both!) are incorrect.<hr><span style="font-weight:bold;">Note to Previous Users:</span><br> Your account MAY have been reset due to an issue with the authentication software we were using. For security reasons, I had to wipe the database (including accounts). Really sorry! <br> - Dave (HealyUnit)');
                 }else if(r.data=='banned'){
                     bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Banned', "You've been banned! We're a pretty laid-back guild, so you must have <i>really</i> done something to piss us off!")
+                }else if(r.data=='expPwd'){
+                    bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Expired Password', "That password's expired! Please ask a moderator to reset your password, and this time <i>remember</i> to change it!")
                 } else {
                     // delete r.data.msgs;
                     console.log('LOGIN RESPONSE',r.data)
@@ -1504,24 +1614,26 @@ app.controller('nav-cont',function($scope,$http,$state){
             }
         })
     }
+    $scope.pages = [{
+        sref:'app.dash',
+        txt:'Dashboard'
+    },{
+        sref:'app.calendar',
+        txt:'Calendar'
+    },{
+        sref:'app.chat',
+        txt:'Chat'
+    },{
+        sref:'app.forum',
+        txt:'Forum'
+    },{
+        sref:'app.tools',
+        txt:'Tools'
+    },{
+        sref:'app.help',
+        txt:'Help'
+    },]
     $scope.mobActive=false;
-    //     $scope.gotLogMsg=false;
-    // socket.on('doLogout',function(r){
-    //     //force logout (likely due to app change)
-    //     console.log('APP REQUESTED LOGOUT:',$state.current)
-    //     if($state.current.name=='appSimp.login'||$state.current.name=='appSimp.register' || $scope.gotLogMsg){
-    //         //don't force logout if we're already logged out, or if we've already got the msg
-    //         return false;
-    //     }
-    //     $scope.gotLogMsg=true;
-    //     bulmabox.alert(`App Restarting`,`Hi! I've made some sort of change just now to make this app more awesome! Unfortunately, this also means I've needed to restart it. I'm gonna log you out now.`,function(r){
-    //         console.log('herez where user wud b logged out');
-    //         $http.get('/user/logout').then(function(r){
-    //             $scope.gotLogMsg=false;
-    //             $state.go('appSimp.login',{},{reload:true})
-    //         })
-    //     })
-    // })
 })
 resetApp.controller('reset-contr',function($scope,$http,$location){
 	$scope.key = window.location.search.slice(5);

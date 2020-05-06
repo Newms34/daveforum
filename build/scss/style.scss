@@ -38,9 +38,6 @@ body {
                 &:first-child {
                     background: #bbb;
                 }
-                &:not(:first-child) {
-                    //reserved in case i need
-                }
             }
         }
     }
@@ -97,9 +94,6 @@ body {
     & .prof-pic {
         width: 100px;
         height: 100px;
-    }
-    & .post-text {
-        // height: 90%;
     }
     & .post-buttons {
         border-top: 1px solid #333;
@@ -367,3 +361,59 @@ $races: Asura Charr Human Norn Sylvari;
     background:#eee;
     color:#333!important;
 }
+.fader{
+    transition-duration:0.75s;
+    position:relative;
+    opacity:1;
+    &.fader-on{
+        opacity:0;
+    }
+}
+// #bg-vid-cont{
+//     position:fixed;
+//     // z-index:-99;
+//     filter:brightness(0.7);
+//     width:100vw;
+//     height:100%;
+//     & #video{
+//         width:100vw;
+//         height:100%;
+//         pointer-events:none;
+//     }
+// }
+// #bg-video-panel{
+//     height:100vh;
+//     & #video{
+//         // pointer-events:none;
+//         position:absolute;
+//         top:0;
+//         left:0;
+//         bottom: 0;
+//         right: 0;
+//         z-index:0;
+//         width:100%;
+//         height:100%;
+//     }
+// }
+
+* {
+    box-sizing: border-box;
+  }
+  .video-background {
+    background: #000;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    // z-index: -99;
+  }
+  .video-foreground,
+  .video-background iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }

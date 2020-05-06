@@ -50,12 +50,16 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
                 abstract: true,
                 templateUrl: 'layouts/full.html'
             })
+            // .state('app.home', {
+            //     url: '/', //default route, if not 404
+            //     templateUrl: 'components/home.html'
+            // })
             .state('app.dash', {
-                url: '/', //default route, if not 404
+                url: '/dash', 
                 templateUrl: 'components/dash.html'
             })
             .state('app.chat', {
-                url: '/chat', //default route, if not 404
+                url: '/chat', 
                 templateUrl: 'components/chat.html'
             })
             .state('app.calendar', {
@@ -94,7 +98,7 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
                 templateUrl: 'components/layout/simp.html'
             })
             .state('appSimp.login', {
-                url: '/login',
+                url: '/',
                 templateUrl: 'components/login.html'
             })
             .state('appSimp.register', {

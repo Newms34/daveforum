@@ -311,7 +311,7 @@
                         <td><img class='usr-list-pic' src="{{u.avatar||defaultPic}}">
                             <br>{{u.user}}</td>
                         <td>
-                            <button class="button is-info is-fullwidth" title='Send a message to this user' ng-click='mail(u)'><i class="fa fa-envelope-o"></i></button>
+                            <button class="button is-info is-fullwidth" title='Send a message to this user' ng-click='mail(u)'><i class="fa fa-envelope-o"></i>&nbsp; Mail/button>
                         </td>
                         <td style='height:150px; {{u.chars.length?"overflow-y: scroll;display:block;":""}} '>
                             <div class='is-fullwidth chr-list' ng-repeat='chr in u.chars'>
@@ -324,8 +324,9 @@
                             <img src="./img/interestIcons/{{intr.icon}}" title='{{intr.name}}' ng-repeat='intr in possibleInterests' ng-if='u.ints[$index]=="1"'>
                         </td>
                         <td>
-                            <button ng-if='user.mod' class="button is-success" ng-disabled='u.mod' title='{{u.mod?"This user is already a moderator":"Make this user a moderator"}}' ng-click='makeMod(u)'>Make Moderator</button>
-                            <button ng-if='user.mod' class="button is-danger" ng-disabled='u.mod' title='{{u.mod?"Cannot ban/unban a moderator!":"Ban/Unban this user"}}' ng-click='toggleBan(u)'>{{u.isBanned?'Unban':'Ban'}}</button>
+                            <button ng-if='user.mod' class="button is-success" ng-disabled='u.mod' title='{{u.mod?"This user is already a moderator":"Make this user a moderator"}}' ng-click='makeMod(u)'><i class="fa fa-key"></i>&nbsp;Make Moderator</button>
+                            <button ng-if='user.mod' class="button is-warning" title="Reset this user's password to a random temporary password" ng-click='setPwd(u)'><i class="fa fa-unlock"></i>&nbsp;Reset Password</button>
+                            <button ng-if='user.mod' class="button is-danger" ng-disabled='u.mod' title='{{u.mod?"Cannot ban/unban a moderator!":"Ban/Unban this user"}}' ng-click='toggleBan(u)'><i class="fa fa-times"></i>&nbsp;{{u.isBanned?'Unban':'Ban'}}</button>
                             <i class='fa fa-square-o' ng-if='!user.mod && !u.mod'></i><i class='fa fa-check-square-o' ng-if='!user.mod && u.mod'></i>
                             <i class='fa fa-square-o' ng-if='!user.mod && !u.isBanned'></i><i class='fa fa-check-square-o' ng-if='!user.mod && u.isBanned'></i>
                             <button ng-if='user.mod && !u.confirmed' class='button is-info' ng-click='confirmUsr(u);'>
