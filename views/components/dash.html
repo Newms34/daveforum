@@ -311,7 +311,7 @@
                         <td><img class='usr-list-pic' src="{{u.avatar||defaultPic}}">
                             <br>{{u.user}}</td>
                         <td>
-                            <button class="button is-info is-fullwidth" title='Send a message to this user' ng-click='mail(u)'><i class="fa fa-envelope-o"></i>&nbsp; Mail/button>
+                            <button class="button is-info is-fullwidth" title='Send a message to this user' ng-click='mail(u)'><i class="fa fa-envelope-o"></i>&nbsp; Mail</button>
                         </td>
                         <td style='height:150px; {{u.chars.length?"overflow-y: scroll;display:block;":""}} '>
                             <div class='is-fullwidth chr-list' ng-repeat='chr in u.chars'>
