@@ -1309,6 +1309,10 @@ app.controller('forum-thr-cont', function($scope, $http, $state, $location, $sce
         $scope.user = r.data;
         console.log('user', $scope.user)
     })
+    $scope.copyCode = c=>{
+        console.log('attempting to copy',c)
+        prompt("Press ctrl-c (cmd-c on Mac) to copy this code!",c.parentNode.querySelector('.build-code').innerText);
+    }
     $scope.newPost = () => {
         let theText = document.querySelector('#postTxt').value;
         console.log('new POST',theText,$scope.fileread);
@@ -1316,10 +1320,9 @@ app.controller('forum-thr-cont', function($scope, $http, $state, $location, $sce
             bulmabox.alert('Say Something',`You can't just post nothing!`);
             return false;
         }
-        // return false;
         $http.post('/forum/newPost', {
                 thread: $scope.thr._id,
-                text: new showdown.Converter().makeHtml(theText),
+                text: new showdown.Converter().makeHtml(theText).replace(/\[&amp;D[\w+/]+=*\]/g,`<span class='build-code'>$&</span><button class='button is-info is-tiny' onclick='angular.element(this).scope().copyCode(this);' title='Copy this build'><i class='fa fa-files-o'></i></button>`),
                 md:theText,
                 file:$scope.fileread||null
             })
@@ -1340,8 +1343,43 @@ app.controller('forum-thr-cont', function($scope, $http, $state, $location, $sce
             })
     }
     $scope.quoteMe=(pst)=>{
-        document.querySelector('#postTxt').value = '>'+ pst.md;
+        document.querySelector('#postTxt').value = pst.md.split('\n').map(q=>'>'+q).join('\n');
     }
+    $scope.getBuildTimer = null;
+    $scope.currBuild = {
+        code:null,
+        data:null,
+        pos:{x:0,y:0}
+    };
+    $scope.getBuild = (c,x,y) =>{
+        if($scope.currBuild.code ==c){
+            return false;
+        }else{
+            $scope.currBuild.code = c;
+        }
+        if($scope.getBuildTimer){
+            clearTimeout($scope.getBuildTimer);
+        }
+        $scope.getBuildTimer = setTimeout(function(){
+            $http.get('/tool/build?build='+encodeURIComponent(c)).then(r=>{
+                // console.log('BUILD RESPONSE',r);
+                $scope.currBuild.data=r.data;
+            })
+        },100)
+    }
+    window.addEventListener('mousemove',e=>{
+        $scope.currBuild.pos.x = e.screenX;
+        $scope.currBuild.pos.y = e.screenY-250;
+        console.log('Target is build-code? ',[...e.target.classList].includes('build-code'))
+        if([...e.target.classList].includes('build-code')){
+            $scope.getBuild(e.target.innerHTML.replace('&amp;','&'))
+            $scope.$apply();
+        }else{
+            //not on a build template span
+            $scope.currBuild.code=null;
+            $scope.$apply();
+        }
+    })
 })
 app.controller('home-cont', function ($scope, $http, $state, $sce) {
     $http.get('/user/memberCount').then(r => {

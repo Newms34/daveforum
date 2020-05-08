@@ -56,4 +56,15 @@
             </div>
         </div>
     </div>
+<div class="build-box" ng-show='currBuild.code' style='left:{{currBuild.pos.x}}px; top:{{currBuild.pos.y}}px;'>
+        <div class="info-row" ng-show='currBuild.data.prof'>Profession: {{currBuild.data.prof}}</div>
+        <div class="column spec-row" ng-repeat='sp in currBuild.data.specs' style='background:url({{sp.spec.bg}});'>
+            <div class="column is-one-quarter spec-name-col">
+            </div>
+            <div class="column is-one-quarter trait-pic-col">
+            </div>
+        </div>
+        <!-- <div class="trait-row" style='background:'></div> -->
+        <!-- <div class="trait-row" style='background:'></div> -->
+    </div>
 </div>

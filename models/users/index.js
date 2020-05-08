@@ -54,7 +54,6 @@ const usrSchema = new mongoose.Schema({
 const generateSalt = function() {
     return crypto.randomBytes(16).toString('base64');
 },encryptPassword = function(plainText, salt) {
-    console.log('PASSWORD', plainText, salt)
     var hash = crypto.createHash('sha1');
     hash.update(plainText);
     hash.update(salt);
