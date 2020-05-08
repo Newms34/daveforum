@@ -381,9 +381,9 @@ $races: Asura Charr Human Norn Sylvari;
 
 .build-box{
     position: fixed;
-    width:500px;
+    width:800px;
     padding:4px;
-    height:400px;
+    height:700px;
     background:#333;
     pointer-events: none;
     left:20px;
@@ -399,6 +399,19 @@ $races: Asura Charr Human Norn Sylvari;
     & .spec-row{
         width:100%;
         height:30%;
+        .spec-icon{
+            height:170px;
+            text-align: center;
+        }
+        .trait-pick-col{
+            .column{
+                text-align: right;
+                vertical-align: middle;
+                img{
+                    height:55px;
+                }
+            }
+        }
     }
 }
 

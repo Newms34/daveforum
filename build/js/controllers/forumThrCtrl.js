@@ -109,7 +109,7 @@ app.controller('forum-thr-cont', function($scope, $http, $state, $location, $sce
     window.addEventListener('mousemove',e=>{
         $scope.currBuild.pos.x = e.screenX;
         $scope.currBuild.pos.y = e.screenY-250;
-        console.log('Target is build-code? ',[...e.target.classList].includes('build-code'))
+        // console.log('Target is build-code? ',[...e.target.classList].includes('build-code'))
         if([...e.target.classList].includes('build-code')){
             $scope.getBuild(e.target.innerHTML.replace('&amp;','&'))
             $scope.$apply();

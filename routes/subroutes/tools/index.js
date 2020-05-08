@@ -567,7 +567,7 @@ const routeExp = function (io) {
     druid (5) trait 26 should  == 011010
 
     pets: 11,39,15,19
-    
+
 
     */
     router.get('/build',/* this.authbit, */(req, res, next) => {
@@ -601,88 +601,117 @@ const routeExp = function (io) {
         let bhgTemp = bhg.slice(1);
         console.log('parsing build template', req.query.build, 'hex', buildHex);
         build.prof = buildsInfo.profs[parseInt(bhgTemp.shift())];
-        // build.specs.forEach
-        let specBit, traitBit, whichSpec, whichTrait, availTraits;
+        let specBit, traitBit, whichSpec, usedTraits, allTraits = [];
+        // loop thru each specialization slot
         for (let i = 0; i < 3; i++) {
-            specBit = parseInt(bhgTemp.shift(), 16);
-            traitBit = parseInt(bhgTemp.shift(), 16).toString(2);
-            if (traitBit.length < 6) {
-                traitBit = '0' + traitBit;
+            specBit = parseInt(bhgTemp.shift(), 16);//the specialization ID byte
+            traitBit = parseInt(bhgTemp.shift(), 16).toString(2);//picked trait bytes
+            while (traitBit.length < 6) {
+                traitBit = '0' + traitBit;//leftpad traitBit
             }
-            traitBit = traitBit.match(/\w{2}/g).reverse().map(q => parseInt(q, 2) - 1);
-            whichSpec = buildsInfo.specializations.find(q => q.id == specBit);
-            availTraits = whichSpec.major_traits.chunk(3);
+            traitBit = traitBit.match(/\w{2}/g).reverse().map(q => parseInt(q, 2) - 1);//chunk the traits, and reverse 
+            whichSpec = buildsInfo.specializations.find(q => q.id == specBit);//find our specialization
+            usedTraits = whichSpec.major_traits.chunk(3);
+            // console.log('TRAIT NUMBER',i,'ALL MINOR',whichSpec.minor_traits,'THIS ONE',whichSpec.minor_traits[i])
             build.specs[i] = {
                 spec: {
+                    //info about the specialization itself (NOT TRAITS!)
                     name: whichSpec.name,
                     bg: whichSpec.background,
-                    icon: whichSpec.icon,
-                    // availTraits:availTraits
+                    id:specBit,
+                    icon: whichSpec.icon//specialization icon
                 },
-                traits: traitBit.map((q, n) => availTraits[n][q])
+                traitSlots: whichSpec.major_traits.chunk(3).map((q,n)=>({
+                    minor:whichSpec.minor_traits[n],
+                    major: q
+                })),
+                usedTraits: traitBit.map((q, n) => usedTraits[n][q])
                 // traits: traitBit
             }
-            traitNumlist.push(...traitBit.map((q, n) => availTraits[n][q]))
+            allTraits.push(...whichSpec.major_traits,...whichSpec.minor_traits)
+            // traitNumlist.push(...traitBit.map((q, n) => usedTraits[n][q]));
+            // console.log('MINOR TRAIT IS', build.specs[i].traitSlots.minor||'NOT DEFINED!')
+            // build.specs[i].traitSlots.minor='bop'
         }
-        axios.get('https://api.guildwars2.com/v2/traits?ids=' + traitNumlist.join(','))
-            .then(r => {
-                // console.log(r)
-                build.specs.forEach(s => {
-                    s.traits = s.traits.map(n => r.data.find(q => q.id == n))
-                });
-                //now we need to get the skills! oboy
-                //terrestrial
-                let bitA, bitB, bothBits, skill;
-                for (let i = 0; i < 10; i++) {
-                    bitA = bhgTemp.shift();
-                    bitB = bhgTemp.shift();
-                    bothBits = parseInt(bitA, 16) < parseInt(bitB, 16) ? bitA + bitB : bitB + bitA;
-                    skill = buildsInfo.skills.find(q => q.palId == parseInt(bothBits, 16))
-                    // console.log("Attempting to parse skill pallet num (hex) "+bothBits,'Skill is:',skill);
-                    switch (i) {
-                        case 0:
-                            build.skills.land.heal = skill;
-                            break;
-                        case 1:
-                            build.skills.water.heal = skill;
-                            break;
-                        case 2:
-                            build.skills.land.util1 = skill;
-                            break;
-                        case 3:
-                            build.skills.water.util1 = skill;
-                            break;
-                        case 4:
-                            build.skills.land.util2 = skill;
-                            break;
-                        case 5:
-                            build.skills.water.util2 = skill;
-                            break;
-                        case 6:
-                            build.skills.land.util3 = skill;
-                            break;
-                        case 7:
-                            build.skills.water.util3 = skill;
-                            break;
-                        case 8:
-                            build.skills.land.elite = skill;
-                            break;
-                        case 9:
-                            build.skills.water.elite = skill;
-                            break;
-
+        return axios.get('https://api.guildwars2.com/v2/traits?ids=' + allTraits.join(',')).then(rt => {
+            build.specs.forEach(spc => {
+                // console.log('EXAMINING SPEC', spc)
+                spc.traitSlots.forEach((traitSlot,n) => {
+                    for (let i = 0; i < 3; i++) {
+                        const majTrait = rt.data.find(q => q.id == traitSlot.major[i]);
+                        traitSlot.major[i] = {
+                            name: majTrait.name,
+                            id: majTrait.id,
+                            order: majTrait.order,
+                            icon: majTrait.icon,
+                            desc: majTrait.description.replace(/<[=@\w]+>/g,'').replace(/<\/\w+>/g,''),
+                            picked: spc.usedTraits.includes(traitSlot.major[i])
+                        }
                     }
-                }
-                
-                console.log('AFTER TRAITS & SKILLS, skill temp is', bhgTemp)
-                //and now pets or legend (ranger/rev)
-                if(build.prof=='Ranger'){
-                    //get 
-                }else if(build.prof=='Revenant'){
-                    //get 
-                }
-                res.send(build);
+                    const minTrait = rt.data.find(q=>q.id==traitSlot.minor);
+                    traitSlot.minor = {
+                        name:minTrait.name,
+                        id:minTrait.id,
+                        icon:minTrait.icon,
+                        desc:minTrait.description.replace(/<[=@\w]+>/g,'').replace(/<\/\w+>/g,'')
+                    };
+                })
             })
+
+
+            //now we need to get the skills! oboy
+            //terrestrial
+            let bitA, bitB, bothBits, skill;
+            for (let i = 0; i < 10; i++) {
+                bitA = bhgTemp.shift();
+                bitB = bhgTemp.shift();
+                bothBits = parseInt(bitA, 16) < parseInt(bitB, 16) ? bitA + bitB : bitB + bitA;
+                skill = buildsInfo.skills.find(q => q.palId == parseInt(bothBits, 16))
+                // console.log("Attempting to parse skill pallet num (hex) "+bothBits,'Skill is:',skill);
+                switch (i) {
+                    case 0:
+                        build.skills.land.heal = skill;
+                        break;
+                    case 1:
+                        build.skills.water.heal = skill;
+                        break;
+                    case 2:
+                        build.skills.land.util1 = skill;
+                        break;
+                    case 3:
+                        build.skills.water.util1 = skill;
+                        break;
+                    case 4:
+                        build.skills.land.util2 = skill;
+                        break;
+                    case 5:
+                        build.skills.water.util2 = skill;
+                        break;
+                    case 6:
+                        build.skills.land.util3 = skill;
+                        break;
+                    case 7:
+                        build.skills.water.util3 = skill;
+                        break;
+                    case 8:
+                        build.skills.land.elite = skill;
+                        break;
+                    case 9:
+                        build.skills.water.elite = skill;
+                        break;
+
+                }
+            }
+
+            // console.log('AFTER TRAITS & SKILLS, skill temp is', bhgTemp)
+            //and now pets or legend (ranger/rev)
+            if (build.prof == 'Ranger') {
+                //get 
+            } else if (build.prof == 'Revenant') {
+                //get 
+            }
+            return res.send(build);
+        })
     })
     router.get(['/daily', '/daily/tomorrow'], this.authbit, (req, res, next) => {
         console.log('URL:', req.url)

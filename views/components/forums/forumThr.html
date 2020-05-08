@@ -34,21 +34,21 @@
                 <textarea class='textarea is-fullwidth' id='postTxt' placeholder="Say something!"></textarea>
                 <hr>
                 <div class="field">
-                        <div class="file is-centered">
-                            <label class="file-label">
-                                <!-- <input class="file-input" type="file" ng-model='newThr.file' ng-click='loadingFile=true' onchange="angular.element(this).scope().loadFile()"> -->
-                                <input class='file-input' type="file" fileread="file" onchange="angular.element(this).scope().loadFile()"/>
-                                <span class="file-cta">
-                                    <span class="file-icon">
-                                        <i class="fa fa-upload"></i>
-                                    </span>
-                                <span class="file-label">
-                                        {{fileName?fileName:'Include an image (optional)…'}}
-                                    </span>
+                    <div class="file is-centered">
+                        <label class="file-label">
+                            <!-- <input class="file-input" type="file" ng-model='newThr.file' ng-click='loadingFile=true' onchange="angular.element(this).scope().loadFile()"> -->
+                            <input class='file-input' type="file" fileread="file" onchange="angular.element(this).scope().loadFile()" />
+                            <span class="file-cta">
+                                <span class="file-icon">
+                                    <i class="fa fa-upload"></i>
                                 </span>
-                            </label>
-                        </div>
+                                <span class="file-label">
+                                    {{fileName?fileName:'Include an image (optional)…'}}
+                                </span>
+                            </span>
+                        </label>
                     </div>
+                </div>
                 <button class="button is-light" ng-click='newPost()'><i class='fa fa-plus'></i>&nbsp;Post</button>
             </div>
             <div class="notification has-background-grey-darker has-text-white" ng-if='!thr.open'>
@@ -56,12 +56,26 @@
             </div>
         </div>
     </div>
-<div class="build-box" ng-show='currBuild.code' style='left:{{currBuild.pos.x}}px; top:{{currBuild.pos.y}}px;'>
+    <div class="build-box" ng-show='currBuild.code' style='left:{{currBuild.pos.x}}px; top:{{currBuild.pos.y}}px;'>
         <div class="info-row" ng-show='currBuild.data.prof'>Profession: {{currBuild.data.prof}}</div>
-        <div class="column spec-row" ng-repeat='sp in currBuild.data.specs' style='background:url({{sp.spec.bg}});'>
-            <div class="column is-one-quarter spec-name-col">
-            </div>
-            <div class="column is-one-quarter trait-pic-col">
+        <div class="spec-row" ng-repeat='sp in currBuild.data.specs' style='background:linear-gradient(rgba(0,0,0,.3),rgba(0,0,0,.3)),url({{sp.spec.bg}}); background-position:  0px -55px; background-size:  1250px 280px;'>
+            <div class="is-fullwidth columns">
+
+                <div class="column is-one-quarter spec-name-col">
+                    <div class="is-size-6 is-fullwidth has-text-centered">{{sp.spec.name}}</div>
+                    <img src="{{sp.spec.icon}}" class='spec-icon'>
+                </div>
+                <div class="column is-one-quarter trait-pick-col columns" ng-repeat='ts in sp.traitSlots'>
+                    <!-- {{ts.minor.name}} -->
+                    <div class="column">
+                        <img src="{{ts.minor.icon}}" style="margin-top:50px">
+                    </div>
+                    <div class="column">
+                        <div ng-repeat='ms in ts.major'>
+                            <img src="{{ms.icon}}" style='filter:{{ms.picked?"none":"brightness(0.5)"}};' alt="">
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- <div class="trait-row" style='background:'></div> -->
