@@ -570,36 +570,33 @@ const routeExp = function (io) {
 
 
     */
-    router.get('/build',/* this.authbit, */(req, res, next) => {
+    router.get('/asaw', async function (req, res, next) {
+        const legIdList = [14, 13, 16, 18];
+        const toAPI = 'https://api.guildwars2.com/v2/legends?ids=' + legIdList.map(q => `Legend${q - 12}`).join(',')
+        const legApi = await axios.get(toAPI);
+        console.log(legApi)
+        res.send(legApi.data);
+    })
+
+    router.get('/build', async function (req, res, next) {
         if (!req.query.build || !req.query.build.startsWith('[&') || !req.query.build.endsWith(']')) {
+            //not a valid build code!
             return res.status(400).send('errnb');
         }
-        const buildHex = hex64.toHex(req.query.build.slice(2, -1)),
-            bhg = buildHex.match(/\w{2}/g),
-            build = {
+        const buildHex = hex64.toHex(req.query.build.slice(2, -1)),//hex build code (from b65)
+            bhg = buildHex.match(/\w{2}/g),//split into bytes
+            build = {//blank build 
                 prof: null,
                 specs: [null, null, null],
                 skills: {
-                    land: {
-                        heal: null,
-                        util1: null,
-                        util2: null,
-                        util3: null,
-                        elite: null
-                    },
-                    water: {
-                        heal: null,
-                        util1: null,
-                        util2: null,
-                        util3: null,
-                        elite: null
-                    }
+                    skillList: [],
+                    skillPalete: [],
+                    land: [[],[]],
+                    water: [[],[]]
                 }
-            },
-            traitNumlist = [];
-        // console.log()
+            };
+
         let bhgTemp = bhg.slice(1);
-        console.log('parsing build template', req.query.build, 'hex', buildHex);
         build.prof = buildsInfo.profs[parseInt(bhgTemp.shift())];
         let specBit, traitBit, whichSpec, usedTraits, allTraits = [];
         // loop thru each specialization slot
@@ -615,103 +612,158 @@ const routeExp = function (io) {
             // console.log('TRAIT NUMBER',i,'ALL MINOR',whichSpec.minor_traits,'THIS ONE',whichSpec.minor_traits[i])
             build.specs[i] = {
                 spec: {
-                    //info about the specialization itself (NOT TRAITS!)
+                    //info about the specialization itself
                     name: whichSpec.name,
                     bg: whichSpec.background,
-                    id:specBit,
+                    id: specBit,
                     icon: whichSpec.icon//specialization icon
                 },
-                traitSlots: whichSpec.major_traits.chunk(3).map((q,n)=>({
-                    minor:whichSpec.minor_traits[n],
+                traitSlots: whichSpec.major_traits.chunk(3).map((q, n) => ({
+                    minor: whichSpec.minor_traits[n],
                     major: q
                 })),
                 usedTraits: traitBit.map((q, n) => usedTraits[n][q])
-                // traits: traitBit
             }
-            allTraits.push(...whichSpec.major_traits,...whichSpec.minor_traits)
-            // traitNumlist.push(...traitBit.map((q, n) => usedTraits[n][q]));
-            // console.log('MINOR TRAIT IS', build.specs[i].traitSlots.minor||'NOT DEFINED!')
-            // build.specs[i].traitSlots.minor='bop'
+            allTraits.push(...whichSpec.major_traits, ...whichSpec.minor_traits)
         }
-        return axios.get('https://api.guildwars2.com/v2/traits?ids=' + allTraits.join(',')).then(rt => {
-            build.specs.forEach(spc => {
-                // console.log('EXAMINING SPEC', spc)
-                spc.traitSlots.forEach((traitSlot,n) => {
-                    for (let i = 0; i < 3; i++) {
-                        const majTrait = rt.data.find(q => q.id == traitSlot.major[i]);
-                        traitSlot.major[i] = {
-                            name: majTrait.name,
-                            id: majTrait.id,
-                            order: majTrait.order,
-                            icon: majTrait.icon,
-                            desc: majTrait.description.replace(/<[=@\w]+>/g,'').replace(/<\/\w+>/g,''),
-                            picked: spc.usedTraits.includes(traitSlot.major[i])
-                        }
+        const traitInfo = await axios.get('https://api.guildwars2.com/v2/traits?ids=' + allTraits.join(','));
+        //Convert traits/specs to a FE-readable format
+        build.specs.forEach(spc => {
+            spc.traitSlots.forEach((traitSlot, n) => {
+                for (let i = 0; i < 3; i++) {
+                    const majTrait = traitInfo.data.find(q => q.id == traitSlot.major[i]);
+                    traitSlot.major[i] = {
+                        name: majTrait.name,
+                        id: majTrait.id,
+                        order: majTrait.order,
+                        icon: majTrait.icon,
+                        desc: majTrait.description.replace(/<[=@\w]+>/g, '').replace(/<\/\w+>/g, ''),
+                        picked: spc.usedTraits.includes(traitSlot.major[i])
                     }
-                    const minTrait = rt.data.find(q=>q.id==traitSlot.minor);
-                    traitSlot.minor = {
-                        name:minTrait.name,
-                        id:minTrait.id,
-                        icon:minTrait.icon,
-                        desc:minTrait.description.replace(/<[=@\w]+>/g,'').replace(/<\/\w+>/g,'')
-                    };
-                })
+                }
+                const minTrait = traitInfo.data.find(q => q.id == traitSlot.minor);
+                traitSlot.minor = {
+                    name: minTrait.name,
+                    id: minTrait.id,
+                    icon: minTrait.icon,
+                    desc: minTrait.description.replace(/<[=@\w]+>/g, '').replace(/<\/\w+>/g, '')
+                };
             })
+        })
 
-
-            //now we need to get the skills! oboy
-            //terrestrial
-            let bitA, bitB, bothBits, skill;
-            for (let i = 0; i < 10; i++) {
-                bitA = bhgTemp.shift();
-                bitB = bhgTemp.shift();
-                bothBits = parseInt(bitA, 16) < parseInt(bitB, 16) ? bitA + bitB : bitB + bitA;
-                skill = buildsInfo.skills.find(q => q.palId == parseInt(bothBits, 16))
-                // console.log("Attempting to parse skill pallet num (hex) "+bothBits,'Skill is:',skill);
-                switch (i) {
-                    case 0:
-                        build.skills.land.heal = skill;
-                        break;
-                    case 1:
-                        build.skills.water.heal = skill;
-                        break;
-                    case 2:
-                        build.skills.land.util1 = skill;
-                        break;
-                    case 3:
-                        build.skills.water.util1 = skill;
-                        break;
-                    case 4:
-                        build.skills.land.util2 = skill;
-                        break;
-                    case 5:
-                        build.skills.water.util2 = skill;
-                        break;
-                    case 6:
-                        build.skills.land.util3 = skill;
-                        break;
-                    case 7:
-                        build.skills.water.util3 = skill;
-                        break;
-                    case 8:
-                        build.skills.land.elite = skill;
-                        break;
-                    case 9:
-                        build.skills.water.elite = skill;
-                        break;
-
+        //Skill template codes (may be invalid if Rev; we'll fix that later!)
+        let bitA, bitB, bothBits;
+        for (let i = 0; i < 10; i++) {
+            bitA = bhgTemp.shift();
+            bitB = bhgTemp.shift();
+            bothBits = parseInt(bitA, 16) < parseInt(bitB, 16) ? bitA + bitB : bitB + bitA;
+            if (build.prof == 'Revenant') {
+                continue;
+            }
+            skillId = buildsInfo.skills.find(q => q.palId == parseInt(bothBits, 16));
+            if (skillId && skillId.skillId) {
+                skillId = skillId.skillId;
+            }
+            if(!!skillId){
+                if (!(i % 2)) {
+                    build.skills.land[0].push(skillId)
+                } else {
+                    build.skills.water[0].push(skillId)
                 }
             }
+            build.skills.skillList.push(skillId)
+            build.skills.skillPalete.push(parseInt(bothBits, 16))
+        }
 
-            // console.log('AFTER TRAITS & SKILLS, skill temp is', bhgTemp)
-            //and now pets or legend (ranger/rev)
-            if (build.prof == 'Ranger') {
-                //get 
-            } else if (build.prof == 'Revenant') {
-                //get 
+        //Pets or legend (ranger/rev), or just continue on (everyone else)
+        if (build.prof == 'Ranger') {
+            //RANGER: PETS
+            //first, set up our pet um... dog house. Whatever
+            build.pets = {
+                land: [{
+                    id: null
+                }, {
+                    id: null
+                }],
+                water: [{
+                    id: null
+                }, {
+                    id: null
+                }]
             }
-            return res.send(build);
-        })
+            const petIdList = bhgTemp.splice(0, 4).map(q => parseInt(q, 16));
+            build.pets.land[0].id = petIdList[0];
+            build.pets.land[1].id = petIdList[1];
+            build.pets.water[0].id = petIdList[2];
+            build.pets.water[1].id = petIdList[3];
+            const petInfo = await axios.get('https://api.guildwars2.com/v2/pets?ids=' + petIdList.join(','));
+            build.pets.land[0] = petInfo.data.find(p => p.id == build.pets.land[0].id);
+            build.pets.land[1] = petInfo.data.find(p => p.id == build.pets.land[1].id);
+            build.pets.water[0] = petInfo.data.find(p => p.id == build.pets.water[0].id);
+            build.pets.water[1] = petInfo.data.find(p => p.id == build.pets.water[1].id);
+        } else if (build.prof == 'Revenant') {
+            //REV: LEGENDS
+            console.log('Rev! Remaining data for legends are', bhgTemp)
+            build.legs = {
+                land: [{
+                    id: null,
+                },
+                {
+                    id: null,
+                }],
+                water: [{
+                    id: null,
+                },
+                {
+                    id: null,
+                }]
+            }
+            //blank the skills lists (we're gonna refill em!)
+            build.skills.land = [[], []];
+            build.skills.water = [[], []];
+            build.skills.skillList = [];
+
+            const legIdList = bhgTemp.splice(0, 4).map(q => parseInt(q, 16));
+            build.legs.land[0].id = legIdList[0] ? buildsInfo.revLegs[legIdList[0] - 13] : null;
+            build.legs.land[1].id = legIdList[1] ? buildsInfo.revLegs[legIdList[1] - 13] : null;
+            build.legs.water[0].id = legIdList[2] ? buildsInfo.revLegs[legIdList[2] - 13] : null;
+            build.legs.water[1].id = legIdList[3] ? buildsInfo.revLegs[legIdList[3] - 13] : null;
+            //now we got all the actual leg human-readable data. Still need to set the skills
+            const legendNums = legIdList.map(q => q ? `Legend${q - 12}` : null)
+            const legApi = await axios.get('https://api.guildwars2.com/v2/legends?ids=' + legendNums.filter(q => !!q).join(','));
+            console.log('LEGAPI', legApi.data, 'LEG NUMS', legendNums)
+            legApi.data.forEach(d => {
+                let targArr = null,
+                    n = legendNums.indexOf(d.id);
+                arrNum = n;
+                if (n < 2) {
+                    targArr = build.skills.land;
+                } else {
+                    arrNum -= 2;
+                    targArr = build.skills.water;
+                }
+                targArr[arrNum] = [d.heal, d.utilities[0], d.utilities[1], d.utilities[2], d.elite]
+                build.skills.skillList.push(d.heal, d.utilities[0], d.utilities[1], d.utilities[2], d.elite)
+            })
+            build.skills.skillList = _.uniq(build.skills.skillList);//
+        } else {
+            //ALL OTHERS
+        }
+
+
+        //got skill IDs; get the actual skill info from API
+        console.log('Getting skills',build.skills.skillList)
+
+        const skillsFromAPI = await axios.get('https://api.guildwars2.com/v2/skills?ids=' + build.skills.skillList.join(','));
+        build.skills.water[0] = build.skills.water[0].map(n => skillsFromAPI.data.find(q => q.id == n));
+        build.skills.land[0] = build.skills.land[0].map(n => skillsFromAPI.data.find(q => q.id == n));
+        if (!!build.skills.water[1].length) {
+            build.skills.water[1] = build.skills.water[1].map(n => skillsFromAPI.data.find(q => q.id == n));
+        }
+        if (!!build.skills.water[1].length) {
+            build.skills.land[1] = build.skills.land[1].map(n => skillsFromAPI.data.find(q => q.id == n));
+        }
+        return res.send(build);
     })
     router.get(['/daily', '/daily/tomorrow'], this.authbit, (req, res, next) => {
         console.log('URL:', req.url)

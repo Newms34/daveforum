@@ -56,22 +56,38 @@
             </div>
         </div>
     </div>
-    <div class="build-box" ng-show='currBuild.code' style='left:{{currBuild.pos.x}}px; top:{{currBuild.pos.y}}px;'>
-        <div class="info-row" ng-show='currBuild.data.prof'>Profession: {{currBuild.data.prof}}</div>
-        <div class="spec-row" ng-repeat='sp in currBuild.data.specs' style='background:linear-gradient(rgba(0,0,0,.3),rgba(0,0,0,.3)),url({{sp.spec.bg}}); background-position:  0px -55px; background-size:  1250px 280px;'>
+    <div class="build-box" ng-show='currBuild.data'>
+        <div class="info-row" ng-show='currBuild.data.prof'>{{currBuild.data.prof}} <br>
+            <div class="is-fullwidth level" style='padding:5px'>
+                <div>
+                    <button class="button is-small is-success" title='View land skills' ng-disabled='!currBuild.water' ng-click='currBuild.water=false'><i class="fa fa-tree"></i></button><br>
+                    <button class="button is-small is-info" title='View water skills' ng-disabled='currBuild.water' ng-click='currBuild.water=true'><i class="fa fa-tint"></i></button>
+                </div>
+                <div ng-show='!currBuild.water'>
+                    <!-- land skills -->
+                    <img class='skill-icon is-pulled-left' ng-repeat='ls in currBuild.data.skills.land track by $index' src='{{ls.icon}}'/>
+                </div>
+                <div ng-show='currBuild.water'>
+                    <!-- water skills -->
+                    <img class='skill-icon is-pulled-left' ng-repeat='ws in currBuild.data.skills.water track by $index' src='{{ws.icon}}'/>
+                </div>
+                {{currBuild.data.skills.skillList}}
+            </div>
+        </div>
+        <div class="spec-row" ng-repeat='sp in currBuild.data.specs' style='background-image:linear-gradient(rgba(0, 0, 0, 0.3),rgba(0, 0, 0, 0.3)),url({{sp.spec.bg}});'>
             <div class="is-fullwidth columns">
 
                 <div class="column is-one-quarter spec-name-col">
-                    <div class="is-size-6 is-fullwidth has-text-centered">{{sp.spec.name}}</div>
+                    <div class="is-size-5 is-fullwidth">{{sp.spec.name}}</div>
                     <img src="{{sp.spec.icon}}" class='spec-icon'>
                 </div>
                 <div class="column is-one-quarter trait-pick-col columns" ng-repeat='ts in sp.traitSlots'>
                     <!-- {{ts.minor.name}} -->
                     <div class="column">
-                        <img src="{{ts.minor.icon}}" style="margin-top:50px">
+                        <img src="{{ts.minor.icon}}" style="margin-top:50px" ng-mousemove='explTrait(ts.minor,$event,true)' ng-mouseout='explTrait(null,$event,true)'>
                     </div>
                     <div class="column">
-                        <div ng-repeat='ms in ts.major'>
+                        <div ng-repeat='ms in ts.major' ng-mousemove='explTrait(ms,$event)' ng-mouseout='explTrait(null,$event)'>
                             <img src="{{ms.icon}}" style='filter:{{ms.picked?"none":"brightness(0.5)"}};' alt="">
                         </div>
                     </div>
@@ -80,5 +96,7 @@
         </div>
         <!-- <div class="trait-row" style='background:'></div> -->
         <!-- <div class="trait-row" style='background:'></div> -->
+    </div>
+    <div class="message info-box" style='left:{{infoBox.x}}px; top:{{infoBox.y}}px;' ng-show='infoBox.data' ng-bind-html='infoBox.data'>
     </div>
 </div>

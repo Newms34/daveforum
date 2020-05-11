@@ -50,8 +50,14 @@ have thing to prevent winning 2x in a row
 HOME page:
 replace login? --> login as dropdown or bulmabox
 youtube vid loop
+- vid like https://www.youtube.com/embed/fw1EdRIpnco?autohide=1&autoplay=0&controls=0&enablejsapi=1&iv_load_policy=3&loop=0&modestbranding=1&playsinline=1&rel=0&showinfo=0&wmode=opaque&origin=https%3A%2F%2Fnile.red&widgetid=1 ?
 member "count"
 description
 
 DASHBOARD:
 discord info
+
+BUILD TEMPLATE:
+change from on-hover to click 'inspect' button next to template.
+Will show position:fixed; dialog with traits/skills
+ - Allows us to inspect build elements
