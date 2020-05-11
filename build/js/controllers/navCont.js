@@ -4,6 +4,7 @@ app.controller('nav-cont',function($scope,$http,$state){
             if (!resp || resp == null) {
                 return true;
             } else {
+                $scope.$parent.$parent.user=null;
                 $http.get('/user/logout').then(function(r) {
                     $state.go('appSimp.login');
                 })

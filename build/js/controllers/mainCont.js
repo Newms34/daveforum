@@ -11,6 +11,7 @@ app.controller('main-cont', function($scope, $http, $state,userFact) {
     })
     //used to see if this user is still online after a disconnect
     socket.on('reqHeartBeat',function(sr){
+        if(!$scope.user) return false;//do not respond if we're not logged in!
     	socket.emit('hbResp',{name:$scope.user.user})
     })
     // socket.on('allNames',function(r){

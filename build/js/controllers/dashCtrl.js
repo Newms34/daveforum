@@ -167,20 +167,23 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                 console.log('all users is', au)
                 $scope.allUsers = au.data;
                 setTimeout(function() {
-
                     socket.emit('getOnline', {});
                 }, 100)
             });
         socket.on('allNames', function(r) {
-            // console.log('ALL NAMES SOCKET SAYS', r)
-            r = r.map(nm => nm.name);
-            if ($scope.allUser) {
+            if ($scope.allUsers) {
                 $scope.allUsers.forEach(usr => {
-                    usr.online = r.indexOf(usr.user) > -1 || usr.user == $scope.user.user;
+                    usr.online = !!r.find(q=>q.name==usr.user) || usr.user == $scope.user.user;
                 })
             }
             $scope.$digest();
         })
+        $scope.getOnlineStatus = u=>{
+            if(!u.online){
+                return `background:#300;`
+            }
+            return `background:#0f0;box-shadow: 0 0 4px #0f0`;
+        }
         $scope.showTab = (t) => {
             $scope.currTab = t;
         }
@@ -484,7 +487,7 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                 $http.post('/user/editPwd',$scope.newPwd).then(r=>{
                     if(r.data && r.data!='err'){
                         $scope.clearPwd();
-                        bulmbox.alert('Password Changed!','Your password was successfully changed!')
+                        bulmabox.alert('Password Changed!','Your password was successfully changed!')
                         $scope.doUser(r.data)
                     }else{
                         bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Error Changing Password','There was a problem changing your password. Your old one probably still works, but if you\'re still having an issue, contact a moderator!')

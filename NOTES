@@ -61,3 +61,6 @@ BUILD TEMPLATE:
 change from on-hover to click 'inspect' button next to template.
 Will show position:fixed; dialog with traits/skills
  - Allows us to inspect build elements
+
+
+FIX OFFLINE/ONLINE NOTE

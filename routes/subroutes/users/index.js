@@ -466,7 +466,8 @@ const routeExp = function(io, pp) {
     })
     router.post('/login', function(req, res, next) {
             mongoose.model('User').findOne({ 'user': req.body.user }, function(err, usr) {
-                if (!err && usr && !usr.isBanned && usr.correctPassword(req.body.pass) && !usr.oneTimePwd.expired) {
+                console.log('User',usr, !!usr)
+                if (!err && !!usr && !usr.isBanned && usr.correctPassword(req.body.pass) && !usr.oneTimePwd.expired) {
                     const prevLog = usr.lastLogin;
                     usr.lastLogin = Date.now();
                     // usr.lastLogin=0;
@@ -489,7 +490,7 @@ const routeExp = function(io, pp) {
                     })
                 } else if (usr && usr.isBanned) {
                     res.send('banned')
-                } else if(usr.oneTimePwd.expired){
+                } else if(usr && usr.oneTimePwd && usr.oneTimePwd.expired){
                     res.send('expPwd')
                 }else {
                     res.send('authErr');

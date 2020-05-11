@@ -225,6 +225,64 @@ const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
     // We put the Data URI in the image's src attribute
     img.src = datas;
 }
+app.factory('socketFac', function ($rootScope) {
+  const socket = io.connect();
+  return {
+    on: function (eventName, callback) {
+      socket.on(eventName, function () { 
+        const args = arguments;
+        $rootScope.$apply(function () {
+          callback.apply(socket, args);
+        });
+      });
+    },
+    emit: function (eventName, data, callback) {
+      socket.emit(eventName, data, function () {
+        const args = arguments;
+        $rootScope.$apply(function () {
+          if (callback) {
+            callback.apply(socket, args);
+          }
+        });
+      })
+    }
+  };
+});
+app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact', function($rootScope, $state, $stateParams, $transitions, $q,userFact) {
+    $transitions.onBefore({ to: 'app.**' }, function(trans) {
+        let def = $q.defer();
+        console.log('TRANS',trans)
+        const usrCheck = trans.injector().get('userFact')
+        usrCheck.getUser().then(function(r) {
+            console.log('response from login chck',r)
+            if (r.data && r.data.confirmed) {
+                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
+                def.resolve(true)
+            } else if(r.data){
+                def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
+            }else{
+                // User isn't authenticated. Redirect to a new Target State
+                def.resolve($state.target('appSimp.login', undefined, { location: true }))
+            }
+        }).catch(e=>{
+            def.resolve($state.target('appSimp.login', undefined, { location: true }))
+        });
+        return def.promise;
+    });
+    // $transitions.onFinish({ to: '*' }, function() {
+    //     document.body.scrollTop = document.documentElement.scrollTop = 0;
+    // });
+}]);
+app.factory('userFact', function($http) {
+    return {
+        getUser: function() {
+            return $http.get('/user/getUsr').then(function(s) {
+                console.log('getUser in fac says:', s)
+                return s;
+            })
+        }
+    };
+});
 Date.prototype.stdTimezoneOffset = function() {
     var jan = new Date(this.getFullYear(), 0, 1);
     var jul = new Date(this.getFullYear(), 6, 1);
@@ -755,20 +813,23 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                 console.log('all users is', au)
                 $scope.allUsers = au.data;
                 setTimeout(function() {
-
                     socket.emit('getOnline', {});
                 }, 100)
             });
         socket.on('allNames', function(r) {
-            // console.log('ALL NAMES SOCKET SAYS', r)
-            r = r.map(nm => nm.name);
-            if ($scope.allUser) {
+            if ($scope.allUsers) {
                 $scope.allUsers.forEach(usr => {
-                    usr.online = r.indexOf(usr.user) > -1 || usr.user == $scope.user.user;
+                    usr.online = !!r.find(q=>q.name==usr.user) || usr.user == $scope.user.user;
                 })
             }
             $scope.$digest();
         })
+        $scope.getOnlineStatus = u=>{
+            if(!u.online){
+                return `background:#300;`
+            }
+            return `background:#0f0;box-shadow: 0 0 4px #0f0`;
+        }
         $scope.showTab = (t) => {
             $scope.currTab = t;
         }
@@ -1072,7 +1133,7 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
                 $http.post('/user/editPwd',$scope.newPwd).then(r=>{
                     if(r.data && r.data!='err'){
                         $scope.clearPwd();
-                        bulmbox.alert('Password Changed!','Your password was successfully changed!')
+                        bulmabox.alert('Password Changed!','Your password was successfully changed!')
                         $scope.doUser(r.data)
                     }else{
                         bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Error Changing Password','There was a problem changing your password. Your old one probably still works, but if you\'re still having an issue, contact a moderator!')
@@ -1322,7 +1383,7 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
         }
         $http.post('/forum/newPost', {
             thread: $scope.thr._id,
-            text: new showdown.Converter().makeHtml(theText).replace(/\[&amp;D[\w+/]+=*\]/g, `<span class='build-code'>$&</span><button class='button is-info is-tiny' onclick='angular.element(this).scope().copyCode(this);' title='Copy this build'><i class='fa fa-files-o'></i></button>`),
+            text: new showdown.Converter().makeHtml(theText).replace(/\[&amp;D[\w+/]+=*\]/g, `<span class='build-code' onclick='angular.element(this).scope().inspectCode(this);' title= 'inspect this build!'>$&</span>`),
             md: theText,
             file: $scope.fileread || null
         })
@@ -1333,18 +1394,46 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
     $scope.infoBox =  {
         x:0,
         y:0,
-        data:'Hello!'
+        data:null
+    }
+    $scope.skillBox =  {
+        x:0,
+        y:0,
+        on:false,
+        data:{
+        }
     }
     $scope.explTrait = (t,e,m) =>{
         $scope.infoBox.x = e.screenX;
         $scope.infoBox.y = e.screenY-50;
         if(t){
             $scope.infoBox.data = `<div class='is-fullwidth ${t.picked||m?'has-text-white':'has-text-grey'}'>
-            <div class='is-fullwidth is-size-4 has-text-centered'>${t.name}</div>
+            <div class='is-fullwidth is-size-5 has-text-centered'>${t.name}</div>
             <p>${t.desc}</p>
             </div>`;
         }else{
             $scope.infoBox.data=null;
+        }
+    }
+    $scope.explSkill = (s,e,m) =>{
+        $scope.skillBox.x = e.screenX;
+        $scope.skillBox.y = e.screenY-50;
+        if(s){
+            $scope.skillBox.data = s;
+            const allUsedTraits  = $scope.currBuild.data.specs.map(q=>q.usedTraits).flat();
+            $scope.skillBox.data.realFacts = s.facts.map((sk,n)=>{
+                const replaceTrait = s.traited_facts && s.traited_facts.find(q=>q.overrides == n);//if truthy, there DOES exist a replacement fact
+                if(!!replaceTrait && allUsedTraits.includes(replaceTrait.requires_trait)){
+                    sk = {...JSON.parse(JSON.stringify(sk)),...replaceTrait,isTraited:true};
+                    console.log('FOUND replacement fact',replaceTrait,'FOR SKILL',s.name,'REQUIRED TRAIT',replaceTrait.requires_trait,'SKILL NOW',sk)
+                    // sk.isTraited = true;
+                }
+                return sk;
+            })
+            console.log('SKILL INFO',s,'CURR BUILD',$scope.currBuild.data,'USED TRAITS',allUsedTraits)
+            $scope.skillBox.on=true;
+        }else{
+            $scope.skillBox.on=false;
         }
     }
     $scope.vote = (pst, dir) => {
@@ -1366,12 +1455,19 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
     $scope.currBuild = {
         data: null,
     };
+    $scope.saySkills = b=>{
+        console.log('attempted to switch legends; builds now',b)
+        console.log('Skills list for',b.whichSkill,'is',b.data.skills.land[b.whichSkill])
+    }
     $scope.inspectCode = (c) => {
         $http.get('/tool/build?build=' + encodeURIComponent(c.innerText.replace('&amp;','&'))).then(r => {
             $scope.currBuild.data = r.data;
+            $scope.currBuild.whichSkill= 0;//for rev, mainly
             // $scope.currBuild.data.skillList = [];
-
         })
+    }
+    $scope.noBuild = s =>{
+        $scope.currBuild.data=null;
     }
     // window.addEventListener('mousemove',e=>{
     //     $scope.currBuild.pos.x = e.screenX;
@@ -1552,7 +1648,7 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
             .then((r) => {
                 console.log(r);
                 if (r.data=='authErr') {
-                    bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Incorrect Login', 'Either your username or password (or both!) are incorrect.<hr><span style="font-weight:bold;">Note to Previous Users:</span><br> Your account MAY have been reset due to an issue with the authentication software we were using. For security reasons, I had to wipe the database (including accounts). Really sorry! <br> - Dave (HealyUnit)');
+                    bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Incorrect Login', 'Either your username or password (or both!) are incorrect.');
                 }else if(r.data=='banned'){
                     bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Banned', "You've been banned! We're a pretty laid-back guild, so you must have <i>really</i> done something to piss us off!")
                 }else if(r.data=='expPwd'){
@@ -1639,6 +1735,7 @@ app.controller('main-cont', function($scope, $http, $state,userFact) {
     })
     //used to see if this user is still online after a disconnect
     socket.on('reqHeartBeat',function(sr){
+        if(!$scope.user) return false;//do not respond if we're not logged in!
     	socket.emit('hbResp',{name:$scope.user.user})
     })
     // socket.on('allNames',function(r){
@@ -1653,6 +1750,7 @@ app.controller('nav-cont',function($scope,$http,$state){
             if (!resp || resp == null) {
                 return true;
             } else {
+                $scope.$parent.$parent.user=null;
                 $http.get('/user/logout').then(function(r) {
                     $state.go('appSimp.login');
                 })
@@ -2447,62 +2545,4 @@ app.controller('unconf-cont', function($scope, $http, $state) {
         })
     }
 })
-app.factory('socketFac', function ($rootScope) {
-  const socket = io.connect();
-  return {
-    on: function (eventName, callback) {
-      socket.on(eventName, function () { 
-        const args = arguments;
-        $rootScope.$apply(function () {
-          callback.apply(socket, args);
-        });
-      });
-    },
-    emit: function (eventName, data, callback) {
-      socket.emit(eventName, data, function () {
-        const args = arguments;
-        $rootScope.$apply(function () {
-          if (callback) {
-            callback.apply(socket, args);
-          }
-        });
-      })
-    }
-  };
-});
-app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact', function($rootScope, $state, $stateParams, $transitions, $q,userFact) {
-    $transitions.onBefore({ to: 'app.**' }, function(trans) {
-        let def = $q.defer();
-        console.log('TRANS',trans)
-        const usrCheck = trans.injector().get('userFact')
-        usrCheck.getUser().then(function(r) {
-            console.log('response from login chck',r)
-            if (r.data && r.data.confirmed) {
-                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
-                def.resolve(true)
-            } else if(r.data){
-                def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
-            }else{
-                // User isn't authenticated. Redirect to a new Target State
-                def.resolve($state.target('appSimp.login', undefined, { location: true }))
-            }
-        }).catch(e=>{
-            def.resolve($state.target('appSimp.login', undefined, { location: true }))
-        });
-        return def.promise;
-    });
-    // $transitions.onFinish({ to: '*' }, function() {
-    //     document.body.scrollTop = document.documentElement.scrollTop = 0;
-    // });
-}]);
-app.factory('userFact', function($http) {
-    return {
-        getUser: function() {
-            return $http.get('/user/getUsr').then(function(s) {
-                console.log('getUser in fac says:', s)
-                return s;
-            })
-        }
-    };
-});
 }());

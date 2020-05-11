@@ -22,7 +22,7 @@
     </div> -->
     <!--     <div class='columns is-8 has-text-white'> -->
     <div class="panel dash-panel" ng-show='currTab=="Profile/Characters"'>
-        <div class="panel-heading has-text-white has-background-grey-darker">
+        <div class="panel-heading has-text-white has-background-grey">
             <i class='fa fa-user'></i>&nbsp;Profile/Characters
         </div>
         <div class="content panel-block has-text-white">
@@ -214,7 +214,7 @@
                             <tr ng-if='!user.msgs.length'>
                                 <td colspan='4'>
                                     <i>
-                                    You have no messages right now!
+                                    You have no incoming messages right now!
                                     </i>
                                 </td>
                             </tr>
@@ -251,7 +251,7 @@
                             <tr ng-if='!user.outBox.length'>
                                 <td colspan='4'>
                                     <i>
-                                    You have no messages right now!
+                                    You have no outgoing messages right now!
                                     </i>
                                 </td>
                             </tr>
@@ -260,7 +260,7 @@
         </div>
     </div>
     <div class="panel dash-panel" ng-show='currTab=="Upcoming Events"'>
-        <div class="panel-heading has-text-white has-background-grey-darker">
+        <div class="panel-heading has-text-white has-background-grey">
             <i class="fa fa-calendar"></i>&nbsp;Upcoming Events
         </div>
         <div class="panel-block has-text-white">
@@ -272,7 +272,7 @@
         </div>
     </div>
     <div class="panel dash-panel" ng-show='currTab=="Members"'>
-        <div class="panel-heading has-text-white has-background-grey-darker">
+        <div class="panel-heading has-text-white has-background-grey">
             <i class="fa fa-users"></i>&nbsp; Members
         </div>
         <div class="panel-block has-text-white has-background-grey-darker">
@@ -303,7 +303,7 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat='u in allUsers|filter:memFilter | orderBy:name:memNameSort' ng-if='u.user!=user.user || showDups'>
-                        <td><i class="fa fa-circle" style='color:{{u.online?"#0f0":"#300"}};' title='{{u.user}} is {{u.online?"":"not "}}online!'></i></td>
+                        <td><div class="smol-circle" style='{{getOnlineStatus(u)}}' title='{{u.user}} is {{u.online?"":"not "}}online!'></div></td>
                         <td><img class='usr-list-pic' src="{{u.avatar||defaultPic}}">
                             <br>{{u.user}}</td>
                         <td>

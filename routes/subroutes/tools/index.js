@@ -570,13 +570,6 @@ const routeExp = function (io) {
 
 
     */
-    router.get('/asaw', async function (req, res, next) {
-        const legIdList = [14, 13, 16, 18];
-        const toAPI = 'https://api.guildwars2.com/v2/legends?ids=' + legIdList.map(q => `Legend${q - 12}`).join(',')
-        const legApi = await axios.get(toAPI);
-        console.log(legApi)
-        res.send(legApi.data);
-    })
 
     router.get('/build', async function (req, res, next) {
         if (!req.query.build || !req.query.build.startsWith('[&') || !req.query.build.endsWith(']')) {
@@ -718,30 +711,36 @@ const routeExp = function (io) {
                     id: null,
                 }]
             }
-            //blank the skills lists (we're gonna refill em!)
+            //blank the skills lists (we're gonna refill em)
             build.skills.land = [[], []];
             build.skills.water = [[], []];
             build.skills.skillList = [];
-
+            
+            //set the actual legends
             const legIdList = bhgTemp.splice(0, 4).map(q => parseInt(q, 16));
-            build.legs.land[0].id = legIdList[0] ? buildsInfo.revLegs[legIdList[0] - 13] : null;
-            build.legs.land[1].id = legIdList[1] ? buildsInfo.revLegs[legIdList[1] - 13] : null;
-            build.legs.water[0].id = legIdList[2] ? buildsInfo.revLegs[legIdList[2] - 13] : null;
-            build.legs.water[1].id = legIdList[3] ? buildsInfo.revLegs[legIdList[3] - 13] : null;
-            //now we got all the actual leg human-readable data. Still need to set the skills
+            build.legs.land[0] = legIdList[0] ? buildsInfo.revLegs[legIdList[0] - 13] : null;
+            build.legs.land[1] = legIdList[1] ? buildsInfo.revLegs[legIdList[1] - 13] : null;
+            build.legs.water[0] = legIdList[2] ? buildsInfo.revLegs[legIdList[2] - 13] : null;
+            build.legs.water[1] = legIdList[3] ? buildsInfo.revLegs[legIdList[3] - 13] : null;
+
+            //now we got all the actual leg human-readable data. Next: set the skills
             const legendNums = legIdList.map(q => q ? `Legend${q - 12}` : null)
             const legApi = await axios.get('https://api.guildwars2.com/v2/legends?ids=' + legendNums.filter(q => !!q).join(','));
             console.log('LEGAPI', legApi.data, 'LEG NUMS', legendNums)
             legApi.data.forEach(d => {
                 let targArr = null,
-                    n = legendNums.indexOf(d.id);
+                    n = legendNums.indexOf(d.id),
+                    low = null;
                 arrNum = n;
                 if (n < 2) {
+                    low='land';
                     targArr = build.skills.land;
                 } else {
+                    low='water';
                     arrNum -= 2;
                     targArr = build.skills.water;
                 }
+                console.log('placing traits for leg number',arrNum,'in',low)
                 targArr[arrNum] = [d.heal, d.utilities[0], d.utilities[1], d.utilities[2], d.elite]
                 build.skills.skillList.push(d.heal, d.utilities[0], d.utilities[1], d.utilities[2], d.elite)
             })
@@ -752,18 +751,27 @@ const routeExp = function (io) {
 
 
         //got skill IDs; get the actual skill info from API
-        console.log('Getting skills',build.skills.skillList)
+        // console.log('Getting skills',build.skills.skillList)
 
         const skillsFromAPI = await axios.get('https://api.guildwars2.com/v2/skills?ids=' + build.skills.skillList.join(','));
         build.skills.water[0] = build.skills.water[0].map(n => skillsFromAPI.data.find(q => q.id == n));
         build.skills.land[0] = build.skills.land[0].map(n => skillsFromAPI.data.find(q => q.id == n));
-        if (!!build.skills.water[1].length) {
+        if (!!build.skills.water[1]) {
             build.skills.water[1] = build.skills.water[1].map(n => skillsFromAPI.data.find(q => q.id == n));
         }
-        if (!!build.skills.water[1].length) {
+        if (!!build.skills.water[1]) {
             build.skills.land[1] = build.skills.land[1].map(n => skillsFromAPI.data.find(q => q.id == n));
         }
         return res.send(build);
+    })
+    router.get('/threadsToTemplates',this.authbit,isMod,(req,res,next)=>{
+        mongoose.model('post').find({},(err,posts)=>{
+            posts.forEach(p=>{
+                p.text = p.text.replace(/(?<!>)\[&amp;D[\w+/]+=*\](?!<\/span)/g, `<span class='build-code' onclick='angular.element(this).scope().inspectCode(this);' title= 'inspect this build!'>$&</span>`);
+                p.save()
+            })
+        })
+        res.send('done (probly)')
     })
     router.get(['/daily', '/daily/tomorrow'], this.authbit, (req, res, next) => {
         console.log('URL:', req.url)
