@@ -471,10 +471,11 @@ const routeExp = function(io, pp) {
                     const prevLog = usr.lastLogin;
                     usr.lastLogin = Date.now();
                     // usr.lastLogin=0;
-                    const lastNews = fs.readFileSync('./news.txt', 'utf8').split(/\n/);
-                    console.log('NEWS', lastNews, lastNews - prevLog);
+                    const lastNews = fs.readFileSync('./news.txt', 'utf8').split(/[\n\r]/).filter(q=>!!q);
+                    console.log('NEWS', lastNews[0], prevLog,fs.lstatSync('./news.txt'));
                     let news = null;
-                    if (Number(lastNews[0]) - prevLog > 1000) {
+                    if (parseInt(lastNews[0]) - prevLog > 1000) {
+                        console.log('adding news!')
                         news = lastNews.slice(1).map(d=>d.replace(/\r/,''));
                     }
                     req.session.user = usr;
@@ -494,34 +495,6 @@ const routeExp = function(io, pp) {
                     res.send('expPwd')
                 }else {
                     res.send('authErr');
-                    // usr.authenticate(req.body.pass, function(err, resp) {
-                    //     console.log('LOGIN RESPONSE', usr, 'ERR', err,'END of report')
-                    //     res.send('err');
-                    //     return false;
-                    //     // throw new Error('STOP')
-                    //     if (usr) {
-                    //         req.session.user = usr;
-                    //         delete req.session.user.pass;
-                    //         delete req.session.user.salt;
-                    //         delete req.session.user.reset;
-                    //         delete req.session.user.email;
-                    //     }
-                    //     if (usr.isBanned) {
-                    //         res.status(403).send('banned');
-                    //         return false;
-                    //     }
-                    //     const prevLog = usr.lastLogin;
-                    //     usr.lastLogin = Date.now();
-                    //     const lastNews = new Date(fs.statSync('./news.txt').mtime).getTime();
-                    //     console.log('NEWS', lastNews, lastNews - prevLog);
-                    //     let news = null;
-                    //     if (lastNews - prevLog > 1000) {
-                    //         news = fs.readFileSync('./news.txt', 'utf8').split(/\n/);
-                    //     }
-                    //     usr.save((err, usrsv) => {
-                    //         res.send({ usr: req.session.user, news: news })
-                    //     })
-                    // })
                 }
             })
         },

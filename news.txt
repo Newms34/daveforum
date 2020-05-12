@@ -1,2 +1,2 @@
-1573444942839
-Added buttons for material upgrade tools that allow you to check recipes on gw2spidy.
+1589261197620
+<b>PSA:</b>&nbsp;There will be no further updates to this site. I am pretty unhappy about working pro-bono on this and then being completely ignored in guild chat. I should not have to <i>beg</i> for a group in a guild of nearly 500 people, for an event that lasts nearly a month. If the site breaks from this point forward, too bad. The repo is on my github; you can fix it. 
