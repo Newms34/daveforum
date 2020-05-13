@@ -12,7 +12,9 @@ module.exports = function(io, pp) {
     //     res.sendFile('reset.html', { root: './views' })
     // });
     router.get('*', function(req, res, next) {
-        console.log('trying to get main page!')
+        if(process.env.SHUTDOWN||process.argv.includes('sd')){
+            return res.sendFile('index.html', { root: './sd' })
+        }
         res.sendFile('index.html', { root: './views' })
     });
     router.use(function(req, res) {

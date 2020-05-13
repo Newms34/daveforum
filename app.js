@@ -39,8 +39,13 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('io', io)
 // app.set('pp', passport)
 const routes = require('./routes')(io);
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'views')));
+console.log('STARTUP PARAMS',process.argv)
+if(process.env.SHUTDOWN||process.argv.includes('sd')){
+    app.use(express.static(path.join(__dirname, 'sd')));
+}else{
+    app.use(express.static(path.join(__dirname, 'public')));
+    app.use(express.static(path.join(__dirname, 'views')));
+}
 app.use('/', routes);
 let names = [];
 
