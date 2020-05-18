@@ -795,6 +795,17 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
         $scope.currTab = t;
     }
     $scope.currTab = 'Profile/Characters'
+    $scope.explRank = ()=>{
+        bulmabox.alert(`Member Rank`,`
+        This is the guild rank of each member (viewable by pressing "G" in game).<br>
+        To get <i>your</i> rank to display:<br>
+        <ol>
+        <li>Head on over to the Profile/Characters tab</li>
+        <li>Fill in your Guild Wars 2 Account name. Note that this is <i>NOT</i> your username, and is instead the "code" that appears at the top of the window when you press "Y"!</li>
+        <li>Click "<i class="fa fa-check"></i>&nbsp;Save Account"</li>
+        </ol>
+        `)
+    }
     //admin stuffs
     $scope.makeMod = (u) => {
         console.log('wanna mod', u);

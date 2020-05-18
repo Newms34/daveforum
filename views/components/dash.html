@@ -288,7 +288,7 @@
                             <button class="button is-tiny" ng-click='charSearchToggle=!charSearchToggle'><i class="fa fa-search"></i></button>
                             <input type="text" class='input hideable-input' ng-model='charSearch' ng-class="{'hide-input':!charSearchToggle}">
                         </th>
-                        <th>Rank</th>
+                        <th>Rank <button class="button is-tiny is-info" ng-click='explRank()'>?</button></th>
                         <th>Game Modes
                             <button class="button is-tiny" ng-click='intSearchToggle=!intSearchToggle'><i class="fa fa-search"></i></button>
                             <div class='hideable-input card' ng-class="{'hide-input':!intSearchToggle}">
@@ -309,7 +309,7 @@
                             <br>{{u.user}} <br><button class="button is-info is-fullwidth" title='Send a message to this user' ng-click='mail(u)'><i class="fa fa-envelope-o"></i></button></td>
                        
                         <td style='height:150px; {{u.chars.length?"overflow-y: scroll;display:block;":""}} '>
-                            <div class="is-fullwidth" ng-if='!u.chars || !u.chars.length'>(This user has not added any characters yet!)</div>
+                            <div class="is-fullwidth has-text-grey-light" ng-if='!u.chars || !u.chars.length'>(This user has not added any characters yet!)</div>
                             <div class='is-fullwidth chr-list' ng-repeat='chr in u.chars'>
                                 <div class='is-fullwidth is-size-7'><img src="./img/races/{{chr.race}}.png" class='char-stat-img'>&nbsp;{{chr.race}}&nbsp;<img src="./img/profs/{{chr.prof}}.png" class='char-stat-img'>&nbsp;{{chr.prof}}&nbsp;</div>
                                 <div class='is-fullwidth'>
@@ -317,12 +317,12 @@
                             </div>
                         </td>
                         <td>
-                            {{u.rank}}
-                            <!-- <div ng-if='!!u.rank'>{{u.rank}}</div>
-                            <div ng-if='!u.rank'>(unknown)</div> -->
+                            <!-- {{u.rank}} -->
+                            <div ng-if='!!u.rank'>{{u.rank}}</div>
+                            <div ng-if='!u.rank' class='has-text-grey-light'>(unknown)</div>
                         </td>
                         <td>
-                            <div ng-if='!u.hasInts'>None selected!</div>
+                            <div ng-if='!u.hasInts' class='has-text-grey-light'>None selected!</div>
                             <img src="./img/interestIcons/{{intr.icon}}" title='{{intr.name}}' ng-repeat='intr in possibleInterests' ng-if='u.ints[$index]=="1"'>
                         </td>
                         <td>
