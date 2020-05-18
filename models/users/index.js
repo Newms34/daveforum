@@ -5,6 +5,7 @@ const mongoose = require('mongoose'),
 const usrSchema = new mongoose.Schema({
     user: String, //(user)name of the user,
     pass: String,
+    account:String,
     email:String,
     salt: String,
     otherInfo:String,
@@ -54,7 +55,7 @@ const usrSchema = new mongoose.Schema({
 const generateSalt = function() {
     return crypto.randomBytes(16).toString('base64');
 },encryptPassword = function(plainText, salt) {
-    var hash = crypto.createHash('sha1');
+    const hash = crypto.createHash('sha1');
     hash.update(plainText);
     hash.update(salt);
     return hash.digest('hex');

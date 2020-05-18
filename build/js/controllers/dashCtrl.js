@@ -144,7 +144,7 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         $scope.charSearchToggle = false;
         $scope.memFilter = (m) => {
             //two options to 'filter out' this item
-            let hasChars = !!m.chars.filter(c => c.name.toLowerCase().indexOf($scope.charSearch.toLowerCase()) > -1).length;
+            let hasChars = !!m.chars && !!m.chars.length && !!m.chars.filter(c => c.name.toLowerCase().indexOf($scope.charSearch.toLowerCase()) > -1);
             if ($scope.charSearch && !hasChars) {
                 //char search filter has been applied, and none of the user's chars match this
                 return false;
@@ -484,7 +484,7 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
             if(!$scope.newPwd.pwd || !$scope.newPwd.pwdDup || $scope.newPwd.pwd != $scope.newPwd.pwdDup){
             bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Password Mismatch', 'Your passwords don\'t match, or are missing!');
             }else{
-                $http.post('/user/editPwd',$scope.newPwd).then(r=>{
+                $http.put('/user/editPwd',$scope.newPwd).then(r=>{
                     if(r.data && r.data!='err'){
                         $scope.clearPwd();
                         bulmabox.alert('Password Changed!','Your password was successfully changed!')
@@ -499,21 +499,21 @@ app.controller('dash-cont', function($scope, $http, $state, $filter) {
         $scope.viewEvent = (ev) => {
             bulmabox.alert(`Event: ${ev.title}`, `Date:${$filter('numToDate')(ev.eventDate)}<br>Description:${ev.text}`);
         }
-        $scope.emailTimer = () => {
-            if ($scope.updEmail) {
-                clearTimeout($scope.updEmail);
-            }
-            $scope.updEmail = setTimeout(function() {
-                console.log($scope.user.email);
-                $http.get('/user/setEmail?email=' + $scope.user.email)
-                    .then(r => {
-                        console.log(r);
-                        if (r.data && r.data != 'err') {
-                            $scope.doUser(r.data);
-                        }
-                    })
-            }, 500);
-        }
+        // $scope.emailTimer = () => {
+        //     if ($scope.updEmail) {
+        //         clearTimeout($scope.updEmail);
+        //     }
+        //     $scope.updEmail = setTimeout(function() {
+        //         console.log($scope.user.email);
+        //         $http.get('/user/setEmail?email=' + $scope.user.email)
+        //             .then(r => {
+        //                 console.log(r);
+        //                 if (r.data && r.data != 'err') {
+        //                     $scope.doUser(r.data);
+        //                 }
+        //             })
+        //     }, 500);
+        // }
     })
     .filter('numToDate', function() {
         return function(num) {

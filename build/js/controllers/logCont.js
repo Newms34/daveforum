@@ -9,22 +9,47 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
     $scope.goLog = () => {
         $state.go('appSimp.login')
     };
+    $scope.doForgot = ()=>{
+        // console.log('USER ATTEMPTING TO REMEMBER PWD')
+        bulmabox.kill('bulmabox')
+        $http.get('/user/forgotToMods?u='+$scope.user)
+            .then(r=>{
+                bulmabox.alert
+            })
+    }
     $scope.forgot = () => {
-        if (!$scope.user) {
-            bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Forgot Password', 'To recieve a password reset email, please enter your username!')
-            return;
-        }
-        $http.post('/user/forgot', { user: $scope.user }).then(function(r) {
-            console.log('forgot route response', r)
-            if (r.data == 'err') {
-                bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Forgot Password Error', "It looks like that account either doesn't exist, or doesn't have an email registered with it! Contact a mod for further help.")
-            } else {
-                bulmabox.alert('Forgot Password', 'Check your email! If your username is registered, you should recieve an email from us with a password reset link.')
-            }
+        $http.get('/user/okayToReset?u='+$scope.user)
+        .then(r=>{
+                if(!$scope.user){
+                    return bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Need Username',"We can't help you reset your password if you don't tell us who you are!")
+                }
+                bulmabox.custom('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Forgot Password',
+                `Forgot your password? Click the magic button below, and one of the [PAIN] moderators will reset your password! <br>NOTE: You'll need to talk to a PAIN officer in game to recieve your temporary password.`,()=>{
+                    $http.get('/user/requestReset?u='+$scope.user)
+                        .then(r=>{
+                            alert('Done!');
+                        })
+                },`<button class='button is-info' onclick='bulmabox.runCb(bulmabox.params.cb,true)'><i class='fa fa-check'></i>&nbsp;Ask for reset</button>`)
         })
+        .catch(e=>{
+            bulmabox.alert(`<i class="fa fa-exclamation-triangle is-size-3"></i>&nbspCan't reset password`,"Unfortunately, we can't reset the password for that username. Please contact a [PAIN] officer in-game for further details.")
+        })               
+                
+                // if (!$scope.user) {
+                    //     bulmabox.alert('<i class="fa fa-exclamation-triangle isas-size-3"></i>&nbsp;Forgot Password', 'To recieve a password reset email, please enter your username!')
+        //     return;
+        // }
+        // $http.post('/user/forgot', { user: $scope.user }).then(function(r) {
+        //     console.log('forgot route response', r)
+        //     if (r.data == 'err') {
+        //         bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Forgot Password Error', "It looks like that account either doesn't exist, or doesn't have an email registered with it! Contact a mod for further help.")
+        //     } else {
+        //         bulmabox.alert('Forgot Password', 'Check your email! If your username is registered, you should recieve an email from us with a password reset link.')
+        //     }
+        // })
     }
     $scope.signin = () => {
-        $http.post('/user/login', { user: $scope.user, pass: $scope.pwd })
+        $http.put('/user/login', { user: $scope.user, pass: $scope.pwd })
             .then((r) => {
                 console.log(r);
                 if (r.data=='authErr') {
@@ -60,44 +85,46 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                 })
         }, 500)
     }
-    $scope.emailBad=false;
-    $scope.checkEmail=()=>{
-        $scope.emailBad = $scope.email.length && !$scope.email.match(/(\w+\.*)+@(\w+\.)+\w+/g);
-    }
     $scope.register = () => {
         if (!$scope.pwd || !$scope.pwdDup || !$scope.user) {
             bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Missing Information', 'Please enter a username, and a password (twice).')
         } else if ($scope.pwd != $scope.pwdDup) {
             console.log('derp')
             bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Password Mismatch', 'Your passwords don\'t match, or are missing!');
-        }else if(!$scope.email || $scope.emailBad){
-            bulmabox.confirm('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Send Without Email?',`You've either not included an email, or the format you're using doesn't seem to match any we know. <br>While you can register without a valid email, it'll be much more difficult to recover your account.<br>Register anyway?`,function(resp){
+        }else if(!$scope.account){
+            bulmabox.confirm('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Send Without Account?',`You've not included Guild Wars 2 account! <br>While you can register without a gw2 account name, certain features will be unavailable.<br>Register anyway?`,function(resp){
                 if(!resp||resp==null){
                     return false;
                 }
                 $http.post('/user/new', {
                     user: $scope.user,
                     pass: $scope.pwd,
-                    email:$scope.email
+                    account:$scope.account
                 })
                 .then((r) => {
                     $http.post('/user/login', { user: $scope.user, pass: $scope.pwd })
                         .then(() => {
                             $state.go('app.dash')
                         })
+                })
+                .catch(e=>{
+                    console.log('REJECT STATUS',e)
                 })
             })
         } else {
             $http.post('/user/new', {
                     user: $scope.user,
                     pass: $scope.pwd,
-                    email:$scope.email
+                    account:$scope.account
                 })
                 .then((r) => {
                     $http.post('/user/login', { user: $scope.user, pass: $scope.pwd })
                         .then(() => {
                             $state.go('app.dash')
                         })
+                })
+                .catch(e=>{
+                    console.log('REJECT STATUS',e)
                 })
         }
     }

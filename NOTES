@@ -62,5 +62,8 @@ change from on-hover to click 'inspect' button next to template.
 Will show position:fixed; dialog with traits/skills
  - Allows us to inspect build elements
 
+api doesnt seem to tell us guild server (makes sense, but still... :/ )
 
-FIX OFFLINE/ONLINE NOTE
+auto-ban via members removed from api/guild/members?
+
+MEMBER SEARCH BAR!

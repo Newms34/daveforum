@@ -1,4 +1,4 @@
-<div ng-controller='log-cont' class='columns'>
+<div ng-controller='log-cont' id='log-cont' class='columns'>
     <div class="column is-one-third"></div>
     <div class='column is-one-third panel'>
         <div class='panel-heading is-primary'>
@@ -11,7 +11,7 @@
                     <button class="button is-small is-danger is-pulled-right" ng-click='noWarn=true;'>x</button>
                     <div class='is-size-7'>
                         
-                     Do <i>not</i> use your Guild Wars 2 account information! I (Dave) hold <i>no</i> responsibility for your accounts!<br>
+                     Do <i>not</i> use your Guild Wars 2 account information (other than optional acount name)! I (Dave) hold <i>no</i> responsibility for your accounts!<br>
                     Please note that you will <i>not</i> be able to view the site until you're approved by a moderator.</div>
                     </div>
                 <h4 class='col-md-offset-2 col-md-8 alert reg-grp'>Account Information</h4>
@@ -26,12 +26,11 @@
                 </div>
                 <div class="field">
                     <p class="control has-icons-left">
-                        <input class="input" type="text" placeholder="Email" ng-model='email' ng-blur='checkEmail();' title='Your email will not be show to others, and is only used for security purposes!'>
+                        <input class="input" type="text" placeholder="e.g., Eir Stegalkin.5432" ng-model='account' title='Your gw2 account name'>
                         <span class="icon is-small is-left">
-                            <i class="fa fa-envelope-o"></i>
+                            <i class="fa fa-user"></i>
                         </span>
                     </p>
-                    <div class='notification is-danger' ng-if='emailBad'>This email doesn't appear to be valid!</div>
                 </div>
                 <div class="field">
                     <p class="control has-icons-left">

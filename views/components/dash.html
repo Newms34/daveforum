@@ -60,15 +60,16 @@
                         <div class="panel panel-heading">
                             <h3 class="is-size-5">Account Info</h3>
                             <div class="columns is-multiline">
-                                <div class="column is-one-fifth">Email: </div>
-                                <div class="field column is-four-fifths">
+                                <div class="column is-one-fifth">Account Name: </div>
+                                <div class="field column is-three-fifths">
                                     <p class="control has-icons-left">
-                                        <input class="input" type="text" placeholder="Email" ng-model='user.email' ng-change='emailTimer()'>
+                                        <input class="input" type="text" placeholder="e.g., Logan Thackeray.1234" ng-model='user.account'>
                                         <span class="icon is-small is-left">
-                                            <i class="fa fa-envelope"></i>
+                                            <i class="fa fa-user"></i>
                                         </span>
                                     </p>
                                 </div>
+                                <div class="column is-one-fifth"><button class="button is-default"><i class="fa fa-check"></i>&nbsp;Save</button></div>
                                 <div class='column is-one-fifth'>Time Zone</div>
                                 <div class="column is-four-fifths">
                                     <div class="select is-small">

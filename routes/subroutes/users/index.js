@@ -20,7 +20,8 @@ const router = express.Router(),
             }
         })
     };
-console.log('KEYS ARE',keys)
+mongoose.Promise=Promise;
+// console.log('KEYS ARE',keys)
 const oldUsers = JSON.parse(fs.readFileSync('oldUsers.json', 'utf-8'))
 let sgApi;
 if (fs.existsSync('sparky.json')) {
@@ -68,7 +69,9 @@ const routeExp = function(io, pp) {
     router.get('/allUsrs', this.authbit, (req, res, next) => {
         mongoose.model('User').find({}, function(err, usrs) {
             res.send(usrs.map(u => {
-                delete u.msgs;
+                u.msgs = '';
+                u.pass = '';
+                u.salt = '';
                 return u;
             }));
         })
@@ -253,7 +256,7 @@ const routeExp = function(io, pp) {
                 usr.msgs.push({
                     from: req.session.user.user,
                     date: Date.now(),
-                    msg: req.body.msg,
+                    msg: req.body.msg.replace('(msg: resetMsg)',''),
                     msgId: msgId
                 })
                 usr.save(function(err, usr) {
@@ -262,7 +265,7 @@ const routeExp = function(io, pp) {
                         fusr.outBox.push({
                             to: req.body.to,
                             date: Date.now(),
-                            msg: req.body.msg,
+                            msg: req.body.msg.replace('(msg: resetMsg)',''),
                             msgId: msgId
                         })
                         io.emit('sentMsg', { user: req.body.to, from: req.session.user.user })
@@ -427,18 +430,20 @@ const routeExp = function(io, pp) {
             if (usr || err) {
                 //while this SHOULDNT occur, it's a final error check to make sure we're not overwriting a previous user.
                 //Should we check for req.session?
-                res.send('err')
-            } else {
-                const pwd = req.body.pass,
-                    um = mongoose.model('User');
-                delete req.body.pass;
-                console.log(req.body)
-                req.body.ints = [0, 0, 0, 0, 0, 0];
-                req.body.salt = um.generateSalt();
-                req.body.pass = mongoose.model('User').encryptPassword(pwd, req.body.salt)
-                um.create(req.body, (err, nusr) => {
-                    res.send(nusr);
-                })
+                return res.status(400).send('err');
+            } else if(req.body.account && !req.body.account.match(/^([\w]+\s*)+\.\d{4}$/)){
+               return res.status(400).send('badAcct')
+            }else {
+                // const pwd = req.body.pass,
+                //     um = mongoose.model('User');
+                // delete req.body.pass;
+                // // console.log(req.body)
+                // req.body.ints = [0, 0, 0, 0, 0, 0];
+                // req.body.salt = um.generateSalt();
+                // req.body.pass = mongoose.model('User').encryptPassword(pwd, req.body.salt)
+                // um.create(req.body, (err, nusr) => {
+                //     res.send(nusr);
+                // })
             }
         })
     });
@@ -448,7 +453,33 @@ const routeExp = function(io, pp) {
             res.send(!user.length)
         });
     });
-    router.post('/editPwd',this.authbit,(req,res,next)=>{
+    router.put('/accountName',this.authbit,(req,res,next)=>{
+        //add/edit/delete account name
+        if(!!req.query.account && !req.query.account.match(/^([\w]+\s*)+\.\d{4}$/)){
+            //probly not a valid account!
+            return res.status(400).send('invalid');
+        }
+        console.log("USER IS",req.session.user.user)
+        mongoose.model('User').findOne({account:req.query.account,user:{$ne:req.session.user.user}},(oerr,ousr)=>{
+            if(oerr){
+                return res.status(400).send('err'); 
+            }
+            if(ousr && !!req.query.account){
+                return res.status(400).send(usr); 
+            }
+            // console.log('has save fn?',!!req.session.user.save)
+            // res.send(`Would update ${req.session.user.user} to account name ${req.query.account||'(none)'}`)
+            mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
+                usr.account = req.query.account||'';
+                usr.save((errsv,usv)=>{
+                    res.send('done');
+                });
+            });
+            // req
+        })
+        // res.send('NOT IMPLEMENTED')
+    })
+    router.put('/editPwd',this.authbit,(req,res,next)=>{
         mongoose.model('User').findOne({user:req.session.user.user},function(err,usr){
             if(usr && usr.correctPassword(req.body.old) && req.body.pwd == req.body.pwdDup){
                 console.log('got correct pwd, changing!')
@@ -464,15 +495,15 @@ const routeExp = function(io, pp) {
             }
         })
     })
-    router.post('/login', function(req, res, next) {
+    router.put('/login', function(req, res, next) {
             mongoose.model('User').findOne({ 'user': req.body.user }, function(err, usr) {
-                console.log('User',usr, !!usr)
+                console.log('User',usr, !!usr,err)
                 if (!err && !!usr && !usr.isBanned && usr.correctPassword(req.body.pass) && !usr.oneTimePwd.expired) {
                     const prevLog = usr.lastLogin;
                     usr.lastLogin = Date.now();
                     // usr.lastLogin=0;
                     const lastNews = fs.readFileSync('./news.txt', 'utf8').split(/[\n\r]/).filter(q=>!!q);
-                    console.log('NEWS', lastNews[0], prevLog,fs.lstatSync('./news.txt'));
+                    // console.log('NEWS', lastNews[0], prevLog,fs.lstatSync('./news.txt'));
                     let news = null;
                     if (parseInt(lastNews[0]) - prevLog > 1000) {
                         console.log('adding news!')
@@ -513,6 +544,7 @@ const routeExp = function(io, pp) {
         req.session.destroy();
         res.send('logged');
     });
+
     router.post('/forgot', function(req, res, next) {
         //user enters password, requests reset email
         //this IS call-able without credentials, but
@@ -605,6 +637,28 @@ const routeExp = function(io, pp) {
             })
         }
     })
+    router.get('/okayToReset',(req,res,next)=>{
+        mongoose.model('User').findOne({'user':req.query.u},(err,usr)=>{
+            if(err||!usr||usr.oneTimePwd.has){
+                return res.status(400).send('NOPE');
+            }
+            res.send('okay!')
+        })
+    })
+    router.get('/requestReset',(req,res,next)=>{
+        mongoose.model('User').find({mod:true},(err,mods)=>{
+            mods.forEach(md=>{
+                const msgId = Math.floor(Math.random() * 9999999999999999).toString(32);
+                md.msgs.push({
+                    from: req.query.u,
+                    date: Date.now(),
+                    msg: `User ${req.query.u} needs a password reset! Please note that clicking reset will delete this email for all other moderators!<hr><code>(msg: resetMsg)</code>`,
+                    msgId: msgId
+                })
+                md.save();
+            })
+        })
+    })
     router.get('/setPasswordMod',this.authbit, isMod,(req,res,next)=>{
         console.log('SET PWD',req.query)
         if(!req.query.user){
@@ -616,28 +670,47 @@ const routeExp = function(io, pp) {
                 return res.status(400).send('err');
             }
             const tempPwd = Math.floor(Math.random()*99999999999).toString(32).toUpperCase().replace('O',0).replace('I','L')//generate new pwd with no lowercase, no "I", and no "O";
-            
             usr.salt = mongoose.model('User').generateSalt();
             usr.pass = mongoose.model('User').encryptPassword(tempPwd, usr.salt);
             usr.oneTimePwd.has = true;
             usr.oneTimePwd.expired = false;
+            mongoose.model('User').find({mod:true},(err,mods)=>{
+                mods.forEach(mod=>{
+                    mod.msgs = mod.msgs.filter(q=>!q.msg.includes('(msg: resetMsg)'));
+                    if(mod.user != usr.user){
+                        mod.save();
+                    }
+                })
+            })
+            
             usr.save((err,usv)=>{
                 res.send({pwd:tempPwd})
-            })
+            });
         })
     })
-    router.get('/setEmail', authbit, (req, res, next) => {
-        ///(\w+\.*)+@(\w+\.)+\w+/g
-        ///(\w+\.*)+@(\w*)(\.\w+)+/g
-        if (!req.query.email || !req.query.email.match(/(\w+\.*)+@(\w+\.)+\w+/g) || (req.query.email.match(/(\w+\.*)+@(\w+\.)+\w+/g)[0].length!==req.query.email.length)) {
-            res.send('err');
-            return false;
-        }
-        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
-            usr.email = req.query.email;
-            usr.save((errsv, usrsv) => {
-                res.send(usrsv);
+    // router.get('/setEmail', authbit, (req, res, next) => {
+    //     ///(\w+\.*)+@(\w+\.)+\w+/g
+    //     ///(\w+\.*)+@(\w*)(\.\w+)+/g
+    //     if (!req.query.email || !req.query.email.match(/(\w+\.*)+@(\w+\.)+\w+/g) || (req.query.email.match(/(\w+\.*)+@(\w+\.)+\w+/g)[0].length!==req.query.email.length)) {
+    //         res.send('err');
+    //         return false;
+    //     }
+    //     mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
+    //         usr.email = req.query.email;
+    //         usr.save((errsv, usrsv) => {
+    //             res.send(usrsv);
+    //         })
+    //     })
+    // })
+    router.get('/resaveAll',this.authbit,isMod,(req,res,next)=>{
+        mongoose.model('User').find({},(err,usrs)=>{
+            usrs.forEach(u=>{
+                u.email='';
+                u.save((esv,usv)=>{
+                    console.log('USER NOW',usv);
+                });
             })
+            res.send('done')
         })
     })
     return router;

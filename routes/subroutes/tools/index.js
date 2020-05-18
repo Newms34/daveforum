@@ -12,15 +12,6 @@ const router = express.Router(),
         },
         silent: false
     }),
-    isMod = (req, res, next) => {
-        mongoose.model('User').findOne({ user: req.session.user.user }, function (err, usr) {
-            if (!err && usr.mod) {
-                next();
-            } else {
-                res.status(403).send('err');
-            }
-        })
-    },
     fraclvl = require('./fracLvls.json'),
     buildsInfo = require('./buildsInfo.json'),
     priceObjs = [{
@@ -532,9 +523,9 @@ const router = express.Router(),
 
 Object.defineProperty(Array.prototype, 'chunk', {
     value: function (chunkSize) {
-        var temporal = [];
+        const temporal = [];
 
-        for (var i = 0; i < this.length; i += chunkSize) {
+        for (let i = 0; i < this.length; i += chunkSize) {
             temporal.push(this.slice(i, i + chunkSize));
         }
 
@@ -555,6 +546,16 @@ const routeExp = function (io) {
             res.status(401).send('err')
         }
     };
+
+    this.isMod = (req, res, next) => {
+        mongoose.model('User').findOne({ user: req.session.user.user }, function (err, usr) {
+            if (!err && usr.mod) {
+                next();
+            } else {
+                res.status(403).send('err');
+            }
+        })
+    }
     /* 
     SAMPLE BUILD (druid):[&DQQeNRkeBRolD3kAvQCWAbwAvADVEr0AtBLtABE5FRkAAAAAAAAAAAAAAAA=]
     need to encodeURIComponent on FE, so we avoid '&' and '='
@@ -764,7 +765,7 @@ const routeExp = function (io) {
         }
         return res.send(build);
     })
-    router.get('/threadsToTemplates',this.authbit,isMod,(req,res,next)=>{
+    router.get('/threadsToTemplates',this.authbit,this.isMod,(req,res,next)=>{
         mongoose.model('post').find({},(err,posts)=>{
             posts.forEach(p=>{
                 p.text = p.text.replace(/(?<!>)\[&amp;D[\w+/]+=*\](?!<\/span)/g, `<span class='build-code' onclick='angular.element(this).scope().inspectCode(this);' title= 'inspect this build!'>$&</span>`);
@@ -847,7 +848,7 @@ const routeExp = function (io) {
     })
     router.get('/wvw', this.authbit, (req, res, next) => {
         //https://api.guildwars2.com/v2/worlds?ids=all
-        // https://api.guildwars2.com/v2/wvw/matches/scores?world=1008
+        //https://api.guildwars2.com/v2/wvw/matches/scores?world=1008
         req.query.world = req.query.world || 'Henge of Denravi';
         let theWorld = worlds.find(w => w.name == req.query.world);
         if (!theWorld || !theWorld.id) theWorld = { id: 1001 }

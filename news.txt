@@ -1,2 +1,2 @@
-1589261197620
-<b>PSA:</b>&nbsp;There will be no further updates to this site. I am pretty unhappy about working pro-bono on this and then being completely ignored in guild chat. I should not have to <i>beg</i> for a group in a guild of nearly 500 people, for an event that lasts nearly a month. If the site breaks from this point forward, too bad. The repo is on my github; you can fix it. 
+1589762789650
+I've decided to remove the email field from the accounts for a number of security-related reasons, and replace it with the Account Name field instead. This <i>does</i> mean that if you forget your password, you will need to login to GW2 and beg one of us to change it. I may reverse this later, but for now, that's my decision.
