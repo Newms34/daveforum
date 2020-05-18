@@ -69,7 +69,7 @@
                                         </span>
                                     </p>
                                 </div>
-                                <div class="column is-one-fifth"><button class="button is-default"><i class="fa fa-check"></i>&nbsp;Save</button></div>
+                                <div class="column is-one-fifth"><button class="button is-default" ng-click='setAccount()'><i class="fa fa-check"></i>&nbsp;Save Account</button></div>
                                 <div class='column is-one-fifth'>Time Zone</div>
                                 <div class="column is-four-fifths">
                                     <div class="select is-small">
@@ -284,11 +284,11 @@
                         <th>Name
                             <button class='button is-tiny is-grey' ng-click='memNameSort=!memNameSort'><i class="fa fa-caret-up" ng-if='memNameSort'></i><i class="fa fa-caret-down" ng-if='!memNameSort'></i></button>
                         </th>
-                        <th>Send Message</th>
                         <th>Characters
                             <button class="button is-tiny" ng-click='charSearchToggle=!charSearchToggle'><i class="fa fa-search"></i></button>
                             <input type="text" class='input hideable-input' ng-model='charSearch' ng-class="{'hide-input':!charSearchToggle}">
                         </th>
+                        <th>Rank</th>
                         <th>Game Modes
                             <button class="button is-tiny" ng-click='intSearchToggle=!intSearchToggle'><i class="fa fa-search"></i></button>
                             <div class='hideable-input card' ng-class="{'hide-input':!intSearchToggle}">
@@ -305,12 +305,11 @@
                 <tbody>
                     <tr ng-repeat='u in allUsers|filter:memFilter | orderBy:name:memNameSort' ng-if='u.user!=user.user || showDups'>
                         <td><div class="smol-circle" style='{{getOnlineStatus(u)}}' title='{{u.user}} is {{u.online?"":"not "}}online!'></div></td>
-                        <td><img class='usr-list-pic' src="{{u.avatar||defaultPic}}">
-                            <br>{{u.user}}</td>
-                        <td>
-                            <button class="button is-info is-fullwidth" title='Send a message to this user' ng-click='mail(u)'><i class="fa fa-envelope-o"></i>&nbsp; Mail</button>
-                        </td>
+                        <td class='has-text-centered'><img class='usr-list-pic' src="{{u.avatar||defaultPic}}">
+                            <br>{{u.user}} <br><button class="button is-info is-fullwidth" title='Send a message to this user' ng-click='mail(u)'><i class="fa fa-envelope-o"></i></button></td>
+                       
                         <td style='height:150px; {{u.chars.length?"overflow-y: scroll;display:block;":""}} '>
+                            <div class="is-fullwidth" ng-if='!u.chars || !u.chars.length'>(This user has not added any characters yet!)</div>
                             <div class='is-fullwidth chr-list' ng-repeat='chr in u.chars'>
                                 <div class='is-fullwidth is-size-7'><img src="./img/races/{{chr.race}}.png" class='char-stat-img'>&nbsp;{{chr.race}}&nbsp;<img src="./img/profs/{{chr.prof}}.png" class='char-stat-img'>&nbsp;{{chr.prof}}&nbsp;</div>
                                 <div class='is-fullwidth'>
@@ -318,6 +317,12 @@
                             </div>
                         </td>
                         <td>
+                            {{u.rank}}
+                            <!-- <div ng-if='!!u.rank'>{{u.rank}}</div>
+                            <div ng-if='!u.rank'>(unknown)</div> -->
+                        </td>
+                        <td>
+                            <div ng-if='!u.hasInts'>None selected!</div>
                             <img src="./img/interestIcons/{{intr.icon}}" title='{{intr.name}}' ng-repeat='intr in possibleInterests' ng-if='u.ints[$index]=="1"'>
                         </td>
                         <td>

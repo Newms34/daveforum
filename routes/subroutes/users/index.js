@@ -67,13 +67,20 @@ const routeExp = function(io, pp) {
         })
     })
     router.get('/allUsrs', this.authbit, (req, res, next) => {
-        mongoose.model('User').find({}, function(err, usrs) {
-            res.send(usrs.map(u => {
-                u.msgs = '';
-                u.pass = '';
-                u.salt = '';
-                return u;
-            }));
+        mongoose.model('User').find({}).lean().exec(function(err, usrs) {
+            axios.get(`https://api.guildwars2.com/v2/guild/${keys.apiCodes.guild}/members?access_token=${keys.apiCodes.usr}`).then(rnks=>{
+                const au = usrs.map(u => {
+                    const urnk = u.account && rnks.data.find(q=>q.name==u.account);
+                    console.log("POSSIBLE RANK FOR",u.user,"IS",urnk)
+                    u.rank = urnk && urnk.rank;
+                    u.msgs = '';
+                    u.pass = '';
+                    u.salt = '';
+                    console.log("USER NOW",u)
+                    return u;
+                })
+                res.send(au);
+            })
         })
     });
     router.get('/setOneRead', this.authbit, (req, res, next) => {
