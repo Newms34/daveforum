@@ -47,6 +47,75 @@ const dcRedirect = ['$location', '$q', '$injector', function($location, $q, $inj
 }];
 app.constant('imgTypes',["apng", "bmp", "gif", "ico", "cur", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "tif", "tiff", "webp"])
 app.constant('vidTypes',["mp4","avi","mpg","webm","ogg","flv"])
+app.constant('defBlg',{
+    title:'No blog yet!',
+    media: { url: 'https://media.giphy.com/media/9J7tdYltWyXIY/giphy.mp4', type: 'mp4' },
+    txtHtml: `
+    <p class='is-italic'>Just looking for the regular [PAIN] website? Click Sign up/Login up above!</p><br>
+    <p>Welcome to Brethren[Pain]!<br>
+    Unfortunately, no one has <em>yet</em> posted any blog entries (or Healy broke the website).<hr>
+    Moderators: This platform supports a format known as Markdown. Some basic formatting tricks:</p>
+    <table class="table table-striped table-bordered">
+    <thead>
+    <tr>
+    <th><strong>Code</strong></th>
+    <th><strong>Action</strong></th>
+    <th><strong>Example/Notes</strong></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td>*text*</td>
+    <td>Italic</td>
+    <td>This text is <em>very</em> italic!</td>
+    </tr>
+    <tr>
+    <td>**text**</td>
+    <td>Bold</td>
+    <td>This text <strong>isn’t</strong> scared of you!</td>
+    </tr>
+    <tr>
+    <td># text</td>
+    <td>Heading</td>
+    <td>Makes text bigger. The more '#'s there are, the <em>smaller</em> the text will be! Needs to be on its own line.</td>
+    </tr>
+    <tr>
+    <td>- Text</td>
+    <td>Bullet point</td>
+    <td>Make sure to put an empty line right before this</td>
+    </tr>
+    <tr>
+    <td>1.Text</td>
+    <td>Numbered list</td>
+    <td>Exactly what it says on the box</td>
+    </tr>
+    <tr>
+    <td>[Link](address)</td>
+    <td>Link</td>
+    <td><a href="https://www.google.com">Head over to google</a></td>
+    </tr>
+    <tr>
+    <td>![Image](SomeImageAddress)</td>
+    <td>Image</td>
+    <td>Displays an image. The text between the []s is shown when you hover over the image.</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>You can also include optional media (a youtube video, a picture, etc.) using the provided fields</p>`,
+    txtMd:`Welcome to Brethren[Pain]! 
+    Unfortunately, no one has *yet* posted any blog entries. 
+    Moderators: This platform supports a format known as Markdown. Some basic formatting tricks:
+    |**Code**|**Action**|**Example/Notes**|
+    |---|---|---|
+    |\*text\*|Italic| This text is *very* italic!|
+    |\*\*text\*\*|Bold|This text **isn't** scared of you!|
+    |# text|Heading|Makes text bigger. The more '#'s there are, the *smaller* the text will be! Needs to be on its own line.|
+    | - Text| Bullet point| Make sure to put an empty line right before this|
+    | 1.Text| Numbered list|Exactly what it says on the box|
+    |\[Link\]\(address\)|Link|[Head over to google](https://www.google.com)|
+    |!\[Image\]\(SomeImageAddress\)|Image|Displays an image. The text between the \[\]s is shown when you hover over the image.|
+    You can also include optional media (a youtube video, a picture, etc.) using the provided fields`
+})
 app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpProvider','$sceDelegateProvider', function($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider,$sceDelegateProvider) {
         $locationProvider.html5Mode(true);
         $sceDelegateProvider.resourceUrlWhitelist(['self', 'https://www.youtube.com/**']);
@@ -1154,91 +1223,49 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
             return `${theDate.toLocaleDateString()} ${theDate.getHours() % 12}:${theDate.getMinutes().toString().length < 2 ? '0' + theDate.getMinutes() : theDate.getMinutes()} ${theDate.getHours() < 13 ? 'AM' : 'PM'}`;
         };
     })
-app.controller('edit-cont', ($scope, $sce, $http,imgTypes,vidTypes) => {
+const conv = new showdown.Converter();
+app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg) => {
     $scope.postList = null;
     $scope.getAllPosts = (id) => {
         $http.get('/blog/blog').then(r => {
-            $scope.postList = r.data.sort((a,b)=>{
-                return a.time-b.time;
+            $scope.postList = r.data.sort((a, b) => {
+                return a.time - b.time;
             });
-            $scope.currBlg = id?$scope.postList.find(q=>q.pid==id):$scope.postList[0];
-            console.log('ALL POSTS',$scope.postList,'SELECTED POST',$scope.currBlg)
+            $scope.currBlg = id ? $scope.postList.find(q => q.pid == id) : $scope.postList[0];
+            console.log('ALL POSTS', $scope.postList, 'SELECTED POST', $scope.currBlg)
         })
     }
     // console.log('imgTypes are',imgTypes)
-    $scope.includesFormat = (which,format)=>{
-        return (which=='vid' && vidTypes.includes(format))||(which=='img' && imgTypes.includes(format));
+    $scope.includesFormat = (which, format) => {
+        return (which == 'vid' && vidTypes.includes(format)) || (which == 'img' && imgTypes.includes(format));
     }
-    $scope.getYoutubeUrl = id=>{
+    $scope.getYoutubeUrl = id => {
         return $sce.trustAsResourceUrl(`https://www.youtube.com/embed/${id}?controls=0`);
     }
+    $scope.edit = {};
+    $scope.mediaEdit = {};
     $scope.getAllPosts();
-    $scope.blgInst = {
-        title: 'Blogging Guide',
-        media: { url: 'https://media.giphy.com/media/o0vwzuFwCGAFO/giphy.mp4', type: 'mp4' },
-        txtHtml: `<p>Hello moderator!<br>
-        Ready to create your <em>awesome</em> blog entry?<br>
-        This platform supports an easy format known as Markdown. Some basic formatting tricks:</p>
-    <table class="table table-striped table-bordered">
-        <thead>
-            <tr>
-                <th><strong>Code</strong></th>
-                <th><strong>Action</strong></th>
-                <th><strong>Example/Notes</strong></th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>*text*</td>
-                <td>Italic</td>
-                <td>This text is <em>very</em> italic!</td>
-            </tr>
-            <tr>
-                <td>**text**</td>
-                <td>Bold</td>
-                <td>This text <strong>isn’t</strong> scared of you!</td>
-            </tr>
-            <tr>
-                <td># text</td>
-                <td>Heading</td>
-                <td><span class='is-size-2'>Makes text bigger.</span><br> The more '#'s there are, the <em>smaller</em> the text will be! Needs to be on its own line.</td>
-            </tr>
-            <tr>
-                <td>- Text</td>
-                <td>Bullet point</td>
-                <td>Make sure to put an empty line right before this</td>
-            </tr>
-            <tr>
-                <td>1.Text</td>
-                <td>Numbered list</td>
-                <td>Exactly what it says on the box</td>
-            </tr>
-            <tr>
-                <td>[Link](address)</td>
-                <td>Link</td>
-                <td><a href="https://www.google.com">Head over to google</a></td>
-            </tr>
-            <tr>
-                <td>![Image](SomeImageAddress)</td>
-                <td>Image</td>
-                <td>Displays an image. The text between the []s is shown when you hover over the image.</td>
-            </tr>
-        </tbody>
-    </table>
-    <p>You can also include optional media (a youtube video, a picture, etc.) using the provided fields</p>`,
-        txtMd: `Hello moderator! 
-        Ready to create your *awesome* blog entry? 
-        This platform supports an easy format known as Markdown. Some basic formatting tricks:
-        |**Code**|**Action**|**Example/Notes**|
-        |---|---|---|
-        |\*text\*|Italic| This text is *very* italic!|
-        |\*\*text\*\*|Bold|This text **isn't** scared of you!|
-        |# text|Heading|Makes text bigger. The more '#'s there are, the *smaller* the text will be! Needs to be on its own line.|
-        | - Text| Bullet point| Make sure to put an empty line right before this|
-        | 1.Text| Numbered list|Exactly what it says on the box|
-        |\[Link\]\(address\)|Link|[Head over to google](https://www.google.com)|
-        |!\[Image\]\(SomeImageAddress\)|Image|Displays an image. The text between the \[\]s is shown when you hover over the image.|
-        You can also include optional media (a youtube video, a picture, etc.) using the provided fields`
+    $scope.blgInst = defBlg;
+    $scope.parseMd = t => {
+        return conv && conv.makeHtml && conv.makeHtml(t) && conv.makeHtml(t).replace(/\[&amp;D[\w+/]+=*\]/g, `<span class='build-code' onclick='angular.element(this).scope().inspectCode(this);' title= 'inspect this build!'>$&</span>`) || '';
+    }
+    function validateYouTubeUrl(url) {
+        if (url != undefined || url != '') {
+            var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\?v=)([^#\&\?]*).*/;
+            var match = url.match(regExp);
+            if (match && match[2].length == 11) {
+                // Do anything for being valid
+                console.log()
+            }
+            else {
+                // Do anything for not being valid
+            }
+        }
+    }
+    // OR
+    $scope.getYtId = u => {
+        const p = /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
+        return (u.match(p)) ? RegExp.$1 : false;
     }
 })
 app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
@@ -1422,7 +1449,7 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
                 });
                 $scope.avas = r.data.ava;
                 $scope.thr.posts = $scope.thr.posts.map(psth => {
-                    console.log('PSTH', psth, r.data.psts.filter(psps => psps._id == psth.id)[0])
+                    // console.log('PSTH', psth, r.data.psts.filter(psps => psps._id == psth.id)[0])
                     const thePst = r.data.psts.filter(psps => psps._id == psth.id)[0];
                     thePst.votesUp = psth.votesUp;
                     thePst.votesDown = psth.votesDown;
@@ -1440,10 +1467,6 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
         $scope.user = r.data;
         console.log('user', $scope.user)
     })
-    $scope.copyCode = c => {
-        console.log('attempting to copy', c)
-        prompt("Press ctrl-c (cmd-c on Mac) to copy this code!", c.parentNode.querySelector('.build-code').innerText);
-    }
     $scope.newPost = () => {
         let theText = document.querySelector('#postTxt').value;
         console.log('new POST', theText, $scope.fileread);
@@ -1461,51 +1484,6 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
                 window.location.reload();
             })
     };
-    $scope.infoBox =  {
-        x:0,
-        y:0,
-        data:null
-    }
-    $scope.skillBox =  {
-        x:0,
-        y:0,
-        on:false,
-        data:{
-        }
-    }
-    $scope.explTrait = (t,e,m) =>{
-        $scope.infoBox.x = e.screenX;
-        $scope.infoBox.y = e.screenY-50;
-        if(t){
-            $scope.infoBox.data = `<div class='is-fullwidth ${t.picked||m?'has-text-white':'has-text-grey'}'>
-            <div class='is-fullwidth is-size-5 has-text-centered'>${t.name}</div>
-            <p>${t.desc}</p>
-            </div>`;
-        }else{
-            $scope.infoBox.data=null;
-        }
-    }
-    $scope.explSkill = (s,e,m) =>{
-        $scope.skillBox.x = e.screenX;
-        $scope.skillBox.y = e.screenY-50;
-        if(s){
-            $scope.skillBox.data = s;
-            const allUsedTraits  = $scope.currBuild.data.specs.map(q=>q.usedTraits).flat();
-            $scope.skillBox.data.realFacts = s.facts.map((sk,n)=>{
-                const replaceTrait = s.traited_facts && s.traited_facts.find(q=>q.overrides == n);//if truthy, there DOES exist a replacement fact
-                if(!!replaceTrait && allUsedTraits.includes(replaceTrait.requires_trait)){
-                    sk = {...JSON.parse(JSON.stringify(sk)),...replaceTrait,isTraited:true};
-                    console.log('FOUND replacement fact',replaceTrait,'FOR SKILL',s.name,'REQUIRED TRAIT',replaceTrait.requires_trait,'SKILL NOW',sk)
-                    // sk.isTraited = true;
-                }
-                return sk;
-            })
-            console.log('SKILL INFO',s,'CURR BUILD',$scope.currBuild.data,'USED TRAITS',allUsedTraits)
-            $scope.skillBox.on=true;
-        }else{
-            $scope.skillBox.on=false;
-        }
-    }
     $scope.vote = (pst, dir) => {
         console.log('voting for', pst, 'direction', dir, 'which is', typeof dir)
         $http.post('/forum/vote', {
@@ -1518,6 +1496,67 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
                 $scope.refThred();
             })
     }
+    //build template stuff START
+    $scope.inspectCode = (c) => {
+        $http.get('/tool/build?build=' + encodeURIComponent(c.innerText.replace('&amp;', '&'))).then(r => {
+            $scope.currBuild.data = r.data;
+            $scope.currBuild.whichSkill = 0;//for rev, mainly
+            // $scope.currBuild.data.skillList = [];
+        })
+    }
+    $scope.noBuild = s => {
+        $scope.currBuild.data = null;
+    }
+    $scope.copyCode = c => {
+        console.log('attempting to copy', c)
+        prompt("Press ctrl-c (cmd-c on Mac) to copy this code!", c.parentNode.querySelector('.build-code').innerText);
+    }
+    $scope.infoBox = {
+        x: 0,
+        y: 0,
+        data: null
+    }
+    $scope.skillBox = {
+        x: 0,
+        y: 0,
+        on: false,
+        data: {
+        }
+    }
+    $scope.explTrait = (t, e, m) => {
+        $scope.infoBox.x = e.screenX;
+        $scope.infoBox.y = e.screenY - 50;
+        if (t) {
+            $scope.infoBox.data = `<div class='is-fullwidth ${t.picked || m ? 'has-text-white' : 'has-text-grey'}'>
+            <div class='is-fullwidth is-size-5 has-text-centered'>${t.name}</div>
+            <p>${t.desc}</p>
+            </div>`;
+        } else {
+            $scope.infoBox.data = null;
+        }
+    }
+    $scope.explSkill = (s, e, m) => {
+        $scope.skillBox.x = e.screenX;
+        $scope.skillBox.y = e.screenY - 50;
+        if (s) {
+            $scope.skillBox.data = s;
+            const allUsedTraits = $scope.currBuild.data.specs.map(q => q.usedTraits).flat();
+            $scope.skillBox.data.realFacts = s.facts.map((sk, n) => {
+                const replaceTrait = s.traited_facts && s.traited_facts.find(q => q.overrides == n);//if truthy, there DOES exist a replacement fact
+                if (!!replaceTrait && allUsedTraits.includes(replaceTrait.requires_trait)) {
+                    sk = { ...JSON.parse(JSON.stringify(sk)), ...replaceTrait, isTraited: true };
+                    console.log('FOUND replacement fact', replaceTrait, 'FOR SKILL', s.name, 'REQUIRED TRAIT', replaceTrait.requires_trait, 'SKILL NOW', sk)
+                    // sk.isTraited = true;
+                }
+                return sk;
+            })
+            console.log('SKILL INFO', s, 'CURR BUILD', $scope.currBuild.data, 'USED TRAITS', allUsedTraits)
+            $scope.skillBox.on = true;
+        } else {
+            $scope.skillBox.on = false;
+        }
+    }
+    //build template stuff END
     $scope.quoteMe = (pst) => {
         document.querySelector('#postTxt').value = pst.md.split('\n').map(q => '>' + q).join('\n');
     }
@@ -1525,35 +1564,9 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
     $scope.currBuild = {
         data: null,
     };
-    $scope.saySkills = b=>{
-        console.log('attempted to switch legends; builds now',b)
-        console.log('Skills list for',b.whichSkill,'is',b.data.skills.land[b.whichSkill])
-    }
-    $scope.inspectCode = (c) => {
-        $http.get('/tool/build?build=' + encodeURIComponent(c.innerText.replace('&amp;','&'))).then(r => {
-            $scope.currBuild.data = r.data;
-            $scope.currBuild.whichSkill= 0;//for rev, mainly
-            // $scope.currBuild.data.skillList = [];
-        })
-    }
-    $scope.noBuild = s =>{
-        $scope.currBuild.data=null;
-    }
-    // window.addEventListener('mousemove',e=>{
-    //     $scope.currBuild.pos.x = e.screenX;
-    //     $scope.currBuild.pos.y = e.screenY-250;
-    //     // console.log('Target is build-code? ',[...e.target.classList].includes('build-code'))
-    //     if([...e.target.classList].includes('build-code')){
-    //         $scope.getBuild(e.target.innerHTML.replace('&amp;','&'))
-    //         $scope.$apply();
-    //     }else{
-    //         //not on a build template span
-    //         $scope.currBuild.code=null;
-    //         $scope.$apply();
-    //     }
-    // })
+    
 })
-app.controller('home-cont', function ($scope, $http, $state, $sce) {
+app.controller('home-cont', function ($scope, $http, $state, $sce, imgTypes,vidTypes,defBlg) {
     $http.get('/user/memberCount').then(r => {
         $scope.memberCount = { counts: r.data, types: Object.keys(r.data) };
         console.log('MEMBERS',$scope.memberCount)
@@ -1567,73 +1580,7 @@ app.controller('home-cont', function ($scope, $http, $state, $sce) {
             }, 760)
         }, 10000)
     })
-    $scope.defBlg = {
-        title:'No blog yet!',
-        media: { url: 'https://media.giphy.com/media/9J7tdYltWyXIY/giphy.mp4', type: 'mp4' },
-        txtHtml: `
-        <p class='is-italic'>Just looking for the regular [PAIN] website? Click Sign up/Login up above!</p><br>
-        <p>Welcome to Brethren[Pain]!<br>
-        Unfortunately, no one has <em>yet</em> posted any blog entries (or Healy broke the website).<br>
-        Moderators: This platform supports a format known as Markdown. Some basic formatting tricks:</p>
-        <table class="table table-striped table-bordered">
-        <thead>
-        <tr>
-        <th><strong>Code</strong></th>
-        <th><strong>Action</strong></th>
-        <th><strong>Example/Notes</strong></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-        <td>*text*</td>
-        <td>Italic</td>
-        <td>This text is <em>very</em> italic!</td>
-        </tr>
-        <tr>
-        <td>**text**</td>
-        <td>Bold</td>
-        <td>This text <strong>isn’t</strong> scared of you!</td>
-        </tr>
-        <tr>
-        <td># text</td>
-        <td>Heading</td>
-        <td>Makes text bigger. The more '#'s there are, the <em>smaller</em> the text will be! Needs to be on its own line.</td>
-        </tr>
-        <tr>
-        <td>- Text</td>
-        <td>Bullet point</td>
-        <td>Make sure to put an empty line right before this</td>
-        </tr>
-        <tr>
-        <td>1.Text</td>
-        <td>Numbered list</td>
-        <td>Exactly what it says on the box</td>
-        </tr>
-        <tr>
-        <td>[Link](address)</td>
-        <td>Link</td>
-        <td><a href="https://www.google.com">Head over to google</a></td>
-        </tr>
-        <tr>
-        <td>![Image](SomeImageAddress)</td>
-        <td>Image</td>
-        <td>Displays an image. The text between the []s is shown when you hover over the image.</td>
-        </tr>
-        </tbody>
-        </table>`,
-        txtMd:`Welcome to Brethren[Pain]! 
-        Unfortunately, no one has *yet* posted any blog entries. 
-        Moderators: This platform supports a format known as Markdown. Some basic formatting tricks:
-        |**Code**|**Action**|**Example/Notes**|
-        |---|---|---|
-        |\*text\*|Italic| This text is *very* italic!|
-        |\*\*text\*\*|Bold|This text **isn't** scared of you!|
-        |# text|Heading|Makes text bigger. The more '#'s there are, the *smaller* the text will be! Needs to be on its own line.|
-        | - Text| Bullet point| Make sure to put an empty line right before this|
-        | 1.Text| Numbered list|Exactly what it says on the box|
-        |\[Link\]\(address\)|Link|[Head over to google](https://www.google.com)|
-        |!\[Image\]\(SomeImageAddress\)|Image|Displays an image. The text between the \[\]s is shown when you hover over the image.`
-    }
+    $scope.defBlg = defBlg;
     $scope.currVid = null;
     $scope.getPosts = ()=>{
         //get more posts. Runs once when page loads, and again when we reach the bottom of the page (infinite scrolling)

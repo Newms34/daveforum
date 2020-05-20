@@ -28,6 +28,20 @@ body {
     & .blog-post {
         min-height: 400px;
         margin: 15px;
+        & .blog-text{
+            padding:5px;
+            &.has-border{
+                border:1px solid #bbb;
+                min-height: 200px;
+                &:hover{
+                    border:1px solid #444;
+                }
+            }
+            &.edit-text{
+                width:100%;
+                min-height: 200px;
+            }
+        }
     }
 }
 
@@ -555,4 +569,10 @@ $races: Asura Charr Human Norn Sylvari;
         width:100%;
         min-height:800px;
         height:100%;
+}
+.is-edit-btn{
+    // position: absolute;
+}
+.is-two-thirds-width{
+    width:66%;
 }

@@ -1,0 +1,95 @@
+<div ng-controller='edit-cont'>
+    <div class="panel has-background-grey-lighter has-text-dark home-panel">
+        <div class="panel-body ">
+            <br>
+            <div class="notification has-background-grey-dark has-text-white is-size-4">
+                <i class="fa fa-pencil"></i>&nbsp;Blog Editor
+            </div>
+            <div class="message blog-post">
+                <div class="message-header is-size-5">Blog Instructions</div>
+                <div class="message-body">
+                    <div class="is-fullwidth has-background-grey-darker has-text-centered" ng-show='!!blgInst.media && !!blgInst.media.mediaType'>
+                        <video controls loop class='blog-vid'>
+                            <source src='{{blgInst.media.url}}' type='video/{{blgInst.media.mediaType}}'>
+                        </video>
+                    </div>
+                    <hr>
+                    <div class="blog-text" ng-bind-html="blgInst.txtHtml"></div>
+                </div>
+            </div>
+            <div class="message blog-post">
+                <div class="message-header is-size-5">
+                    <span ng-if='!edit.title' class='is-fullwidth'>{{currBlg.title||"Post at "+currBlg.timeSimp}}<button class="button is-info is-edit-btn is-pulled-right" ng-click='edit.title=true'><i class="fa fa-pencil"></i>&nbsp;Edit</button></span>
+                    <span ng-if='edit.title' class='is-fullwidth'><input class="input is-two-thirds-width" ng-model='currBlg.title'><button class="button is-info is-edit-btn is-pulled-right" ng-click='edit.title=false'><i class="fa fa-check"></i>&nbsp;Done</button></span>
+
+                </div>
+                <div class="message-body">
+                    <div class="is-fullwidth" title='This is the internal ID of your post. It is not editable.'>Post ID: {{currBlg.pid}}</div>
+                    <hr>
+                    <div class="is-fullwidth has-background-grey-darker has-text-centered">
+                        <div ng-show='!edit.media'>
+                            <button class="button is-info is-edit-btn is-pulled-right" ng-click='edit.media=true'><i class="fa fa-pencil"></i>&nbsp;Edit</button>
+                            <!-- if we have media... -->
+                            <video controls loop class='blog-vid' ng-if='includesFormat("vid",currBlg.media.mediaType)'>
+                                <source src='{{currBlg.media.url}}' type='video/{{currBlg.media.mediaType}}'>
+                            </video>
+                            <img src="{{currBlg.media.url}}" alt="Post image" ng-if='includesFormat("img",currBlg.media.mediaType)'>
+                            <iframe ng-if='currBlg.media.mediaType=="youtube"' class='yt-vid' ng-src="{{getYoutubeUrl(currBlg.media.url)}}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            <!-- if no media -->
+                            <div ng-show='!currBlg.media || !currBlg.media.mediaType'>
+                                <br>
+                                <div><i class="fa fa-times-circle has-text-danger"></i> No media selected</div>
+                                <br>
+                            </div>
+                        </div>
+                        <div ng-show='edit.media' class='is-fullwidth has-text-left has-text-white' style='min-height: 200px;'>
+                            <!-- <button class="button is-info is-edit-btn is-pulled-right" ng-click='edit.media=false'><i class="fa fa-check"></i>&nbsp;Done</button> -->
+                            <div class="is-fullwidth columns">
+                                <div class="column is-one-fifth"></div>
+                                <div class="column is-three-fifths">
+                                    <div class="panel">
+                                        <div class="panel-heading has-background-info has-text-white has-text-weight-bold is-size-4">Media controls</div>
+                                        <div class="panel-block has-background-grey-lighter has-text-dark">
+                                            <div class='has-background-white' style='padding:4px'>
+                                                <div class="is-fullwidth has-text-weight-bold is-size-5">Pick a media type: </div>
+                                                <div class="control">
+                                                    <label class="radio">
+                                                        <input type="radio" ng-model='mediaEdit.mediaType' value='youtube' name="mediaType">
+                                                        <i class="fa fa-check"></i>&nbsp;Include media
+                                                    </label><br>
+                                                    
+                                                    <label class="radio">
+                                                        <input type="radio" ng-model='mediaEdit.mediaType' value='none' name="mediaType">
+                                                        <i class="fa fa-times"></i>&nbsp;No media
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class='has-background-white' style='padding:4px'>
+                                                <div class="is-fullwidth is-size-5 has-text-grey-lighter">(Your)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div>
+                        <button class="button is-info is-edit-btn is-pulled-right" ng-show='!edit.body' ng-click='edit.body = true'>
+                            <i class="fa fa-pencil"></i> &nbsp;Edit
+                        </button>
+                        <div class="content blog-text has-border" ng-bind-html="parseMd(currBlg.txtMd)" ng-click='edit.body = true' ng-show='!edit.body'></div>
+                        <button class="button is-info is-edit-btn is-pulled-right" ng-show='edit.body' ng-click='edit.body = false'>
+                            <i class="fa fa-check"></i> &nbsp;Done
+                        </button>
+                        <textarea class="blog-text edit-text" ng-model="currBlg.txtMd" ng-show='edit.body'></textarea>
+                    </div>
+                    <div class="is-fullwidth has-text-centered">
+                        <button class="button is-info is-large"><i class="fa fa-check"></i>&nbsp;Save blog post</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
