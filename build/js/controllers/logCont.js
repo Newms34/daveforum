@@ -48,6 +48,9 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
         //     }
         // })
     }
+    $scope.backHome = ()=>{
+        $state.go('appSimp.home')
+    }
     $scope.signin = () => {
         $http.put('/user/login', { user: $scope.user, pass: $scope.pwd })
             .then((r) => {

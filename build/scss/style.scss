@@ -10,14 +10,25 @@ body {
     background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("../img/brethren.png"), #000;
     background-repeat: no-repeat;
     background-size: cover;
+    font-family: 'Menomonia', Arial, Helvetica, sans-serif;
     background-attachment: fixed;
 }
 
-#main-box {
+.main-box {
     padding: 5px;
     padding-top: 60px;
-    height: 140vh;
-    color: #fff; // background: #000;
+    min-height: 140vh;
+    &.logged-in-box {
+        color: #fff; // background: #000;
+    }
+}
+.home-panel {
+    border-radius: 4px;
+    min-height: 100vh;
+    & .blog-post {
+        min-height: 400px;
+        margin: 15px;
+    }
 }
 
 .calendar {
@@ -357,7 +368,7 @@ $races: Asura Charr Human Norn Sylvari;
     filter: saturate(0.4) contrast(0.5);
 }
 .pg-active {
-    background: #eee;
+    background: #eee!important;
     color: #333 !important;
 }
 .fader {
@@ -505,15 +516,15 @@ $races: Asura Charr Human Norn Sylvari;
 }
 .leg-icon {
     height: 30px;
-    float:left!important;
-    padding-left:4px;
-    cursor:pointer;
+    float: left !important;
+    padding-left: 4px;
+    cursor: pointer;
     transition-duration: 0.2s;
-    &.unselected{
-        filter:brightness(0.5);
+    &.unselected {
+        filter: brightness(0.5);
     }
-    &:hover{
-        filter:none;
+    &:hover {
+        filter: none;
     }
 }
 .smol-circle {
@@ -521,4 +532,27 @@ $races: Asura Charr Human Norn Sylvari;
     height: 16px;
     //   background:#300;
     border-radius: 50%;
+}
+#login-btn h3 {
+    i:last-child {
+        display: none;
+    }
+    &:hover {
+        i:last-child {
+            display: inline;
+        }
+        i:first-child {
+            display: none;
+        }
+    }
+}
+.bottom-note {
+    position: fixed;
+    bottom: 0;
+}
+.yt-vid{
+
+        width:100%;
+        min-height:800px;
+        height:100%;
 }

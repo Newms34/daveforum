@@ -1,6 +1,7 @@
 app.controller('home-cont', function ($scope, $http, $state, $sce) {
     $http.get('/user/memberCount').then(r => {
         $scope.memberCount = { counts: r.data, types: Object.keys(r.data) };
+        console.log('MEMBERS',$scope.memberCount)
         $scope.currMems = 0;
         setInterval(function () {
             document.querySelector('#fadey-count').classList.add('fader-on')
@@ -11,84 +12,79 @@ app.controller('home-cont', function ($scope, $http, $state, $sce) {
             }, 760)
         }, 10000)
     })
-
-    const vid = "SB4Sv5-010c",
-        video_tag = document.getElementById("video");
-    let streams = null;
-
-    fetch("https://images" + ~~(Math.random() * 33) + "-focus-opensocial.googleusercontent.com/gadgets/proxy?container=none&url=https%3A%2F%2Fwww.youtube.com%2Fget_video_info%3Fvideo_id%3D" + vid).then(response => response.text()).then(function (data) {
-        if (data) {
-            streams = parse_youtube_meta(data);
-            video_tag.src = streams['1080p'] || streams['720p'] || streams['360p'];
-        } else {
-            alert('Youtube API Error');
-        }
-    });
-
-    function parse_youtube_meta(rawdata) {
-        var data = parse_str(rawdata),
-            player_response = JSON.parse(data.player_response),
-            streams = [],
-            result = {};
-
-        data.player_response = player_response;
-
-        if (data.hasOwnProperty('adaptive_fmts')) {
-            streams = streams.concat(data.adaptive_fmts.split(',').map(function (s) {
-                return parse_str(s)
-            }));
-        } else {
-            if (player_response.streamingData && player_response.streamingData.adaptiveFormats) {
-                streams = streams.concat(player_response.streamingData.adaptiveFormats);
-            }
-        }
-        if (data.hasOwnProperty('url_encoded_fmt_stream_map')) {
-            streams = streams.concat(data.url_encoded_fmt_stream_map.split(',').map(function (s) {
-                return parse_str(s)
-            }));
-        } else {
-            if (player_response.streamingData && player_response.streamingData.formats) {
-                streams = streams.concat(player_response.streamingData.formats);
-            }
-        }
-
-        streams.forEach(function (stream, n) {
-            var itag = stream.itag * 1,
-                quality = false,
-                itag_map = {
-                    18: '360p',
-                    22: '720p',
-                    37: '1080p',
-                    38: '3072p',
-                    82: '360p3d',
-                    83: '480p3d',
-                    84: '720p3d',
-                    85: '1080p3d',
-                    133: '240pna',
-                    134: '360pna',
-                    135: '480pna',
-                    136: '720pna',
-                    137: '1080pna',
-                    264: '1440pna',
-                    298: '720p60',
-                    299: '1080p60na',
-                    160: '144pna',
-                    139: "48kbps",
-                    140: "128kbps",
-                    141: "256kbps"
-                };
-            if (itag_map[itag]) result[itag_map[itag]] = stream.url;
-        });
-        return result;
-    };
-
-    function parse_str(str) {
-        return str.split('&').reduce(function (params, param) {
-            var paramSplit = param.split('=').map(function (value) {
-                return decodeURIComponent(value.replace('+', ' '));
-            });
-            params[paramSplit[0]] = paramSplit[1];
-            return params;
-        }, {});
+    $scope.defBlg = {
+        title:'No blog yet!',
+        media: { url: 'https://media.giphy.com/media/9J7tdYltWyXIY/giphy.mp4', type: 'mp4' },
+        txtHtml: `
+        <p class='is-italic'>Just looking for the regular [PAIN] website? Click Sign up/Login up above!</p><br>
+        <p>Welcome to Brethren[Pain]!<br>
+        Unfortunately, no one has <em>yet</em> posted any blog entries (or Healy broke the website).<br>
+        Moderators: This platform supports a format known as Markdown. Some basic formatting tricks:</p>
+        <table class="table table-striped table-bordered">
+        <thead>
+        <tr>
+        <th><strong>Code</strong></th>
+        <th><strong>Action</strong></th>
+        <th><strong>Example/Notes</strong></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td>*text*</td>
+        <td>Italic</td>
+        <td>This text is <em>very</em> italic!</td>
+        </tr>
+        <tr>
+        <td>**text**</td>
+        <td>Bold</td>
+        <td>This text <strong>isn’t</strong> scared of you!</td>
+        </tr>
+        <tr>
+        <td># text</td>
+        <td>Heading</td>
+        <td>Makes text bigger. The more '#'s there are, the <em>smaller</em> the text will be! Needs to be on its own line.</td>
+        </tr>
+        <tr>
+        <td>- Text</td>
+        <td>Bullet point</td>
+        <td>Make sure to put an empty line right before this</td>
+        </tr>
+        <tr>
+        <td>1.Text</td>
+        <td>Numbered list</td>
+        <td>Exactly what it says on the box</td>
+        </tr>
+        <tr>
+        <td>[Link](address)</td>
+        <td>Link</td>
+        <td><a href="https://www.google.com">Head over to google</a></td>
+        </tr>
+        <tr>
+        <td>![Image](SomeImageAddress)</td>
+        <td>Image</td>
+        <td>Displays an image. The text between the []s is shown when you hover over the image.</td>
+        </tr>
+        </tbody>
+        </table>`,
+        txtMd:`Welcome to Brethren[Pain]! 
+        Unfortunately, no one has *yet* posted any blog entries. 
+        Moderators: This platform supports a format known as Markdown. Some basic formatting tricks:
+        |**Code**|**Action**|**Example/Notes**|
+        |---|---|---|
+        |\*text\*|Italic| This text is *very* italic!|
+        |\*\*text\*\*|Bold|This text **isn't** scared of you!|
+        |# text|Heading|Makes text bigger. The more '#'s there are, the *smaller* the text will be! Needs to be on its own line.|
+        | - Text| Bullet point| Make sure to put an empty line right before this|
+        | 1.Text| Numbered list|Exactly what it says on the box|
+        |\[Link\]\(address\)|Link|[Head over to google](https://www.google.com)|
+        |!\[Image\]\(SomeImageAddress\)|Image|Displays an image. The text between the \[\]s is shown when you hover over the image.`
     }
+    $scope.currVid = null;
+    $scope.getPosts = ()=>{
+        //get more posts. Runs once when page loads, and again when we reach the bottom of the page (infinite scrolling)
+    }
+    //to login page
+    $scope.goLogin = function(){
+        $state.go('appSimp.login');
+    } 
 })

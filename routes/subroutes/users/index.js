@@ -56,7 +56,7 @@ const routeExp = function(io, pp) {
     router.get('/getUsr', this.authbit, (req, res, next) => {
         res.send(req.session.user);
     });
-    router.get('/memberCount',this.authbit,(req,res,next)=>{
+    router.get('/memberCount',(req,res,next)=>{
         //gets the count of brethren members
         // console.log('kEYS nAoOW',keys)
         axios.get(`https://api.guildwars2.com/v2/guild/${keys.apiCodes.guild}/members?access_token=${keys.apiCodes.usr}`)
@@ -70,7 +70,7 @@ const routeExp = function(io, pp) {
         mongoose.model('User').find({}).lean().exec(function(err, usrs) {
             axios.get(`https://api.guildwars2.com/v2/guild/${keys.apiCodes.guild}/members?access_token=${keys.apiCodes.usr}`).then(rnks=>{
                 const au = usrs.map(u => {
-                    const urnk = u.account && rnks.data.find(q=>q.name==u.account);
+                    const urnk = u.account && rnks.data.find(q=>q.name.toLowerCase()==u.account.toLowerCase());
                     console.log("POSSIBLE RANK FOR",u.user,"IS",urnk)
                     u.rank = urnk && urnk.rank;
                     u.msgs = '';
@@ -409,7 +409,7 @@ const routeExp = function(io, pp) {
     router.get('/usrData', function(req, res, next) {
         if (!req.session) {
             console.log(req.session)
-            throw new(err, 'BROKE!')
+            throw new Error('BROKE!')
         }
         mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
             req.session.user = usr;

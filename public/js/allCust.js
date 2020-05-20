@@ -45,8 +45,11 @@ const dcRedirect = ['$location', '$q', '$injector', function($location, $q, $inj
         }
     }
 }];
-app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpProvider', function($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider) {
+app.constant('imgTypes',["apng", "bmp", "gif", "ico", "cur", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "tif", "tiff", "webp"])
+app.constant('vidTypes',["mp4","avi","mpg","webm","ogg","flv"])
+app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpProvider','$sceDelegateProvider', function($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider,$sceDelegateProvider) {
         $locationProvider.html5Mode(true);
+        $sceDelegateProvider.resourceUrlWhitelist(['self', 'https://www.youtube.com/**']);
         $urlRouterProvider.otherwise('/404');
         $stateProvider
             .state('app', {
@@ -72,6 +75,10 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
             .state('app.help', {
                 url: '/help',
                 templateUrl: 'components/help/help.html'
+            })
+            .state('app.blog', {
+                url: '/blog',
+                templateUrl: 'components/blog.html'
             })
             //forum stuff
             .state('app.forum', {
@@ -100,8 +107,12 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
                 abstract: true,
                 templateUrl: 'components/layout/simp.html'
             })
-            .state('appSimp.login', {
+            .state('appSimp.home', {
                 url: '/',
+                templateUrl: 'components/home.html'
+            })
+            .state('appSimp.login', {
+                url: '/login',
                 templateUrl: 'components/login.html'
             })
             .state('appSimp.register', {
@@ -1143,6 +1154,93 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
             return `${theDate.toLocaleDateString()} ${theDate.getHours() % 12}:${theDate.getMinutes().toString().length < 2 ? '0' + theDate.getMinutes() : theDate.getMinutes()} ${theDate.getHours() < 13 ? 'AM' : 'PM'}`;
         };
     })
+app.controller('edit-cont', ($scope, $sce, $http,imgTypes,vidTypes) => {
+    $scope.postList = null;
+    $scope.getAllPosts = (id) => {
+        $http.get('/blog/blog').then(r => {
+            $scope.postList = r.data.sort((a,b)=>{
+                return a.time-b.time;
+            });
+            $scope.currBlg = id?$scope.postList.find(q=>q.pid==id):$scope.postList[0];
+            console.log('ALL POSTS',$scope.postList,'SELECTED POST',$scope.currBlg)
+        })
+    }
+    // console.log('imgTypes are',imgTypes)
+    $scope.includesFormat = (which,format)=>{
+        return (which=='vid' && vidTypes.includes(format))||(which=='img' && imgTypes.includes(format));
+    }
+    $scope.getYoutubeUrl = id=>{
+        return $sce.trustAsResourceUrl(`https://www.youtube.com/embed/${id}?controls=0`);
+    }
+    $scope.getAllPosts();
+    $scope.blgInst = {
+        title: 'Blogging Guide',
+        media: { url: 'https://media.giphy.com/media/o0vwzuFwCGAFO/giphy.mp4', type: 'mp4' },
+        txtHtml: `<p>Hello moderator!<br>
+        Ready to create your <em>awesome</em> blog entry?<br>
+        This platform supports an easy format known as Markdown. Some basic formatting tricks:</p>
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th><strong>Code</strong></th>
+                <th><strong>Action</strong></th>
+                <th><strong>Example/Notes</strong></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>*text*</td>
+                <td>Italic</td>
+                <td>This text is <em>very</em> italic!</td>
+            </tr>
+            <tr>
+                <td>**text**</td>
+                <td>Bold</td>
+                <td>This text <strong>isn’t</strong> scared of you!</td>
+            </tr>
+            <tr>
+                <td># text</td>
+                <td>Heading</td>
+                <td><span class='is-size-2'>Makes text bigger.</span><br> The more '#'s there are, the <em>smaller</em> the text will be! Needs to be on its own line.</td>
+            </tr>
+            <tr>
+                <td>- Text</td>
+                <td>Bullet point</td>
+                <td>Make sure to put an empty line right before this</td>
+            </tr>
+            <tr>
+                <td>1.Text</td>
+                <td>Numbered list</td>
+                <td>Exactly what it says on the box</td>
+            </tr>
+            <tr>
+                <td>[Link](address)</td>
+                <td>Link</td>
+                <td><a href="https://www.google.com">Head over to google</a></td>
+            </tr>
+            <tr>
+                <td>![Image](SomeImageAddress)</td>
+                <td>Image</td>
+                <td>Displays an image. The text between the []s is shown when you hover over the image.</td>
+            </tr>
+        </tbody>
+    </table>
+    <p>You can also include optional media (a youtube video, a picture, etc.) using the provided fields</p>`,
+        txtMd: `Hello moderator! 
+        Ready to create your *awesome* blog entry? 
+        This platform supports an easy format known as Markdown. Some basic formatting tricks:
+        |**Code**|**Action**|**Example/Notes**|
+        |---|---|---|
+        |\*text\*|Italic| This text is *very* italic!|
+        |\*\*text\*\*|Bold|This text **isn't** scared of you!|
+        |# text|Heading|Makes text bigger. The more '#'s there are, the *smaller* the text will be! Needs to be on its own line.|
+        | - Text| Bullet point| Make sure to put an empty line right before this|
+        | 1.Text| Numbered list|Exactly what it says on the box|
+        |\[Link\]\(address\)|Link|[Head over to google](https://www.google.com)|
+        |!\[Image\]\(SomeImageAddress\)|Image|Displays an image. The text between the \[\]s is shown when you hover over the image.|
+        You can also include optional media (a youtube video, a picture, etc.) using the provided fields`
+    }
+})
 app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
     if (!localStorage.brethUsr) {
         $state.go('app.login');
@@ -1458,6 +1556,7 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
 app.controller('home-cont', function ($scope, $http, $state, $sce) {
     $http.get('/user/memberCount').then(r => {
         $scope.memberCount = { counts: r.data, types: Object.keys(r.data) };
+        console.log('MEMBERS',$scope.memberCount)
         $scope.currMems = 0;
         setInterval(function () {
             document.querySelector('#fadey-count').classList.add('fader-on')
@@ -1468,86 +1567,81 @@ app.controller('home-cont', function ($scope, $http, $state, $sce) {
             }, 760)
         }, 10000)
     })
-
-    const vid = "SB4Sv5-010c",
-        video_tag = document.getElementById("video");
-    let streams = null;
-
-    fetch("https://images" + ~~(Math.random() * 33) + "-focus-opensocial.googleusercontent.com/gadgets/proxy?container=none&url=https%3A%2F%2Fwww.youtube.com%2Fget_video_info%3Fvideo_id%3D" + vid).then(response => response.text()).then(function (data) {
-        if (data) {
-            streams = parse_youtube_meta(data);
-            video_tag.src = streams['1080p'] || streams['720p'] || streams['360p'];
-        } else {
-            alert('Youtube API Error');
-        }
-    });
-
-    function parse_youtube_meta(rawdata) {
-        var data = parse_str(rawdata),
-            player_response = JSON.parse(data.player_response),
-            streams = [],
-            result = {};
-
-        data.player_response = player_response;
-
-        if (data.hasOwnProperty('adaptive_fmts')) {
-            streams = streams.concat(data.adaptive_fmts.split(',').map(function (s) {
-                return parse_str(s)
-            }));
-        } else {
-            if (player_response.streamingData && player_response.streamingData.adaptiveFormats) {
-                streams = streams.concat(player_response.streamingData.adaptiveFormats);
-            }
-        }
-        if (data.hasOwnProperty('url_encoded_fmt_stream_map')) {
-            streams = streams.concat(data.url_encoded_fmt_stream_map.split(',').map(function (s) {
-                return parse_str(s)
-            }));
-        } else {
-            if (player_response.streamingData && player_response.streamingData.formats) {
-                streams = streams.concat(player_response.streamingData.formats);
-            }
-        }
-
-        streams.forEach(function (stream, n) {
-            var itag = stream.itag * 1,
-                quality = false,
-                itag_map = {
-                    18: '360p',
-                    22: '720p',
-                    37: '1080p',
-                    38: '3072p',
-                    82: '360p3d',
-                    83: '480p3d',
-                    84: '720p3d',
-                    85: '1080p3d',
-                    133: '240pna',
-                    134: '360pna',
-                    135: '480pna',
-                    136: '720pna',
-                    137: '1080pna',
-                    264: '1440pna',
-                    298: '720p60',
-                    299: '1080p60na',
-                    160: '144pna',
-                    139: "48kbps",
-                    140: "128kbps",
-                    141: "256kbps"
-                };
-            if (itag_map[itag]) result[itag_map[itag]] = stream.url;
-        });
-        return result;
-    };
-
-    function parse_str(str) {
-        return str.split('&').reduce(function (params, param) {
-            var paramSplit = param.split('=').map(function (value) {
-                return decodeURIComponent(value.replace('+', ' '));
-            });
-            params[paramSplit[0]] = paramSplit[1];
-            return params;
-        }, {});
+    $scope.defBlg = {
+        title:'No blog yet!',
+        media: { url: 'https://media.giphy.com/media/9J7tdYltWyXIY/giphy.mp4', type: 'mp4' },
+        txtHtml: `
+        <p class='is-italic'>Just looking for the regular [PAIN] website? Click Sign up/Login up above!</p><br>
+        <p>Welcome to Brethren[Pain]!<br>
+        Unfortunately, no one has <em>yet</em> posted any blog entries (or Healy broke the website).<br>
+        Moderators: This platform supports a format known as Markdown. Some basic formatting tricks:</p>
+        <table class="table table-striped table-bordered">
+        <thead>
+        <tr>
+        <th><strong>Code</strong></th>
+        <th><strong>Action</strong></th>
+        <th><strong>Example/Notes</strong></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td>*text*</td>
+        <td>Italic</td>
+        <td>This text is <em>very</em> italic!</td>
+        </tr>
+        <tr>
+        <td>**text**</td>
+        <td>Bold</td>
+        <td>This text <strong>isn’t</strong> scared of you!</td>
+        </tr>
+        <tr>
+        <td># text</td>
+        <td>Heading</td>
+        <td>Makes text bigger. The more '#'s there are, the <em>smaller</em> the text will be! Needs to be on its own line.</td>
+        </tr>
+        <tr>
+        <td>- Text</td>
+        <td>Bullet point</td>
+        <td>Make sure to put an empty line right before this</td>
+        </tr>
+        <tr>
+        <td>1.Text</td>
+        <td>Numbered list</td>
+        <td>Exactly what it says on the box</td>
+        </tr>
+        <tr>
+        <td>[Link](address)</td>
+        <td>Link</td>
+        <td><a href="https://www.google.com">Head over to google</a></td>
+        </tr>
+        <tr>
+        <td>![Image](SomeImageAddress)</td>
+        <td>Image</td>
+        <td>Displays an image. The text between the []s is shown when you hover over the image.</td>
+        </tr>
+        </tbody>
+        </table>`,
+        txtMd:`Welcome to Brethren[Pain]! 
+        Unfortunately, no one has *yet* posted any blog entries. 
+        Moderators: This platform supports a format known as Markdown. Some basic formatting tricks:
+        |**Code**|**Action**|**Example/Notes**|
+        |---|---|---|
+        |\*text\*|Italic| This text is *very* italic!|
+        |\*\*text\*\*|Bold|This text **isn't** scared of you!|
+        |# text|Heading|Makes text bigger. The more '#'s there are, the *smaller* the text will be! Needs to be on its own line.|
+        | - Text| Bullet point| Make sure to put an empty line right before this|
+        | 1.Text| Numbered list|Exactly what it says on the box|
+        |\[Link\]\(address\)|Link|[Head over to google](https://www.google.com)|
+        |!\[Image\]\(SomeImageAddress\)|Image|Displays an image. The text between the \[\]s is shown when you hover over the image.`
     }
+    $scope.currVid = null;
+    $scope.getPosts = ()=>{
+        //get more posts. Runs once when page loads, and again when we reach the bottom of the page (infinite scrolling)
+    }
+    //to login page
+    $scope.goLogin = function(){
+        $state.go('appSimp.login');
+    } 
 })
 app.controller('inbox-cont',function($scope,$http,userFact){
 	$scope.currMsg = 0;
@@ -1639,6 +1733,9 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
         //         bulmabox.alert('Forgot Password', 'Check your email! If your username is registered, you should recieve an email from us with a password reset link.')
         //     }
         // })
+    }
+    $scope.backHome = ()=>{
+        $state.go('appSimp.home')
     }
     $scope.signin = () => {
         $http.put('/user/login', { user: $scope.user, pass: $scope.pwd })
@@ -1743,7 +1840,7 @@ app.controller('main-cont', function($scope, $http, $state,userFact) {
     // })
 })
 
-app.controller('nav-cont',function($scope,$http,$state){
+app.controller('nav-cont',function($scope,$http,$state,userFact){
 	$scope.logout = function() {
         bulmabox.confirm('Logout','Are you sure you wish to logout?', function(resp) {
             if (!resp || resp == null) {
@@ -1751,29 +1848,43 @@ app.controller('nav-cont',function($scope,$http,$state){
             } else {
                 $scope.$parent.$parent.user=null;
                 $http.get('/user/logout').then(function(r) {
-                    $state.go('appSimp.login');
+                    $state.go('appSimp.home');
                 })
             }
         })
     }
+    // userFact.getUser().then(r=>{
+    //     $scope.isMod = !!r.data.mod
+    // })
     $scope.pages = [{
         sref:'app.dash',
-        txt:'Dashboard'
+        txt:'Dashboard',
+        icon:'tachometer'
     },{
         sref:'app.calendar',
-        txt:'Calendar'
+        txt:'Calendar',
+        icon:'calendar'
     },{
         sref:'app.chat',
-        txt:'Chat'
+        txt:'Chat',
+        icon:'comments'
     },{
         sref:'app.forum',
-        txt:'Forum'
+        txt:'Forum',
+        icon:'commenting-o'
     },{
         sref:'app.tools',
-        txt:'Tools'
+        txt:'Tools',
+        icon:'wrench'
+    },{
+        sref:'app.blog',
+        txt:'Blog Editor',
+        icon:'pencil',
+        protected:true
     },{
         sref:'app.help',
-        txt:'Help'
+        txt:'Help',
+        icon:'question-circle'
     },]
     $scope.mobActive=false;
 })
@@ -2575,7 +2686,6 @@ app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact'
         usrCheck.getUser().then(function(r) {
             console.log('response from login chck',r)
             if (r.data && r.data.confirmed) {
-                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
                 def.resolve(true)
             } else if(r.data){
                 def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
@@ -2588,6 +2698,19 @@ app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact'
         });
         return def.promise;
     });
+    $transitions.onBefore({to:'app.blog'},function(trans){
+        let def = $q.defer()
+        const usrCheck = trans.injector().get('userFact')
+        usrCheck.getUser().then(r=>{
+            if(!r.data.mod){
+                //user not mod; reject transfer to blod editor
+                console.log('tried to access editor as non-mod!')
+               return def.resolve($state.target('app.dash',undefined, {location:true}))
+            }
+            def.resolve(true);
+        })
+        return def.promise;
+    })
     // $transitions.onFinish({ to: '*' }, function() {
     //     document.body.scrollTop = document.documentElement.scrollTop = 0;
     // });

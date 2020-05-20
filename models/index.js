@@ -4,6 +4,7 @@ require('./users/');
 require('./posts/');
 require('./threads/');
 require('./cals/');
+require('./blog/');
 console.log('Node Environment:', process.env.NODE_ENV)
 if (!process.env.NODE_ENV || process.env.NODE_ENV != 'production') {
     //just some quick env check. If we're developing locally, go ahead and use our local db. Otherwise, use the mlab db.

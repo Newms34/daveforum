@@ -1,27 +1,64 @@
 <div ng-controller='home-cont'>
-    <div class="panel">
-        <div class="panel-body has-background-grey-darker has-text-white" id='bg-video-panel'>
-            <div class="is-fullwidth has-text-centered">
-                <div ng-show='memberCount.types' id='fadey-count' class="is-size-3 is-italic fader">{{memberCount.types[currMems]}}:&nbsp;{{memberCount.counts[memberCount.types[currMems]]}}</div>
+    <nav class="navbar is-dark is-fixed-top" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <img src="./img/icons/android-icon-48x48.png" alt="" srcset="">
+        </div>
+        <div class="navbar-menu">
+            <div class="navbar-start">
+                <!-- <a class="navbar-item" ng-repeat='p in pages' href='#' ui-sref-active ='pg-active' ui-sref='{{p.sref}}'>
+                    <h3>{{p.txt}}</h3>
+                </a> -->
             </div>
-            <!-- <video loop muted autoplay playsinline id="video"></video> -->
-            <div class="video-background">
-                <div class="video-foreground">
-                  <iframe src="https://www.youtube.com/embed/SB4Sv5-010c?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&playlist=SB4Sv5-010c&mute=1" frameborder="0" allowfullscreen></iframe>
+            <div class="navbar-end">
+                <a class="navbar-item is-pulled-right" id='login-btn' ng-click='goLogin()'>
+                    <h3>
+                        <i class="fa fa-lock"></i>
+                        <i class="fa fa-unlock"></i>
+                        &nbsp;Sign up/Login
+                    </h3>
+                </a>
+            </div>
+        </div>
+    </nav>
+    <div class="main-box">
+        <div class="panel has-background-grey-lighter has-text-dark home-panel">
+            <div class="panel-body ">
+                <br>
+                <div class="notification is-dark is-size-2 is-italic">
+                    <img src="./img/icons/android-icon-144x144.png" alt="" style='vertical-align: middle;'>&nbsp;Welcome to Brethren [PAIN]!</div>
+                <div class="message blog-post" ng-repeat='blg in blogs'>
+                    <div class="message-header is-size-5">{{blg.title||"Post at "+blg.timeSimp}}</div>
+                    <div class="message-body">
+                        <div class="is-fullwidth has-background-grey-darker has-text-centered" ng-show='blg.vid'>
+                            <video controls class='blog-vid'>
+                                <source src='{{blg.vid}}' type='video/mp4'>
+                            </video>
+                        </div>
+                        <hr>
+                        <div class="blog-text" ng-bind-html="blg.txt"></div>
+                    </div>
                 </div>
-              </div>
+                <div class="message blog-post" ng-show='!blogs || !blogs.length'>
+                    <div class="message-header is-size-5">{{defBlg.title}}</div>
+                    <div class="message-body">
+                        <div class="is-fullwidth has-background-grey-darker has-text-centered" ng-show='defBlg.vid'>
+
+                            <video controls class='blog-vid'>
+                                <source src='{{defBlg.vid}}' type='video/mp4'>
+                            </video>
+                        </div>
+                        <hr>
+                        <div class="blog-text" ng-bind-html="defBlg.txtHtml"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <!-- <div id="bg-vid-cont"> -->
-        <!-- <iframe id='vid' src="https://www.youtube.com/embed/SB4Sv5-010c?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&playlist=SB4Sv5-010c&mute=1" frameborder="0" 
-        allowfullscreen="allowfullscreen"
-        mozallowfullscreen="mozallowfullscreen" 
-        msallowfullscreen="msallowfullscreen" 
-        oallowfullscreen="oallowfullscreen" 
-        webkitallowfullscreen="webkitallowfullscreen"></iframe> -->
-    <!-- </div> -->
-    <!-- HOMEPAGE! needs:
-    member count (api), proto utube, discord info
-https://www.youtube.com/watch?v=SB4Sv5-010c
--->
+    <div class="is-fullwidth has-text-centered bottom-note has-background-grey-dark has-text-white">
+        <div ng-show='memberCount.types' class="is-size-4 is-italic">Brethren [PAIN] has:
+            <span id="fadey-count" class="fader">
+                {{memberCount.counts[memberCount.types[currMems]]}} {{memberCount.types[currMems]}}(s)
+            </span>
+        </div>
+    </div>
 </div>

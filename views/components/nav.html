@@ -5,30 +5,15 @@
             <span aria-hidden="true"></span>
             <span aria-hidden="true"></span>
         </a>
+        <div ng-class='{"is-active":!mobActive}' ng-click='mobActive=!mobActive'>
+            <img src="./img/icons/android-icon-48x48.png" alt="" srcset="">
+        </div>
     </div>
     <div class="navbar-menu" ng-class='{"is-active":mobActive}' ng-click='mobActive=false'>
         <div class="navbar-start">
-            <a class="navbar-item" ng-repeat='p in pages' href='#' ui-sref-active ='pg-active' ui-sref='{{p.sref}}'>
-                <h3>{{p.txt}}</h3>
+            <a class="navbar-item" ng-repeat='p in pages' href='#' ui-sref-active ='pg-active' ui-sref='{{p.sref}}' ng-if='!p.protected || user.mod'>
+                <h3><i class="fa fa-{{p.icon}}"></i>&nbsp;{{p.txt}}</h3>
             </a>
-            <!-- <a class="navbar-item" href='#' ui-sref-active ='pg-active' ui-sref='app.dash'>
-                <h3>Dashboard</h3>
-            </a>
-            <a class="navbar-item" href='#' ui-sref-active ='pg-active' ui-sref='app.calendar'>
-                <h3>Calendar</h3>
-            </a>
-            <a class="navbar-item" href='#' ui-sref-active ='pg-active' ui-sref='app.chat'>
-                <h3>Chat</h3>
-            </a>
-            <a class="navbar-item" href='#' ui-sref-active ='pg-active' ui-sref='app.forum'>
-                <h3>Forums</h3>
-            </a>
-            <a class="navbar-item" href='#' ui-sref-active ='pg-active' ui-sref='app.tools'>
-                <h3>Tools</h3>
-            </a>
-            <a class="navbar-item" href='#' ui-sref-active ='pg-active' ui-sref='app.help'>
-                <h3>Help</h3>
-            </a> -->
         </div>
         <div class="navbar-end">
             <a class="navbar-item is-pulled-right" ng-click='logout()'>

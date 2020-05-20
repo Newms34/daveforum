@@ -67,3 +67,32 @@ api doesnt seem to tell us guild server (makes sense, but still... :/ )
 auto-ban via members removed from api/guild/members?
 
 MEMBER SEARCH BAR!
+5/17 meeting:-----------
+SITE:
+ - suggest/require account name? this'd allow us to ban (or remove) people who are removed from the guild
+ - allow regular (non-mod) members to add calendar events? it *MAY* already do this
+ - blog? I will *not* write for this, but could be a place to post vids ++ comment on em. ONLY MODS EDIT
+
+GUILD:
+ - What are we? PvE? PvX? WvW? 
+ - suggest no more "lol pve bad" or "pve nerds" stuff. As harmless as it may seem, it's going to drive new players away
+
+RECRUITING:
+ - How are we recruiting? What's our process like?
+ - Do we wanna limit it? Quantity or quality?
+ - new is fine, but how do we wanna make sure they're
+
+NOTES:
+
+guild has grown in activity, not size <-- **good!**
+new ranks:
+ - https://api.guildwars2.com/v2/guild/8C57F3E8-75D7-4A8E-AC32-5D79119E8095/ranks?access_token=B9DE7B9E-9DAD-2C40-BECD-12F9BA931FE0851EA3EB-B1AA-4FBB-B4BE-CCDD28F51644
+ can implement this in website *if* we tie in account name.
+
+shud probly have a thing on website to explain rank "meanings"
+
+blog: yes
+
+all can use calendar: yes
+
+REMOVE EMAIL

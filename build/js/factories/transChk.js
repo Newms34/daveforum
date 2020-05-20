@@ -6,7 +6,6 @@ app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact'
         usrCheck.getUser().then(function(r) {
             console.log('response from login chck',r)
             if (r.data && r.data.confirmed) {
-                // localStorage.twoRibbonsUser = JSON.stringify(r.user);
                 def.resolve(true)
             } else if(r.data){
                 def.resolve($state.target('appSimp.unconfirmed',undefined, {location:true}))
@@ -19,6 +18,19 @@ app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact'
         });
         return def.promise;
     });
+    $transitions.onBefore({to:'app.blog'},function(trans){
+        let def = $q.defer()
+        const usrCheck = trans.injector().get('userFact')
+        usrCheck.getUser().then(r=>{
+            if(!r.data.mod){
+                //user not mod; reject transfer to blod editor
+                console.log('tried to access editor as non-mod!')
+               return def.resolve($state.target('app.dash',undefined, {location:true}))
+            }
+            def.resolve(true);
+        })
+        return def.promise;
+    })
     // $transitions.onFinish({ to: '*' }, function() {
     //     document.body.scrollTop = document.documentElement.scrollTop = 0;
     // });

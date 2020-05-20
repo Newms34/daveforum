@@ -42,8 +42,11 @@ const dcRedirect = ['$location', '$q', '$injector', function($location, $q, $inj
         }
     }
 }];
-app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpProvider', function($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider) {
+app.constant('imgTypes',["apng", "bmp", "gif", "ico", "cur", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "tif", "tiff", "webp"])
+app.constant('vidTypes',["mp4","avi","mpg","webm","ogg","flv"])
+app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpProvider','$sceDelegateProvider', function($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider,$sceDelegateProvider) {
         $locationProvider.html5Mode(true);
+        $sceDelegateProvider.resourceUrlWhitelist(['self', 'https://www.youtube.com/**']);
         $urlRouterProvider.otherwise('/404');
         $stateProvider
             .state('app', {
@@ -69,6 +72,10 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
             .state('app.help', {
                 url: '/help',
                 templateUrl: 'components/help/help.html'
+            })
+            .state('app.blog', {
+                url: '/blog',
+                templateUrl: 'components/blog.html'
             })
             //forum stuff
             .state('app.forum', {
@@ -97,8 +104,12 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
                 abstract: true,
                 templateUrl: 'components/layout/simp.html'
             })
-            .state('appSimp.login', {
+            .state('appSimp.home', {
                 url: '/',
+                templateUrl: 'components/home.html'
+            })
+            .state('appSimp.login', {
+                url: '/login',
                 templateUrl: 'components/login.html'
             })
             .state('appSimp.register', {
