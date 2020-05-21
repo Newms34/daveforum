@@ -58,7 +58,7 @@
                                 <img src="{{blg.media.url}}" alt="Post image" ng-if='includesFormat("img",blg.media.mediaType)'>
                                 <iframe ng-if='blg.media.mediaType=="youtube"' class='yt-vid' ng-src="{{getYoutubeUrl(blg.media.url)}}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                                 <!-- if no media -->
-                                <div ng-show='!blg.media || !blg.media.mediaType'>
+                                <div ng-show='!blg.media || !blg.media.mediaType || blg.media.mediaType=="none"'>
                                     <br>
                                     <div class='has-text-grey-lighter'><i class="fa fa-times-circle has-text-danger"></i> No media selected</div>
                                     <br>

@@ -19,7 +19,9 @@ app.controller('home-cont', function ($scope, $http, $state, $sce, imgTypes, vid
         //get more posts. Runs once when page loads, and again when we reach the bottom of the page (infinite scrolling)
         $http.get('/blog/blogs?n=5&s=' + (s || 0))
             .then(r => {
-                $scope.blogs = $scope.blogs.concat(r.data);
+                const allTitles = $scope.blogs.map(q=>q.title);
+                $log.debug(allTitles)
+                $scope.blogs = $scope.blogs.concat(r.data.filter(a=>!allTitles.includes(a.title)));
                 $scope.gettingBlogs = false;
             })
     }
