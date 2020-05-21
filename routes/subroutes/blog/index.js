@@ -34,9 +34,20 @@ const routeExp = function(io) {
        }
     }
 
-    router.get('/blog',(req,res,next)=>{
-        mongoose.model('blog').find({},(err,blgs)=>{
+    router.get('/blogs',(req,res,next)=>{
+        const lim = !isNaN(Number(req.query.n))?Number(req.query.n):10,
+        fo = {};
+        if(req.query.s && Number(req.query.s)>0){
+            fo.timeCreated={$lt:req.query.s}
+        }
+        mongoose.model('blog').find(fo).sort({'timeCreated':-1}).limit(lim).exec((err,blgs)=>{
             res.send(blgs);
+        })
+    })
+    router.get('/blog', this.authbit, (req,res,next)=>{
+        //get single blog by id
+        mongoose.model('blog').findOne({pid:req.query.pid},(err,blg)=>{
+            res.send(blg);
         })
     })
     router.post('/blog',this.authbit,this.checkBody(this.blogParams),(req,res,next)=>{

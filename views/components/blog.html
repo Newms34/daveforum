@@ -5,9 +5,13 @@
             <div class="notification has-background-grey-dark has-text-white is-size-4">
                 <i class="fa fa-pencil"></i>&nbsp;Blog Editor
             </div>
-            <div class="message blog-post">
-                <div class="message-header is-size-5">Blog Instructions</div>
-                <div class="message-body">
+            <div class="message blog-post" style='min-height: 0; position:fixed;z-index:99;right:5px;top:90px'>
+                <div class="message-header is-size-5 has-background-grey">Blog Instructions&nbsp;
+                    <button class="button is-small is-info is-pulled-right" ng-click='hideInst = !hideInst'>
+                        <i class="fa fa-{{hideInst?'eye':'minus'}}"></i>
+                    </button>
+                </div>
+                <div class="message-body" ng-if='!hideInst'>
                     <div class="is-fullwidth has-background-grey-darker has-text-centered" ng-show='!!blgInst.media && !!blgInst.media.mediaType'>
                         <video controls loop class='blog-vid'>
                             <source src='{{blgInst.media.url}}' type='video/{{blgInst.media.mediaType}}'>
@@ -17,6 +21,35 @@
                     <div class="blog-text" ng-bind-html="blgInst.txtHtml"></div>
                 </div>
             </div>
+            <div class="notification is-dark is-fullwidth columns no-bottom-marg">
+                <div class="column is-half">
+                    <div class="message">
+                        <div class="message-header has-text-centered has-background-grey">Edit Post</div>
+                        <div class="message-body">
+                            <p class="select is-fullwidth">
+                                <select ng-model='candBlg' ng-options='bl as (bl.title+" - "+toDate(bl.timeCreated)) for bl in postList'>
+                                    <option value="" selected disabled>--Pick a blog entry--</option>
+                                </select>
+                            </p>
+                            <hr>
+                            <div class="is-fullwidth has-text-centered">
+                                <button class="button is-info is-large" ng-click='verifyBlgCh(candBlg)' ng-disabled='waitings.changeBlg'><i class="fa fa-hand-pointer-o"></i>&nbsp;Select post</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="column is-half">
+                    <div class="message">
+                        <div class="message-header has-text-centered has-background-grey">New Post</div>
+                        <div class="message-body">
+                            <i>Create a new, blank blog post</i><hr>
+                            <div class="is-fullwidth has-text-centered">
+                                <button class="button is-info is-large" ng-disabled='waitings.changeBlg' ng-click='verifyBlgCh()'><i class="fa fa-pencil-square-o"></i>&nbsp;Create new post</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="message blog-post">
                 <div class="message-header is-size-5">
                     <span ng-if='!edit.title' class='is-fullwidth'>{{currBlg.title||"Post at "+currBlg.timeSimp}}<button class="button is-info is-edit-btn is-pulled-right" ng-click='edit.title=true'><i class="fa fa-pencil"></i>&nbsp;Edit</button></span>
@@ -24,11 +57,11 @@
 
                 </div>
                 <div class="message-body">
-                    <div class="is-fullwidth" title='This is the internal ID of your post. It is not editable.'>Post ID: {{currBlg.pid}}</div>
+                    <div class="is-fullwidth" ng-if='currBlg.pid' title='This is the internal ID of your post. It is not editable.'>Post ID: {{currBlg.pid||'(Will be created on save)'}}</div>
                     <hr>
-                    <div class="is-fullwidth has-background-grey-darker has-text-centered">
+                    <div class="is-fullwidth has-background-grey-darker" style='min-height: 50px;'>
                         <div ng-show='!edit.media'>
-                            <button class="button is-info is-edit-btn is-pulled-right" ng-click='edit.media=true'><i class="fa fa-pencil"></i>&nbsp;Edit</button>
+                            <span class='has-text-white is-size-5'>Media: </span><button class="button is-info is-edit-btn is-pulled-right" ng-click='edit.media=true;'><i class="fa fa-pencil"></i>&nbsp;Edit</button>
                             <!-- if we have media... -->
                             <video controls loop class='blog-vid' ng-if='includesFormat("vid",currBlg.media.mediaType)'>
                                 <source src='{{currBlg.media.url}}' type='video/{{currBlg.media.mediaType}}'>
@@ -38,7 +71,7 @@
                             <!-- if no media -->
                             <div ng-show='!currBlg.media || !currBlg.media.mediaType'>
                                 <br>
-                                <div><i class="fa fa-times-circle has-text-danger"></i> No media selected</div>
+                                <div class='has-text-grey-lighter'><i class="fa fa-times-circle has-text-danger"></i> No media selected</div>
                                 <br>
                             </div>
                         </div>
@@ -51,22 +84,26 @@
                                         <div class="panel-heading has-background-info has-text-white has-text-weight-bold is-size-4">Media controls</div>
                                         <div class="panel-block has-background-grey-lighter has-text-dark">
                                             <div class='has-background-white' style='padding:4px'>
-                                                <div class="is-fullwidth has-text-weight-bold is-size-5">Pick a media type: </div>
+                                                <div class="is-fullwidth has-text-weight-bold is-size-5">Do you wanna include media (image, video, or youtube)?: </div>
                                                 <div class="control">
                                                     <label class="radio">
-                                                        <input type="radio" ng-model='mediaEdit.mediaType' value='youtube' name="mediaType">
-                                                        <i class="fa fa-check"></i>&nbsp;Include media
+                                                        <input type="radio" ng-model='edit.hasMedia' ng-value='true' name="mediaType">
+                                                        <i class="fa fa-check"></i>&nbsp;Yes, include media
                                                     </label><br>
-                                                    
+
                                                     <label class="radio">
-                                                        <input type="radio" ng-model='mediaEdit.mediaType' value='none' name="mediaType">
-                                                        <i class="fa fa-times"></i>&nbsp;No media
+                                                        <input type="radio" ng-model='edit.hasMedia' ng-value='false' name="mediaType">
+                                                        <i class="fa fa-times"></i>&nbsp;No, don't include media
                                                     </label>
                                                 </div>
+                                            </div><br>
+                                            <div class='has-background-white has-text-centered' style='padding:4px' ng-show='!edit.hasMedia'>
+                                                <div class="is-fullwidth is-size-5 has-text-grey">(Your post will not include media)</div>
                                             </div>
-                                            <div class='has-background-white' style='padding:4px'>
-                                                <div class="is-fullwidth is-size-5 has-text-grey-lighter">(Your)</div>
+                                            <div class='has-background-white has-text-centered' style='padding:4px' ng-show='edit.hasMedia'>
+                                                <input type="text" class='input' ng-model='currBlg.media.url' placeholder="Input media URL, YouTube URL, or YouTube video ID">
                                             </div>
+                                            <button class="button is-info" ng-click='changeMedia()'><i class="fa fa-eye"></i>&nbsp;Inspect/Submit</button>
                                         </div>
                                     </div>
                                 </div>
@@ -78,14 +115,14 @@
                         <button class="button is-info is-edit-btn is-pulled-right" ng-show='!edit.body' ng-click='edit.body = true'>
                             <i class="fa fa-pencil"></i> &nbsp;Edit
                         </button>
-                        <div class="content blog-text has-border" ng-bind-html="parseMd(currBlg.txtMd)" ng-click='edit.body = true' ng-show='!edit.body'></div>
+                        <div class="content blog-text has-border" ng-bind-html="parseMd(currBlg.txtMd)" ng-show='!edit.body'></div>
                         <button class="button is-info is-edit-btn is-pulled-right" ng-show='edit.body' ng-click='edit.body = false'>
                             <i class="fa fa-check"></i> &nbsp;Done
                         </button>
                         <textarea class="blog-text edit-text" ng-model="currBlg.txtMd" ng-show='edit.body'></textarea>
                     </div>
                     <div class="is-fullwidth has-text-centered">
-                        <button class="button is-info is-large"><i class="fa fa-check"></i>&nbsp;Save blog post</button>
+                        <button class="button is-info is-large" ng-click='saveBlog(currBlg)'><i class="fa fa-save"></i>&nbsp;Save blog post</button>
                     </div>
                 </div>
             </div>

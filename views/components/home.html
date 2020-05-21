@@ -26,7 +26,9 @@
                 <br>
                 <div class="notification is-dark is-size-2 is-italic">
                     <img src="./img/icons/android-icon-144x144.png" alt="" style='vertical-align: middle;'>&nbsp;Welcome to Brethren [PAIN]!</div>
-                <div class="message blog-post" ng-repeat='blg in blogs'>
+
+                <!-- blog list -->
+                <!-- <div class="message blog-post" ng-repeat='blg in blogs'>
                     <div class="message-header is-size-5">{{blg.title||"Post at "+blg.timeSimp}}</div>
                     <div class="message-body">
                         <div class="is-fullwidth has-background-grey-darker has-text-centered" ng-show='blg.vid'>
@@ -37,7 +39,41 @@
                         <hr>
                         <div class="blog-text" ng-bind-html="blg.txt"></div>
                     </div>
+                </div> -->
+
+                <div class="message blog-post" ng-repeat='blg in blogs'>
+                    <div class="message-header is-size-5">
+                        {{blg.title||"Untitled Post"}}    
+                    </div>
+                    <div class="message-body">
+                        <div class="is-size-7">Created:&nbsp;{{toDate(blg.timeCreated)}}<span ng-if='blg.timeCreated!=blg.time'>, Edited:&nbsp;{{toDate(blg.time)}}</span></div>
+                        <hr>
+                        <div class="is-fullwidth has-background-grey-darker" style='min-height: 50px;'>
+                            <div>
+                                <span class='has-text-white is-size-5'>Media: </span>
+                                <!-- if we have media... -->
+                                <video controls loop class='blog-vid' ng-if='includesFormat("vid",blg.media.mediaType)'>
+                                    <source src='{{blg.media.url}}' type='video/{{blg.media.mediaType}}'>
+                                </video>
+                                <img src="{{blg.media.url}}" alt="Post image" ng-if='includesFormat("img",blg.media.mediaType)'>
+                                <iframe ng-if='blg.media.mediaType=="youtube"' class='yt-vid' ng-src="{{getYoutubeUrl(blg.media.url)}}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                <!-- if no media -->
+                                <div ng-show='!blg.media || !blg.media.mediaType'>
+                                    <br>
+                                    <div class='has-text-grey-lighter'><i class="fa fa-times-circle has-text-danger"></i> No media selected</div>
+                                    <br>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div>
+                            <div class="content blog-text has-border" ng-bind-html="blg.txtHtml"></div>
+                        </div>
+                    </div>
                 </div>
+
+
+                <!-- default blog if no blog loaded -->
                 <div class="message blog-post" ng-show='!blogs || !blogs.length'>
                     <div class="message-header is-size-5">{{defBlg.title}}</div>
                     <div class="message-body">

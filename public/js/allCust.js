@@ -32,7 +32,7 @@ const dcRedirect = ['$location', '$q', '$injector', function($location, $q, $inj
             return result;
         },
         responseError: function(response) {
-            console.log('Something bad happened!', response,currLoc, $location.path())
+            // console.log('Something bad happened!', response,currLoc, $location.path())
             hadDirect = true;
             bulmabox.alert(`App Restarting`, `Hi! I've made some sort of change just now to make this app more awesome! Unfortunately, this also means I've needed to restart it. I'm gonna log you out now.`, function(r) {
                 fetch('/user/logout')
@@ -273,6 +273,9 @@ String.prototype.titleCase = function() {
     return this.split(/\s/).map(t => t.slice(0, 1).toUpperCase() + t.slice(1).toLowerCase()).join(' ');
 }
 
+Object.prototype.copy = function(){
+    return JSON.parse(JSON.stringify(this));
+}
 const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
     // We create an image to receive the Data URI
     const img = document.createElement('img');
@@ -1223,49 +1226,162 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
             return `${theDate.toLocaleDateString()} ${theDate.getHours() % 12}:${theDate.getMinutes().toString().length < 2 ? '0' + theDate.getMinutes() : theDate.getMinutes()} ${theDate.getHours() < 13 ? 'AM' : 'PM'}`;
         };
     })
-const conv = new showdown.Converter();
-app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg) => {
+const conv = new showdown.Converter(),
+    ytu = ['http://www.youtube.com/watch?v=&lt;VIDEO-CODE&gt;', 'http://www.youtube.com/v/&lt;VIDEO-CODE&gt;', 'http://youtu.be/&lt;VIDEO-CODE&gt;', 'https://www.youtube.com/embed/&lt;VIDEO-CODE&gt;', '&lt;VIDEO-CODE&gt;'];
+app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$log) => {
     $scope.postList = null;
     $scope.getAllPosts = (id) => {
-        $http.get('/blog/blog').then(r => {
+        $http.get('/blog/blogs').then(r => {
             $scope.postList = r.data.sort((a, b) => {
                 return a.time - b.time;
             });
-            $scope.currBlg = id ? $scope.postList.find(q => q.pid == id) : $scope.postList[0];
-            console.log('ALL POSTS', $scope.postList, 'SELECTED POST', $scope.currBlg)
+            //either select the most recent blog (if none was previously selected) or the previously selected blog.
+            $scope.currBlg = (id ? $scope.postList.find(q => q.pid == id) : $scope.postList[0]).copy();
+            $log.debug('ALL POSTS', $scope.postList, 'SELECTED POST', $scope.currBlg)
         })
     }
-    // console.log('imgTypes are',imgTypes)
+    $scope.getAllPosts();
+    $scope.toDate = t => new Date(t).toLocaleString();
+    // $log.debug('imgTypes are',imgTypes)
     $scope.includesFormat = (which, format) => {
         return (which == 'vid' && vidTypes.includes(format)) || (which == 'img' && imgTypes.includes(format));
     }
     $scope.getYoutubeUrl = id => {
         return $sce.trustAsResourceUrl(`https://www.youtube.com/embed/${id}?controls=0`);
     }
-    $scope.edit = {};
+    $scope.edit = {
+        hasMedia: false
+    };
     $scope.mediaEdit = {};
-    $scope.getAllPosts();
     $scope.blgInst = defBlg;
     $scope.parseMd = t => {
         return conv && conv.makeHtml && conv.makeHtml(t) && conv.makeHtml(t).replace(/\[&amp;D[\w+/]+=*\]/g, `<span class='build-code' onclick='angular.element(this).scope().inspectCode(this);' title= 'inspect this build!'>$&</span>`) || '';
     }
-    function validateYouTubeUrl(url) {
-        if (url != undefined || url != '') {
-            var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\?v=)([^#\&\?]*).*/;
-            var match = url.match(regExp);
-            if (match && match[2].length == 11) {
-                // Do anything for being valid
-                console.log()
+    $scope.hideInst = true;
+    $scope.changeMedia = function () {
+        // $log.debug('New media is:',$scope.getMediaInfo($scope.currBlg.media.url))
+        $scope.getMediaInfo($scope.currBlg.media.url).then(r => {
+            $scope.currBlg.media = r.copy();
+            $scope.edit.media = false;
+            $scope.$digest();
+        });
+    }
+    $scope.getMediaInfo = function (u) {
+        return new Promise(function (resolve, reject) {
+            const p = /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
+            $log.debug('at top of promise, url is', u)
+            if (u.match(p)) {
+                //valid youtube URL; just return
+                return resolve({
+                    mediaType: 'youtube',
+                    url: RegExp.$1
+                })
+            } else if (`https://youtu.be/${u}`.match(p)) {
+                return resolve({
+                    mediaType: 'youtube',
+                    url: u
+                })
             }
-            else {
-                // Do anything for not being valid
-            }
+            //test https://i.imgur.com/Q5Kd08U.png
+            $http.get(u).then(r => {
+                const ct = r.headers()['content-type'].split('/');
+                $log.debug(r, r.headers(), ct)
+                if (!imgTypes.includes(ct[1]) && !vidTypes.includes(ct[1].split(';')[0])) {
+                    bulmabox.alert('Unsupported File Type', `Sorry, but we don't currently support that file type (we think it's ${ct[1]}).<br/>
+                    Supported file types are:<br/>
+                    <div class='content columns'>
+                        <div class='column'>
+                            <strong><i class='fa fa-picture-o'></i>&nbsp;Images:</strong>
+                            <ul>
+                                ${imgTypes.map(q => "<li>." + q.toUpperCase() + "</li>").join('')}
+                            </ul>
+                        </div>
+                        <div class='column'>
+                            <strong><i class='fa fa-video-camera'></i>&nbsp;Videos:</strong>
+                            <ul>
+                                ${vidTypes.map(q => "<li>." + q.toUpperCase() + "</li>").join('')}
+                            </ul>
+                            <br/>
+                            <strong><i class='fa fa-youtube-square'></i>&nbsp;Youtube:</strong>
+                            <ul>
+                                ${ytu.map(q => "<li>" + q + "</li>").join('')}
+                            </ul>
+                        </div>
+                    </div>`)
+                    return reject(false)
+                }
+                return resolve({
+                    mediaType: ct[1],
+                    url: u
+                })
+            }, e => {
+                //cannot read external file. This is (sort of!) fine, as it means we wouldn't be able to load it in a blogpost anyway!
+                bulmabox.alert('Cannot Read', `<div class='content'>Sorry, but we can't read that external file. Check to make sure:
+                <ul>
+                <li>The file actually exists at the specified location (i.e., you spelled the URL correctly)</li>
+                <li>The file is publically available (i.e., does not require authorization or something)</li>
+                <li>The file is not protected by Cross-Origin Resource Sharing protocols, aka the stupidest idea anyone on the internet ever came up with (<a href='https://en.wikipedia.org/wiki/Cross-origin_resource_sharing'>here</a>).</li>
+                </ul>
+                </div>`)
+                return reject(false);
+            })
+        })
+    }
+    $scope.waitings = {
+
+    }
+    $scope.emptyBlog = {
+        title: 'Enter a title',
+        pid: null,
+        txtMd: 'Tell us something!',
+        media: {
+            url: '',
+            mediaType: null,
         }
     }
-    // OR
-    $scope.getYtId = u => {
-        const p = /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
-        return (u.match(p)) ? RegExp.$1 : false;
+    $scope.verifyBlgCh = hasEdit => {
+        $scope.waitings.changeBlg = true;
+        $log.debug('CurrBlg?',$scope.currBlg,'hasEdit',hasEdit)
+        if ($scope.currBlg) {
+            $http.get('/blog/blog?pid=' + $scope.currBlg.pid)
+                .then(r => {
+                    //now compare this "saved" blog to our current currBlg
+                    if (r.data && [r.data.title != $scope.currBlg.title, r.data.media.mediaType != $scope.currBlg.media.mediaType, r.data.media.url != $scope.currBlg.media.url, r.data.txtMd != $scope.currBlg.txtMd].filter(q => !!q).length) {
+                        bulmabox.confirm('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Discard changes', `The blog post ${$scope.currBlg.title} has been modified. Switching blogs posts now will discard those changes. Switch anyway?`, r => {
+                            if (!!r) {
+                                $log.debug('current blog was changed. Said yes to discard; discarding and changing')
+                                $scope.currBlg = hasEdit? hasEdit.copy():$scope.emptyBlog.copy();
+                            }
+                            else {
+                                $scope.candBlg = '';
+                            }
+                            $scope.waitings.changeBlg = false;
+                            $scope.$digest();
+                        })
+                    } else {
+                        //no changes
+                        $scope.currBlg = hasEdit? hasEdit.copy():$scope.emptyBlog.copy();
+                        $scope.waitings.changeBlg = false;
+                    }
+                })
+        }
+    }
+    $scope.saveBlog = b=>{
+        //first, decide whether POST (new blog) or PUT (edit blog)
+        let saveMeth;
+        if(b.pid){
+            saveMeth = 'PUT'
+        }else{
+            saveMeth = 'POST'
+        }
+        b.txtHtml = $scope.parseMd(b.txtMd);
+        $http({
+            method:saveMeth,
+            url:'/blog/blog',
+            data:b
+        }).then(r=>{
+            bulmabox.alert('Saved!','Your post has been saved!')
+        })
     }
 })
 app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
@@ -1566,10 +1682,10 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
     };
     
 })
-app.controller('home-cont', function ($scope, $http, $state, $sce, imgTypes,vidTypes,defBlg) {
+app.controller('home-cont', function ($scope, $http, $state, $sce, imgTypes, vidTypes, defBlg,$log) {
     $http.get('/user/memberCount').then(r => {
         $scope.memberCount = { counts: r.data, types: Object.keys(r.data) };
-        console.log('MEMBERS',$scope.memberCount)
+        $log.debug('MEMBERS', $scope.memberCount)
         $scope.currMems = 0;
         setInterval(function () {
             document.querySelector('#fadey-count').classList.add('fader-on')
@@ -1582,13 +1698,61 @@ app.controller('home-cont', function ($scope, $http, $state, $sce, imgTypes,vidT
     })
     $scope.defBlg = defBlg;
     $scope.currVid = null;
-    $scope.getPosts = ()=>{
+    $scope.blogs = []
+    $scope.getPosts = s => {
         //get more posts. Runs once when page loads, and again when we reach the bottom of the page (infinite scrolling)
+        $http.get('/blog/blogs?n=5&s=' + (s || 0))
+            .then(r => {
+                $scope.blogs = $scope.blogs.concat(r.data);
+                $scope.gettingBlogs = false;
+            })
     }
+    $scope.getPosts();
+
+    $scope.includesFormat = (which, format) => {
+        return (which == 'vid' && vidTypes.includes(format)) || (which == 'img' && imgTypes.includes(format));
+    }
+    $scope.getYoutubeUrl = id => {
+        return $sce.trustAsResourceUrl(`https://www.youtube.com/embed/${id}?controls=0`);
+    }
+    $scope.toDate = t => new Date(t).toLocaleString();
+    //detect scroll to bottom
+    //below taken from http://www.howtocreate.co.uk/tutorials/javascript/browserwindow
+    function getScrollXY() {
+        if (typeof (window.pageYOffset) == 'number') {
+            //Netscape compliant
+            return window.pageYOffset;
+        } else if (document.body && (document.body.scrollLeft || document.body.scrollTop)) {
+            //DOM compliant
+            return document.body.scrollTop;
+        } else if (document.documentElement && (document.documentElement.scrollLeft || document.documentElement.scrollTop)) {
+            //IE6 standards compliant mode
+            return document.documentElement.scrollTop;
+        }
+    }
+
+    //taken from http://james.padolsey.com/javascript/get-document-height-cross-browser/
+    function getDocHeight() {
+        var D = document;
+        return Math.max(
+            D.body.scrollHeight, D.documentElement.scrollHeight,
+            D.body.offsetHeight, D.documentElement.offsetHeight,
+            D.body.clientHeight, D.documentElement.clientHeight
+        );
+    }
+
+    document.addEventListener("scroll", function (event) {
+        // $log.debug(getDocHeight(),getScrollXY(),window.innerHeight)
+        if (getDocHeight() <= getScrollXY() + window.innerHeight + 50 && !$scope.gettingBlogs) {
+            $log.debug("BOTTOMED");
+            $scope.gettingBlogs=true;
+            $scope.getPosts($scope.blogs[$scope.blogs.length-1].time);
+        }
+    });
     //to login page
-    $scope.goLogin = function(){
+    $scope.goLogin = function () {
         $state.go('appSimp.login');
-    } 
+    }
 })
 app.controller('inbox-cont',function($scope,$http,userFact){
 	$scope.currMsg = 0;

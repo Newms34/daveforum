@@ -576,3 +576,8 @@ $races: Asura Charr Human Norn Sylvari;
 .is-two-thirds-width{
     width:66%;
 }
+.no-bottom-marg{
+    & .column{
+        margin-bottom:0;
+    }
+}

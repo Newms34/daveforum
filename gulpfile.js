@@ -150,21 +150,25 @@ gulp.task('scripts', function () {
         .pipe(gulp.dest('public/js'))
         .pipe(babel({
             presets: [
-                [
-                    "@babel/preset-env"
-                ]
+                ["@babel/preset-env",{
+                    "targets": {
+                      "browsers": ["last 2 Chrome versions"]
+                    }
+                  }]
             ],
-
             plugins: ['angularjs-annotate']
         }))
-        /* ,
+        /* 
+        ["@babel/plugin-transform-runtime", {
+                "regenerator": true
+              }]
+              //-----
+              ,
                     {
-                        useBuiltIns: "usage",
-                        corejs: 2,
-                        targets: {
-                            firefox: "64", // or whatever target to choose .    
-                        },
-                    } */
+                        'useBuiltIns':'usage',
+                        'corejs':2
+                    }
+        */
         .pipe(terser())
         .pipe(th2.obj((file, enc, cb) => {
             // console.log('FILE IS',file._contents.toString('utf8'),'ENC',enc,'CB',cb);
@@ -178,6 +182,53 @@ gulp.task('scripts', function () {
         .pipe(rename('all.min.js'))
         .pipe(gulp.dest('public/js'));
 });
+const rollup = require ('gulp-rollup')
+
+gulp.task('bundle', function() {
+    let alreadyRan = false;
+    return gulp.src(['build/js/*.js', 'build/js/**/*.js'])
+        .pipe(th2.obj((file, enc, cb) => {
+            if (!alreadyRan) {
+                drawTitle('Front-End Script Concatenation, Minification, and Uglification');
+                alreadyRan = true;
+            }
+            // jsStart = file._contents.toString('utf8').length;
+            return cb(null, file);
+        }))
+        .pipe(concat('allCust.js'))
+        .pipe(th2.obj((file, enc, cb) => {
+            // console.log('FILE IS',file._contents.toString('utf8'),'ENC',enc,'CB',cb);
+            jsStart = file._contents.toString('utf8').length;
+            return cb(null, file);
+        }))
+        .pipe(gulp.dest('public/js'))
+        .pipe(rollup({
+            // any option supported by Rollup can be set here.
+            "format": "iife",
+            "plugins": [
+              require("rollup-plugin-babel")({
+                "presets": [["@babel/preset-env", { "modules": false }]],
+                "plugins": ["@babel/external-helpers","angularjs-annotate"]
+              })
+            ],
+            entry: './public/js/allCust.js'
+          }))
+        .pipe(terser())
+        .pipe(th2.obj((file, enc, cb) => {
+            // console.log('FILE IS',file._contents.toString('utf8'),'ENC',enc,'CB',cb);
+            let jsEnd = file._contents.toString('utf8').length,
+                jsRedPerc = Math.floor(10000 * (jsStart - jsEnd) / jsStart) / 100;
+            console.log('JS reduced from', jsStart, 'to', jsEnd + '. Reduction of', jsRedPerc + '%.')
+            return cb(null, file);
+        }))
+        .pipe(addSrc.prepend(['build/libs/*.js', 'build/libs/**/*.js']))
+        .pipe(concat('all.js'))
+        .pipe(rename('all.min.js'))
+        .pipe(gulp.dest('public/js'));
+  });
+
+
+
 gulp.task('checkDB', function () {
     // let alreadyRan = false;
     return new Promise(function (resolve, reject) {

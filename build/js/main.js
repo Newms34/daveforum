@@ -29,7 +29,7 @@ const dcRedirect = ['$location', '$q', '$injector', function($location, $q, $inj
             return result;
         },
         responseError: function(response) {
-            console.log('Something bad happened!', response,currLoc, $location.path())
+            // console.log('Something bad happened!', response,currLoc, $location.path())
             hadDirect = true;
             bulmabox.alert(`App Restarting`, `Hi! I've made some sort of change just now to make this app more awesome! Unfortunately, this also means I've needed to restart it. I'm gonna log you out now.`, function(r) {
                 fetch('/user/logout')
@@ -270,6 +270,9 @@ String.prototype.titleCase = function() {
     return this.split(/\s/).map(t => t.slice(0, 1).toUpperCase() + t.slice(1).toLowerCase()).join(' ');
 }
 
+Object.prototype.copy = function(){
+    return JSON.parse(JSON.stringify(this));
+}
 const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
     // We create an image to receive the Data URI
     const img = document.createElement('img');
