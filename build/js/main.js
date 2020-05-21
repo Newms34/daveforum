@@ -50,7 +50,6 @@ app.constant('defBlg',{
     txtHtml: `
     <p class='is-italic'>Just looking for the regular [PAIN] website? Click Sign up/Login up above!</p><br>
     <p>Welcome to Brethren[Pain]!<br>
-    Unfortunately, no one has <em>yet</em> posted any blog entries (or Healy broke the website).<hr>
     Moderators: This platform supports a format known as Markdown. Some basic formatting tricks:</p>
     <table class="table table-striped table-bordered">
     <thead>
@@ -99,8 +98,7 @@ app.constant('defBlg',{
     </tbody>
     </table>
     <p>You can also include optional media (a youtube video, a picture, etc.) using the provided fields</p>`,
-    txtMd:`Welcome to Brethren[Pain]! 
-    Unfortunately, no one has *yet* posted any blog entries. 
+    txtMd:`Welcome to Brethren[Pain]!
     Moderators: This platform supports a format known as Markdown. Some basic formatting tricks:
     |**Code**|**Action**|**Example/Notes**|
     |---|---|---|
