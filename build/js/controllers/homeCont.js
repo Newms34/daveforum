@@ -1,4 +1,4 @@
-app.controller('home-cont', function ($scope, $http, $state, $sce, imgTypes, vidTypes, defBlg,$log) {
+app.controller('home-cont', function ($scope, $http, $state, $sce, imgTypes, vidTypes, defBlg,$log,$compile) {
     $http.get('/user/memberCount').then(r => {
         $scope.memberCount = { counts: r.data, types: Object.keys(r.data) };
         $log.debug('MEMBERS', $scope.memberCount)
@@ -14,7 +14,7 @@ app.controller('home-cont', function ($scope, $http, $state, $sce, imgTypes, vid
     })
     $scope.defBlg = defBlg;
     $scope.currVid = null;
-    $scope.blogs = []
+    $scope.blogs = [];
     $scope.getPosts = s => {
         //get more posts. Runs once when page loads, and again when we reach the bottom of the page (infinite scrolling)
         $http.get('/blog/blogs?n=5&s=' + (s || 0))

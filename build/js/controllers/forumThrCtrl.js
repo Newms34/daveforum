@@ -55,9 +55,10 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
             bulmabox.alert('Say Something', `You can't just post nothing!`);
             return false;
         }
+        // return console.log(new showdown.Converter().makeHtml(theText).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`))
         $http.post('/forum/newPost', {
             thread: $scope.thr._id,
-            text: new showdown.Converter().makeHtml(theText).replace(/\[&amp;D[\w+/]+=*\]/g, `<span class='build-code' onclick='angular.element(this).scope().inspectCode(this);' title= 'inspect this build!'>$&</span>`),
+            text: new showdown.Converter().makeHtml(theText).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`),
             md: theText,
             file: $scope.fileread || null
         })
@@ -77,67 +78,6 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
                 $scope.refThred();
             })
     }
-    //build template stuff START
-    $scope.inspectCode = (c) => {
-        $http.get('/tool/build?build=' + encodeURIComponent(c.innerText.replace('&amp;', '&'))).then(r => {
-            $scope.currBuild.data = r.data;
-            $scope.currBuild.whichSkill = 0;//for rev, mainly
-            // $scope.currBuild.data.skillList = [];
-        })
-    }
-    $scope.noBuild = s => {
-        $scope.currBuild.data = null;
-    }
-    $scope.copyCode = c => {
-        console.log('attempting to copy', c)
-        prompt("Press ctrl-c (cmd-c on Mac) to copy this code!", c.parentNode.querySelector('.build-code').innerText);
-    }
-    $scope.infoBox = {
-        x: 0,
-        y: 0,
-        data: null
-    }
-    $scope.skillBox = {
-        x: 0,
-        y: 0,
-        on: false,
-        data: {
-        }
-    }
-    $scope.explTrait = (t, e, m) => {
-        $scope.infoBox.x = e.screenX;
-        $scope.infoBox.y = e.screenY - 50;
-        if (t) {
-            $scope.infoBox.data = `<div class='is-fullwidth ${t.picked || m ? 'has-text-white' : 'has-text-grey'}'>
-            <div class='is-fullwidth is-size-5 has-text-centered'>${t.name}</div>
-            <p>${t.desc}</p>
-            </div>`;
-        } else {
-            $scope.infoBox.data = null;
-        }
-    }
-    $scope.explSkill = (s, e, m) => {
-        $scope.skillBox.x = e.screenX;
-        $scope.skillBox.y = e.screenY - 50;
-        if (s) {
-            $scope.skillBox.data = s;
-            const allUsedTraits = $scope.currBuild.data.specs.map(q => q.usedTraits).flat();
-            $scope.skillBox.data.realFacts = s.facts.map((sk, n) => {
-                const replaceTrait = s.traited_facts && s.traited_facts.find(q => q.overrides == n);//if truthy, there DOES exist a replacement fact
-                if (!!replaceTrait && allUsedTraits.includes(replaceTrait.requires_trait)) {
-                    sk = { ...JSON.parse(JSON.stringify(sk)), ...replaceTrait, isTraited: true };
-                    console.log('FOUND replacement fact', replaceTrait, 'FOR SKILL', s.name, 'REQUIRED TRAIT', replaceTrait.requires_trait, 'SKILL NOW', sk)
-                    // sk.isTraited = true;
-                }
-                return sk;
-            })
-            console.log('SKILL INFO', s, 'CURR BUILD', $scope.currBuild.data, 'USED TRAITS', allUsedTraits)
-            $scope.skillBox.on = true;
-        } else {
-            $scope.skillBox.on = false;
-        }
-    }
-    //build template stuff END
     $scope.quoteMe = (pst) => {
         document.querySelector('#postTxt').value = pst.md.split('\n').map(q => '>' + q).join('\n');
     }

@@ -18,7 +18,7 @@
                         </video>
                     </div>
                     <hr>
-                    <div class="blog-text" ng-bind-html="blgInst.txtHtml"></div>
+                    <div class="blog-text" bind-html-compile="blgInst.txtHtml"></div>
                 </div>
             </div>
             <div class="notification is-dark is-fullwidth columns no-bottom-marg">
@@ -115,7 +115,7 @@
                         <button class="button is-info is-edit-btn is-pulled-right" ng-show='!edit.body' ng-click='edit.body = true'>
                             <i class="fa fa-pencil"></i> &nbsp;Edit
                         </button>
-                        <div class="content blog-text has-border" ng-bind-html="parseMd(currBlg.txtMd)" ng-show='!edit.body'></div>
+                        <div class="content blog-text has-border" bind-html-compile="parseMd(currBlg.txtMd)" ng-show='!edit.body'></div>
                         <button class="button is-info is-edit-btn is-pulled-right" ng-show='edit.body' ng-click='edit.body = false'>
                             <i class="fa fa-check"></i> &nbsp;Done
                         </button>

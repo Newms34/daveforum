@@ -28,8 +28,98 @@
     <link rel="stylesheet" type="text/css" href="/css/styles.css">
 </head>
 
-<body>
+<body ng-controller='all-cont'>
     <ui-view></ui-view>
+    <div class="build-stuff">
+        <div class="build-box" ng-show='currBuild.data'>
+            <div class="info-row" ng-show='currBuild.data.prof'>
+                <div class="is-fullwidth" ng-show='!currBuild.water'>
+                    <!-- legends & pets:land -->
+                    <div class="level" style='margin-bottom:0' ng-show='currBuild.data.prof=="Ranger"'>
+                        <div class="level-left">
+                            <img src="{{ptl.icon}}" title='{{ptl.name}}' class='leg-icon' ng-repeat='ptl in currBuild.data.pets.land'>
+                        </div>
+                    </div>
+                    <div class="level" style='margin-bottom:0' ng-show='currBuild.data.prof=="Revenant"'>
+                        <div class="level-left">
+                            <img src="{{lgl.icon}}" title='{{lgl.name}}' class='leg-icon' ng-repeat='lgl in currBuild.data.legs.land' ng-click='currBuild.whichSkill=$index;saySkills(currBuild)' ng-class='{"unselected":currBuild.whichSkill!=$index}'>
+                        </div>
+                    </div>
+                </div>
+                <div class="is-fullwidth" ng-show='currBuild.water'>
+                    <!-- legends & pets:water -->
+                    <div class="level" style='margin-bottom:0' ng-show='currBuild.data.prof=="Ranger"'>Hippy!</div>
+                    <div class="level" style='margin-bottom:0' ng-show='currBuild.data.prof=="Revenant"'>
+                        <div class="level-left">
+                            <img src="{{lgw.icon}}" title='{{lgw.name}}' class='leg-icon' ng-repeat='lgw in currBuild.data.legs.water' ng-click='currBuild.whichSkill=$index' ng-class='{"unselected":currBuild.whichSkill!=$index}'>
+                        </div>
+                    </div>
+                </div>
+                <div class="is-fullwidth level" style='padding:5px'>
+                    <div>
+                        <button class="button is-small is-success" title='View land skills' ng-disabled='!currBuild.water' ng-click='currBuild.water=false'><i class="fa fa-tree"></i></button><br>
+                        <button class="button is-small is-info" title='View water skills' ng-disabled='currBuild.water' ng-click='currBuild.water=true'><i class="fa fa-tint"></i></button>
+                    </div>
+                    &nbsp;&nbsp;
+                    <div ng-show='!currBuild.water' class='is-fullwidth'>
+                        <!-- land skills -->
+                        <img class='skill-icon' ng-mousemove='explSkill(ls,$event)' ng-mouseout='explSkill(null,$event)' ng-repeat='ls in currBuild.data.skills.land[currBuild.whichSkill] track by $index' src='{{ls.icon}}' />
+                    </div>
+                    <div ng-show='currBuild.water' class='is-fullwidth'>
+                        <!-- water skills -->
+                        <img class='skill-icon' ng-mousemove='explSkill(ws,$event)' ng-mouseout='explSkill(null,$event)' ng-repeat='ws in currBuild.data.skills.water[currBuild.whichSkill] track by $index' src='{{ws.icon}}' />
+                    </div>
+                    <button class="button is-danger is-small is-pulled-right" ng-click='noBuild()'><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="spec-row" ng-repeat='sp in currBuild.data.specs' style='background-image:linear-gradient(rgba(0, 0, 0, 0.3),rgba(0, 0, 0, 0.3)),url({{sp.spec.bg}});'>
+                <div class="is-fullwidth columns">
+
+                    <div class="column is-one-quarter spec-name-col">
+                        <div class="is-size-5 is-fullwidth has-text-centered has-background-grey-darker has-text-white">{{sp.spec.name}}</div>
+                        <img src="{{sp.spec.icon}}" class='spec-icon'>
+                    </div>
+                    <div class="column is-one-quarter trait-pick-col columns" ng-repeat='ts in sp.traitSlots'>
+                        <!-- {{ts.minor.name}} -->
+                        <div class="column">
+                            <img src="{{ts.minor.icon}}" style="margin-top:50px" ng-mousemove='explTrait(ts.minor,$event,true)' ng-mouseout='explTrait(null,$event,true)'>
+                        </div>
+                        <div class="column">
+                            <div ng-repeat='ms in ts.major' ng-mousemove='explTrait(ms,$event)' ng-mouseout='explTrait(null,$event)'>
+                                <img src="{{ms.icon}}" style='filter:{{ms.picked?"none":"brightness(0.5)"}};' alt="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- <div class="trait-row" style='background:'></div> -->
+            <!-- <div class="trait-row" style='background:'></div> -->
+        </div>
+        <div class="message info-box" style='left:{{infoBox.x}}px; top:{{infoBox.y}}px;' ng-show='infoBox.data' ng-bind-html='infoBox.data'>
+        </div>
+        <div class="message info-box" style='left:{{skillBox.x}}px; top:{{skillBox.y}}px;' ng-show='skillBox.on'>
+            <div class="is-fullwidth is-size-5 is-yella">
+                {{skillBox.data.name}}
+            </div>
+            <div class="is-fullwidth is-size-6">
+                {{skillBox.data.description}}
+            </div>
+            <div class="is-fullwidth is-size-7 skill-fact" ng-repeat='fact in skillBox.data.realFacts' ng-class='{"trait-fact":fact.isTraited}'>
+                <img src="{{fact.icon}}" alt="" class="fact-img">&nbsp;
+                <div class='fact-info'>
+                    <span>{{fact.status||fact.text}}</span>
+                    <span ng-if='fact.duration'> ({{fact.duration}}s)</span>
+                    <span ng-if='fact.type!="Time"'>:</span>
+                    <span ng-if='fact.description'>{{fact.description}}</span>
+                    <span ng-if='fact.value'>{{fact.value}}</span>
+                    <span ng-if='fact.distance'>{{fact.distance}}</span>
+                    <span ng-if='fact.field_type'>{{fact.field_type}}</span>
+                    <span ng-if='fact.percent'>{{fact.percent}}%</span>
+                    <span ng-if='fact.dmg_multiplier'>x {{fact.dmg_multiplier}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="/js/all.min.js"></script>
 </body>
 
