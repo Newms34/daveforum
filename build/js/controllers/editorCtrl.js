@@ -27,7 +27,7 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
     $scope.mediaEdit = {};
     $scope.blgInst = defBlg;
     $scope.parseMd = t => {
-        return conv && conv.makeHtml && conv.makeHtml(t) && conv.makeHtml(t).replace(/\[&amp;D[\w+/]+=*\]/g, `<span class='build-code' onclick='angular.element(this).scope().inspectCode(this);' title= 'inspect this build!'>$&</span>`) || '';
+        return conv && conv.makeHtml && conv.makeHtml(t) && conv.makeHtml(t).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`) || '';
     }
     $scope.hideInst = true;
     $scope.changeMedia = function () {

@@ -14,7 +14,7 @@
                     </div>
                 </div>
                 <div class="column is-four-fifths">
-                    <div ng-bind-html="pst.text" class='post-text'>
+                    <div bind-html-compile="pst.text" class='post-text'>
                     </div>
                     <div class='post-image' ng-if='pst.file && pst.file.length'><img src="{{pst.file}}"></div>
                     <div class='post-buttons'>

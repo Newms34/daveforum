@@ -60,6 +60,8 @@ const routeExp = function(io) {
             delete req.body.time;
             delete req.body.timeCreated;
             delete req.body.pid;
+            req.body.time = Date.now();
+            req.body.timeCreated = Date.now();
             mongoose.model('blog').create(req.body,(errsv,blgsv)=>{
                 console.log('ERR',errsv,'BLOG',blgsv)
                 res.send(blgsv);
