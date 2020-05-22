@@ -6,7 +6,7 @@
  * [Credits](#credits)
 
 ## About:
-This is a forum site. That's all you need to know for now.
+This is a forum web app for a GW2 guild. That's all you need to know for now.
 
 ## Currently Under Development:
 Yes. It is.
