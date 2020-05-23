@@ -31,6 +31,7 @@ app.use(compression());
 store.on('error', function (error) {
     console.log(error);
 });
+dsClient.commands = new Discord.Collection();
 const sesh = session({
     secret: 'ea augusta est et carissima'
 });
@@ -85,12 +86,6 @@ io.on('connection', function (socket) {
         socket.emit('allNames', names)
     }, 500);
     socket.on('hbResp', function (hbr) {
-        //got response from one client
-        // for (let i = 0; i < names.length; i++) {
-        //     if (names[i].name == n.name) {
-        //         names[i].t = Date.now();
-        //     }
-        // }
         names = _.uniqBy(names, 'name').map(q => {
             if (q.name == hbr.name) {
                 q.t = Date.now();
@@ -104,10 +99,8 @@ io.on('connection', function (socket) {
 
     //messaging (for chat!)
     socket.on('chatMsg', function (msgObj) {
-        // console.log('chat message sent! Obj was', msgObj)
         msgObj.time = Date.now();
         // 713528260100620329
-        // dsClient.channels.cache.get('713528260100620329').send(`${msgObj.user} says: ${msgObj.msg}`)
         io.emit('msgOut', msgObj)
     })
     /* dsClient.on('message',m=>{
@@ -127,14 +120,12 @@ dsClient.genBrethrenMsg = function (data, user) {
         .setDescription(data.txtMd)
         .setTimestamp();
     if (data.media && data.media.mediaType && data.media.mediaType == 'youtube') {
-        const p = /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
-        data.media.url.match(p);//note we're essentially discarding this, but it still temporarily "saves" the match!
-        let youtubeId = RegExp.$1;
         //https://img.youtube.com/vi/t3217H8JppI/1.jpg
-        console.log('Setting youtube vids!',youtubeId,`https://img.youtube.com/vi/${youtubeId}/0.jpg`)
-        dmsg.setThumbnail(`https://img.youtube.com/vi/${youtubeId}/1.jpg`)
-        dmsg.setImage(`https://img.youtube.com/vi/${youtubeId}/0.jpg`)
-    }else if(data.media && data.media.mediaType && data.media.mediaType == 'img'){
+        // console.log('Setting youtube vids!',youtubeId,`https://img.youtube.com/vi/${youtubeId}/0.jpg`)
+        dmsg.setThumbnail(`https://img.youtube.com/vi/${data.media.url}/1.jpg`)
+        dmsg.setImage(`https://img.youtube.com/vi/${data.media.url}/0.jpg`)
+        dmsg.setURL('https://www.youtube.com/watch?v=' + data.media.url);
+    } else if (data.media && data.media.mediaType && data.media.mediaType == 'img') {
         dmsg.setThumbnail(data.media.url)
         dmsg.setImage(data.media.url)
     }
@@ -142,6 +133,18 @@ dsClient.genBrethrenMsg = function (data, user) {
 }
 
 dsClient.once('ready', function () {
+    // const commandFiles = fs.readdirSync('./botCommands').filter(file => file.endsWith('.js'));
+    // for (const file of commandFiles) {
+    //     const command = require(`./botCommands/${file}`);
+    //     // set a new item in the Collection
+    //     // with the key as the command name and the value as the exported module
+    //     dsClient.commands.set(command.name, command);
+    // }
+    const allCmds = require('./botCommands/all.js')
+    // console.log(allCmds)
+    allCmds.forEach(c => {
+        dsClient.commands.set(c.name, c)
+    })
     console.log('Discord server started. Starting main server!')
     server.listen(process.env.PORT || 8080);
     server.on('error', function (err) {
@@ -153,6 +156,73 @@ dsClient.once('ready', function () {
     server.on('request', function (req) {
         // console.log(req.url);
     })
+})
+
+function getNameFromMention(mention) {
+    if (!mention) return;
+    if (mention.startsWith('!')) {
+        mention = mention.slice(1);
+    }
+    // console.log('final mention code is', mention,'Users cache is',dsClient.users)
+    return dsClient.users.cache.get(mention).username;
+
+}
+
+dsClient.on('message', message => {
+    const allCmds = Array.from(dsClient.commands.keys()),
+        possCmd = message.content.toLowerCase().split(' '),
+        randoCommands = ['/crossarms'];
+    // console.log('allCmds', allCmds, 'Contents', message.content, 'possCmd', possCmd[0])
+    try{
+        if (possCmd[0] !== '/help' && allCmds.includes(possCmd[0])) {
+            let toArg = !!message.content.match(/@\w+/) && message.content.match(/(?<=@)\w+/)[0];
+            if (Array.from(message.mentions.users).length) {
+                toArg = getNameFromMention(Array.from(message.mentions.users)[0][0])
+            }else if (Array.from(message.mentions.roles).length) {
+                toArg = message.mentions.roles.get(Array.from(message.mentions.roles)[0][0])
+            }
+            const response = dsClient.commands.get(possCmd[0]).execute(message, toArg);
+            // console.log('WOULD SEND', response, 'WITH ARGS', toArg, 'ORIGINAL CONTENT', message.content)
+            message.channel.send(response);
+        } else if (possCmd[0] == '/help') {
+            const cmdList = allCmds.filter(q => q !== '/help').map(q => {
+                let s = q;
+                const toSelf = dsClient.commands.get(q).execute(message, 'self'),
+                toOther = dsClient.commands.get(q).execute(message, 'other'),
+                untarg = dsClient.commands.get(q).execute(message, null);
+                if (!randoCommands.includes(q)) {
+                    if (untarg != toOther) {
+                        s += `, ${q} @target`;
+                    }
+                    if (toOther != toSelf) {
+                        s += `, ${q} @self`
+                    }
+                }
+                return { name: dsClient.commands.get(q).description, value: s, inline: true };
+            })
+            console.log('CMDLIST', cmdList)
+            const helpMsg = new Discord.MessageEmbed()
+            .setColor('#aa3300')
+            .setTitle('Brethren Site Bot')
+            .setDescription('The following commands are available for the Brethren Site Bot (BSB):')
+            .addFields(...cmdList)
+            // .setAuthor(user.user)
+            .setTimestamp();
+            message.channel.send(helpMsg)
+        } else {
+            //nothing for now
+        }
+    }catch(e){
+        message.channel.send(`Sorry, I don't understand what you're trying to do!`)
+    }
+    // if (!client.commands.has(command)) return;
+
+    // try {
+    //     client.commands.get(command).execute(message, args);
+    // } catch (error) {
+    //     console.error(error);
+    //     message.reply('there was an error trying to execute that command!');
+    // }
 })
 dsClient.login(keys.apiCodes.discordBot);
 app.use(function (req, res, next) {

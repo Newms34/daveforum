@@ -1330,7 +1330,7 @@ const conv = new showdown.Converter(),
 app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$log) => {
     $scope.postList = null;
     $scope.getAllPosts = (id) => {
-        $http.get('/blog/blogs').then(r => {
+        $http.get('/blog/allBlogs').then(r => {
             $scope.postList = r.data.sort((a, b) => {
                 return a.time - b.time;
             });
