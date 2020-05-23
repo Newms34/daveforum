@@ -1,10 +1,11 @@
 const express = require('express'),
     router = express.Router(),
+    // Discord = require('discord.js'),
     mongoose = require('mongoose'),
     _ = require('lodash');
 
 
-const routeExp = function(io) {
+const routeExp = function(io,keys,dscrd) {
     // router.post('/uploadFile', upload.any(), (req, res, next) => {
     //     res.send(req.files)
     // })
@@ -44,6 +45,11 @@ const routeExp = function(io) {
             res.send(blgs);
         })
     })
+    router.get('/allBlogs',this.authbit,this.isMod, (req,res,next)=>{
+        mongoose.model('blog').find({}).sort({'timeCreated':-1}).exec((err,blgs)=>{
+            res.send(blgs);
+        })
+    })
     router.get('/blog', this.authbit, (req,res,next)=>{
         //get single blog by id
         mongoose.model('blog').findOne({pid:req.query.pid},(err,blg)=>{
@@ -60,10 +66,16 @@ const routeExp = function(io) {
             delete req.body.time;
             delete req.body.timeCreated;
             delete req.body.pid;
+            req.body.announceToDiscord = !!req.body.announceToDiscord;//ensure bool
+            if(!!req.body.announceToDiscord){
+                const msg = dscrd.genBrethrenMsg(req.body,req.session.user);
+                // console.log(msg)
+                dscrd.channels.cache.get('712152017706942504').send(msg);
+            }
             req.body.time = Date.now();
             req.body.timeCreated = Date.now();
             mongoose.model('blog').create(req.body,(errsv,blgsv)=>{
-                console.log('ERR',errsv,'BLOG',blgsv)
+                // console.log('ERR',errsv,'BLOG',blgsv)
                 res.send(blgsv);
             })
         })
@@ -79,10 +91,17 @@ const routeExp = function(io) {
                     return false;
                 }else if(p == 'time'){
                     pst[p]=Date.now();
+                }else if(p=='announceToDiscord'){
+                    pst[p]== !!req.body.announceToDiscord;//ensure bool
                 }else{
                     pst[p] = req.body[p];
                 }
             })
+            if(!!pst.announceToDiscord){
+                const msg = dscrd.genBrethrenMsg(pst,req.session.user);
+                // console.log(msg)
+                dscrd.channels.cache.get('712152017706942504').send(msg);
+            }
             pst.save((errpp,svpp)=>{
                 res.send(svpp)
             })

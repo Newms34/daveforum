@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router(),
     mongoose = require('mongoose'), models = require('../models/');
 
-module.exports = function(io, pp) {
-    router.use('/user', require('./subroutes/users')(io, pp));
-    router.use('/forum', require('./subroutes/forums')(io, pp));
-    router.use('/tool', require('./subroutes/tools')(io, pp));
-    router.use('/cal', require('./subroutes/cal')(io, pp));
-    router.use('/blog', require('./subroutes/blog')(io, pp));
+module.exports = function(io, keys,dsClient) {
+    router.use('/user', require('./subroutes/users')(io, keys, dsClient));
+    router.use('/forum', require('./subroutes/forums')(io, keys));
+    router.use('/tool', require('./subroutes/tools')(io, keys));
+    router.use('/cal', require('./subroutes/cal')(io, keys));
+    router.use('/blog', require('./subroutes/blog')(io, keys, dsClient));
     // router.get('/reset', function(req, res, next) {
     //     console.log('reset page!')
     //     res.sendFile('reset.html', { root: './views' })

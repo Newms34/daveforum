@@ -535,7 +535,7 @@ Object.defineProperty(Array.prototype, 'chunk', {
 
 let lastPriceCheck = 0;
 
-const routeExp = function (io) {
+const routeExp = function (io,keys) {
     this.authbit = (req, res, next) => {
         if (req.session && req.session.user && req.session.user._id) {
             if (req.session.user.isBanned) {

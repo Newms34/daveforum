@@ -3,33 +3,7 @@ const express = require('express'),
     mongoose = require('mongoose'),
     maxMsgLen = 50,
     fs = require('fs'),
-    axios = require('axios'),
-    keys = fs.existsSync('config.json') ? JSON.parse(fs.readFileSync('config.json', 'utf-8')) : {
-        apiCodes: {
-            guild: process.env.GUILDAPI,
-            usr: process.env.USRAPI
-        }
-    }/* ,
-    authbit = (req, res, next) => {
-        if (req.session && req.session.user && req.session.user._id) {
-            if (req.session.user.isBanned) {
-                res.status(403).send('banned');
-            }
-            next();
-        } else {
-            res.status(401).send('err')
-        }
-    },
-    isMod = (req, res, next) => {
-        mongoose.model('User').findOne({ user: req.session.user.user }, function (err, usr) {
-            if (!err && usr.mod) {
-                next();
-            } else {
-                res.status(403).send('err');
-            }
-        })
-    } */;
-// mongoose.Promise //I can't need this... can i?
+    axios = require('axios');
 
 const datesGood = (d) => {
     if (!d || !d.start || !d.end) {
@@ -40,7 +14,7 @@ const datesGood = (d) => {
     return d.start && d.end && !isNaN(dst) && !isNaN(det) && det > dst;
 }
 
-const routeExp = function (io) {
+const routeExp = function (io,keys) {
     this.authbit = (req, res, next) => {
         if (req.session && req.session.user && req.session.user._id) {
             if (req.session.user.isBanned) {

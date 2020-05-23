@@ -42,7 +42,8 @@
                     <div class="message">
                         <div class="message-header has-text-centered has-background-grey">New Post</div>
                         <div class="message-body">
-                            <i>Create a new, blank blog post</i><hr>
+                            <i>Create a new, blank blog post</i>
+                            <hr>
                             <div class="is-fullwidth has-text-centered">
                                 <button class="button is-info is-large" ng-disabled='waitings.changeBlg' ng-click='verifyBlgCh()'><i class="fa fa-pencil-square-o"></i>&nbsp;Create new post</button>
                             </div>
@@ -59,9 +60,13 @@
                 <div class="message-body">
                     <div class="is-fullwidth" ng-if='currBlg.pid' title='This is the internal ID of your post. It is not editable.'>Post ID: {{currBlg.pid||'(Will be created on save)'}}</div>
                     <hr>
+                    <div class="is-fullwidth">
+                        <label for="announce" class="label" title='Checking this box will post an announcement to Discord™ when you create this post, and every time you update it.'><input type="checkbox" id='announce' ng-model='currBlg.announceToDiscord'> Announce post to Discord™</label>
+                    </div>
+                    <hr>
                     <div class="is-fullwidth has-background-grey-darker" style='min-height: 50px;'>
                         <div ng-show='!edit.media'>
-                            <span class='has-text-white is-size-5'>Media: </span><button class="button is-info is-edit-btn is-pulled-right" ng-click='edit.media=true;'><i class="fa fa-pencil"></i>&nbsp;Edit</button>
+                            <span class='has-text-white is-size-5'> &nbsp;Media: </span><button class="button is-info is-edit-btn is-pulled-right" ng-click='edit.media=true;'><i class="fa fa-pencil"></i>&nbsp;Edit</button>
                             <!-- if we have media... -->
                             <video controls loop class='blog-vid' ng-if='includesFormat("vid",currBlg.media.mediaType)'>
                                 <source src='{{currBlg.media.url}}' type='video/{{currBlg.media.mediaType}}'>
@@ -71,7 +76,7 @@
                             <!-- if no media -->
                             <div ng-show='!currBlg.media || !currBlg.media.mediaType'>
                                 <br>
-                                <div class='has-text-grey-lighter'><i class="fa fa-times-circle has-text-danger"></i> No media selected</div>
+                                <div class='has-text-grey-lighter is-fullwidth has-text-centered'><i class="fa fa-times-circle has-text-danger"></i> No media selected</div>
                                 <br>
                             </div>
                         </div>

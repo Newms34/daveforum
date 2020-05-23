@@ -4,12 +4,6 @@ const router = express.Router(),
     mongoose = require('mongoose'),
     axios = require('axios'),
     fs = require('fs'),
-    keys = fs.existsSync('config.json')?JSON.parse(fs.readFileSync('config.json','utf-8')):{
-        apiCodes:{
-            guild:process.env.GUILDAPI,
-            usr:process.env.USRAPI
-        }
-    },
     // SparkPost = require('sparkpost'),
     isMod = (req, res, next) => {
         mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
@@ -22,7 +16,7 @@ const router = express.Router(),
     };
 mongoose.Promise=Promise;
 // console.log('KEYS ARE',keys)
-const oldUsers = JSON.parse(fs.readFileSync('oldUsers.json', 'utf-8'))
+// const oldUsers = JSON.parse(fs.readFileSync('oldUsers.json', 'utf-8'))
 let sgApi;
 if (fs.existsSync('sparky.json')) {
     sparkyConf = JSON.parse(fs.readFileSync('sparky.json', 'utf-8'));
@@ -42,7 +36,7 @@ const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(sparkyConf.SENDGRID_API);
 
 
-const routeExp = function(io, pp) {
+const routeExp = function(io, keys, dscrd) {
     this.authbit = (req, res, next) => {
         if (req.session && req.session.user && req.session.user._id) {
             if (req.session.user.isBanned) {
@@ -58,7 +52,6 @@ const routeExp = function(io, pp) {
     });
     router.get('/memberCount',(req,res,next)=>{
         //gets the count of brethren members
-        // console.log('kEYS nAoOW',keys)
         axios.get(`https://api.guildwars2.com/v2/guild/${keys.apiCodes.guild}/members?access_token=${keys.apiCodes.usr}`)
         .then(r=>{
             // console.log(r,'MEMBERS!')
