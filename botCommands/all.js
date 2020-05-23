@@ -104,6 +104,17 @@ module.exports = [{
         return (`${message.author.username} laughs at ${args}.`)
     },
 }, {
+    name: '/lb',
+    description: 'Laugh at Build',
+    execute(message, args) {
+        if (!args) {
+            return (`${message.author.username} laughs at some bad builds.`);
+        } else if (args === 'self' || args === 'me') {
+            return (`${message.author.username} laughs at their own build.`);
+        }
+        return (`${message.author.username} laughs at ${args}'s build.`)
+    },
+}, {
     name: '/no',
     description: 'No',
     execute(message, args) {
@@ -276,6 +287,17 @@ module.exports = [{
             return (`${message.author.username} waves at themselves. How sad.`);
         }
         return (`${message.author.username} waves at ${args}`)
+    },
+}, {
+    name: '/yeet',
+    description: 'Yeet',
+    execute(message, args) {
+        if (!args) {
+            return (`${message.author.username} yeets someone.`);
+        } else if (args === 'self' || args === 'me') {
+            return (`${message.author.username} yeets themself off a cliff. Whee!`);
+        }
+        return (`${message.author.username} yeets ${args} off a cliff. Begone!`)
     },
 }, {
     name: '/yes',
