@@ -1943,13 +1943,22 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                     account:$scope.account
                 })
                 .then((r) => {
-                    $http.post('/user/login', { user: $scope.user, pass: $scope.pwd })
+                    $http.put('/user/login', { user: $scope.user, pass: $scope.pwd })
                         .then(() => {
                             $state.go('app.dash')
                         })
                 })
                 .catch(e=>{
-                    console.log('REJECT STATUS',e)
+                    console.log(e)
+                    bulmabox.alert(`<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Problem Registering`,`Sorry, but there was an issue with registering your account. Please contact HealyUnit (me) in game/on discord if this continues to happen, and tell me the following error info:<br/>
+                    <div class='message has-background-grey-lighter'>
+                        Error:{<br/>
+                        &nbsp;status:${e.status},<br/>
+                        &nbsp;data:'${e.data}'<br/>
+                        }
+                    </div><br/>
+                    Thanks!
+                    `)
                 })
             })
         } else {
@@ -1959,13 +1968,14 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                     account:$scope.account
                 })
                 .then((r) => {
-                    $http.post('/user/login', { user: $scope.user, pass: $scope.pwd })
+                    $http.put('/user/login', { user: $scope.user, pass: $scope.pwd })
                         .then(() => {
                             $state.go('app.dash')
                         })
                 })
                 .catch(e=>{
-                    console.log('REJECT STATUS',e)
+                    console.log(e)
+                    bulmabox.alert(`<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Problem Registering`,`Sorry, but there was an issue with registering your account. Please contact HealyUnit in game if you have further issues. Please tell him<br/>`)
                 })
         }
     }

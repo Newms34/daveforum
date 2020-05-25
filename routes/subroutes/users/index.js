@@ -426,24 +426,30 @@ const routeExp = function(io, keys, dscrd) {
     })
     router.post('/new', function(req, res, next) {
         //record new user
+        console.log('Attempting to create user',req.body)
+        // return res.status(400).send('err')
         mongoose.model('User').findOne({ 'user': req.body.user }, function(err, usr) {
-            if (usr || err) {
+            console.log('User',usr,'err',err)
+            err = new Error('ohshit');
+            if (usr) {
                 //while this SHOULDNT occur, it's a final error check to make sure we're not overwriting a previous user.
                 //Should we check for req.session?
-                return res.status(400).send('err');
-            } else if(req.body.account && !req.body.account.match(/^([\w]+\s*)+\.\d{4}$/)){
-               return res.status(400).send('badAcct')
+                return res.status(409).send('alreadyExists');
+            } else if(!!err){
+                return res.status(400).send(err)
+            }else if(req.body.account && !req.body.account.match(/^([\w]+\s*)+\.\d{4}$/)){
+               return res.status(422).send('badAcct')
             }else {
-                // const pwd = req.body.pass,
-                //     um = mongoose.model('User');
-                // delete req.body.pass;
-                // // console.log(req.body)
-                // req.body.ints = [0, 0, 0, 0, 0, 0];
-                // req.body.salt = um.generateSalt();
-                // req.body.pass = mongoose.model('User').encryptPassword(pwd, req.body.salt)
-                // um.create(req.body, (err, nusr) => {
-                //     res.send(nusr);
-                // })
+                const pwd = req.body.pass,
+                    um = mongoose.model('User');
+                delete req.body.pass;
+                // console.log(req.body)
+                req.body.ints = [0, 0, 0, 0, 0, 0];
+                req.body.salt = um.generateSalt();
+                req.body.pass = mongoose.model('User').encryptPassword(pwd, req.body.salt)
+                um.create(req.body, (err, nusr) => {
+                    res.send(nusr);
+                })
             }
         })
     });
