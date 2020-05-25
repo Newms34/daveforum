@@ -430,7 +430,7 @@ const routeExp = function(io, keys, dscrd) {
         // return res.status(400).send('err')
         mongoose.model('User').findOne({ 'user': req.body.user }, function(err, usr) {
             console.log('User',usr,'err',err)
-            err = new Error('ohshit');
+            // err = new Error('ohshit');
             if (usr) {
                 //while this SHOULDNT occur, it's a final error check to make sure we're not overwriting a previous user.
                 //Should we check for req.session?

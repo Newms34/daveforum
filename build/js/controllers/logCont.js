@@ -116,7 +116,7 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                     <div class='message has-background-grey-lighter'>
                         Error:{<br/>
                         &nbsp;status:${e.status},<br/>
-                        &nbsp;data:'${e.data}'<br/>
+                        &nbsp;data:'${JSON.stringify(e.data)}'<br/>
                         }
                     </div><br/>
                     Thanks!
