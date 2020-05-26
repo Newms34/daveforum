@@ -64,4 +64,25 @@ app.controller('all-cont',($scope,$http,$sce,$log)=>{
             $scope.skillBox.on = false;
         }
     }
+    $scope.tryReconnect = ()=>{
+        $http.get('/alive')
+            .then(r=>{
+                console.log('Reconnected! Refreshing....')
+                bulmabox.confirm(`<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Server Restarted`,`There's been an update, and we need to reload the website to restore functionality.<br/>Click Okay to reload, or Cancel to stay on this page.`,function(r){
+                    if(!!r){
+                        window.location.reload();
+                    }
+                })
+            })
+            .catch(e=>{
+                // no reconnect
+                setTimeout(function(){
+                    $scope.tryReconnect();
+                },500)
+            })
+    }
+    socket.on('disconnect',function(e){
+        $scope.tryReconnect();
+        console.log('disconnected!',e)
+    })
 })

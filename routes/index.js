@@ -12,6 +12,9 @@ module.exports = function(io, keys,dsClient) {
     //     console.log('reset page!')
     //     res.sendFile('reset.html', { root: './views' })
     // });
+    router.get('/alive',function(req,res,next){
+        res.send(true)
+    })
     router.get('*', function(req, res, next) {
         if(process.env.SHUTDOWN||process.argv.includes('sd')){
             return res.sendFile('index.html', { root: './sd' })
