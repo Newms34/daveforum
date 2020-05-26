@@ -81,7 +81,7 @@ const routeExp = function(io,keys,dscrd) {
         })
     })
     router.put('/blog',this.authbit,this.checkBody(this.blogParams.concat(['pid'])),(req,res,next)=>{
-        // res.send('no blog editing yet!')
+        //edit blog
         mongoose.model('blog').findOne({pid:req.body.pid},(err,pst)=>{
             if(err||!pst){
                 return res.status(400).send('err');

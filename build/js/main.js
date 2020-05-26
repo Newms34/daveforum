@@ -337,3 +337,8 @@ const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
     // We put the Data URI in the image's src attribute
     img.src = datas;
 }
+
+
+String.prototype.sanitize = function(){
+    return this.replace(/</g,'&lt;').replace(/>/g,'&gt;')
+}

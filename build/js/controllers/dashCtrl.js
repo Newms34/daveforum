@@ -189,6 +189,11 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
     }
     $scope.getMembers();
     socket.on('allNames', function (r) {
+        // console.log('ALLNAMES',r)
+        if(!!r.user){
+            // console.log('not for dash, returning false!')
+            return false;
+        }
         if ($scope.allUsers) {
             $scope.allUsers.forEach(usr => {
                 // usr.hasInts = !!usr.ints.find(q=>q=="1");//user has selected at least one interest

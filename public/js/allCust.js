@@ -340,6 +340,11 @@ const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
     // We put the Data URI in the image's src attribute
     img.src = datas;
 }
+
+
+String.prototype.sanitize = function(){
+    return this.replace(/</g,'&lt;').replace(/>/g,'&gt;')
+}
 app.controller('all-cont',($scope,$http,$sce,$log)=>{
     $scope.label = 'allBase';
     $scope.currBuild = {
@@ -702,7 +707,7 @@ app.controller('cal-cont', function($scope, $http, $state) {
         }
     }
 })
-app.controller('chat-cont', function($scope, $http, $state, $filter,$sce) {
+app.controller('chat-cont', function ($scope, $http, $state, $filter, $sce) {
     $http.get('/user/getUsr')
         .then(r => {
             $scope.doUser(r.data);
@@ -721,13 +726,13 @@ app.controller('chat-cont', function($scope, $http, $state, $filter,$sce) {
             isSys: true
         })
     }
-    $scope.parseMsg = (t)=>{
-    	if(t.indexOf('/wiki ')===0){
-    		return `Wiki: <a href="https://wiki.guildwars2.com/wiki/${t.slice(6)}" target="_blank">${t.slice(6)}</a>`
-    	}else if(t.indexOf('/google ')===0){
-    		return `Google: <a href="https://www.google.com/search?q=${t.slice(8)}" target="_blank">${t.slice(8)}</a>`
-    	}
-    	return t;
+    $scope.parseMsg = (t) => {
+        if (t.indexOf('/wiki ') === 0) {
+            return `Wiki: <a href="https://wiki.guildwars2.com/wiki/${t.slice(6)}" target="_blank">${t.slice(6)}</a>`
+        } else if (t.indexOf('/google ') === 0) {
+            return `Google: <a href="https://www.google.com/search?q=${t.slice(8)}" target="_blank">${t.slice(8)}</a>`
+        }
+        return t;
     }
     $http.get('/user/allUsrs')
         .then((au) => {
@@ -735,9 +740,10 @@ app.controller('chat-cont', function($scope, $http, $state, $filter,$sce) {
             console.log('all users is', au)
             $scope.allUsers = au.data;
         });
-    socket.on('msgOut', function(msg) {
-    	console.log($scope.parseMsg(msg.msg),'IS THE MESSAGE')
-    	msg.msg = $sce.trustAsHtml($scope.parseMsg(msg.msg));
+    socket.on('msgOut', function (msg) {
+        console.log('raw msg',msg)
+        // console.log($scope.parseMsg(msg.msg),'IS THE MESSAGE')
+        msg.msg = $sce.trustAsHtml($scope.parseMsg(msg.msg));
         $scope.msgs.push(msg);
         if ($scope.msgs.length > 100) {
             $scope.msgs.shift();
@@ -746,7 +752,7 @@ app.controller('chat-cont', function($scope, $http, $state, $filter,$sce) {
         //scroll to bottom of chat window? HAO DU
         document.querySelector('#chat-container').scrollTop = document.querySelector('#chat-container').scrollHeight;
     })
-    socket.on('disconnect', function() {
+    socket.on('disconnect', function () {
         $scope.msgs.push({
             time: Date.now(),
             user: 'System',
@@ -760,11 +766,31 @@ app.controller('chat-cont', function($scope, $http, $state, $filter,$sce) {
         //scroll to bottom of chat window? HAO DU
         document.querySelector('#chat-container').scrollTop = document.querySelector('#chat-container').scrollHeight;
     })
+    socket.on('allNames', d => {
+        if (d.user == $scope.user.user) {
+            //nneed msg (from names), user, time
+            d.msg = $sce.trustAsHtml(`Users online: ${d.names.join(', ')}`);
+            d.isSys = true;
+            $scope.msgs.push(d);
+            if ($scope.msgs.length > 100) {
+                $scope.msgs.shift();
+            }
+            $scope.$apply()
+            document.querySelector('#chat-container').scrollTop = document.querySelector('#chat-container').scrollHeight;
+        }
+        return false;
+    })
     $scope.sendChat = () => {
         if (!$scope.newMsg) {
             return false;
+        } else if ($scope.newMsg.toLowerCase() == '/list') {
+            socket.emit('getOnline', { u: $scope.user.user })
+        } else{
+            if($scope.newMsg.toLowerCase().startsWith('/discord') || $scope.newMsg.toLowerCase().startsWith('/disc')){
+                socket.emit('toDiscord',{u:$scope.user.user,msg:$scope.newMsg.replace('/disc','').replace('/discord','')})
+            }
+            socket.emit('chatMsg', { user: $scope.user.user, msg: $scope.newMsg.sanitize() })
         }
-        socket.emit('chatMsg', { user: $scope.user.user, msg: $scope.newMsg })
         $scope.newMsg = '';
     }
 })
@@ -959,6 +985,11 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
     }
     $scope.getMembers();
     socket.on('allNames', function (r) {
+        // console.log('ALLNAMES',r)
+        if(!!r.user){
+            // console.log('not for dash, returning false!')
+            return false;
+        }
         if ($scope.allUsers) {
             $scope.allUsers.forEach(usr => {
                 // usr.hasInts = !!usr.ints.find(q=>q=="1");//user has selected at least one interest
@@ -1354,7 +1385,7 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
     $scope.mediaEdit = {};
     $scope.blgInst = defBlg;
     $scope.parseMd = t => {
-        return conv && conv.makeHtml && conv.makeHtml(t) && conv.makeHtml(t).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`) || '';
+        return conv && conv.makeHtml && conv.makeHtml(t.sanitize()) && conv.makeHtml(t.sanitize()).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`) || '';
     }
     $scope.hideInst = true;
     $scope.changeMedia = function () {
@@ -1692,7 +1723,7 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
         // return console.log(new showdown.Converter().makeHtml(theText).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`))
         $http.post('/forum/newPost', {
             thread: $scope.thr._id,
-            text: new showdown.Converter().makeHtml(theText).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`),
+            text: new showdown.Converter().makeHtml(theText.sanitize()).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`),
             md: theText,
             file: $scope.fileread || null
         })

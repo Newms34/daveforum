@@ -104,3 +104,12 @@ background-position-x: 0
 
 figure out way to move build hovers to factory. 
  - "park" template divs on navbar?
+
+ BOT seems to be repeating twice
+ add /me route
+ 
+ remove abiltity to add custom HTML to forms (forums, etc.)
+  - colored text?
+  -(blog)editor
+  -forumthr
+  -chat

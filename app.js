@@ -75,7 +75,11 @@ io.on('connection', function (socket) {
         // socket.emit('allNames',names);
     })
 
-    socket.on('getOnline', function () {
+    socket.on('getOnline', function (u) {
+        if (!!u && !!u.u) {//UwU
+            // console.log('user requesting was')
+            return socket.emit('allNames', { names: names.map(q=>q.name), user: u.u, time:Date.now()})
+        }
         socket.emit('allNames', names);
     })
 
@@ -103,6 +107,12 @@ io.on('connection', function (socket) {
         // 713528260100620329
         io.emit('msgOut', msgObj)
     })
+    socket.on('toDiscord',function(m){
+        // console.log('WOULD send',m)
+        // if(!dsClient)
+        dsClient.channels.cache.get('713496001822064845').send(`User ${m.u} on the website says: ${m.msg}`);
+    })
+    // 713496001822064845
     /* dsClient.on('message',m=>{
         //could filter for appropriate channel via m.channel.id== (above id)
         console.log('Got message from discord',m.content,m.channel)
@@ -132,20 +142,7 @@ dsClient.genBrethrenMsg = function (data, user) {
     return dmsg;
 }
 
-dsClient.once('ready', function () {
-    // const commandFiles = fs.readdirSync('./botCommands').filter(file => file.endsWith('.js'));
-    // for (const file of commandFiles) {
-    //     const command = require(`./botCommands/${file}`);
-    //     // set a new item in the Collection
-    //     // with the key as the command name and the value as the exported module
-    //     dsClient.commands.set(command.name, command);
-    // }
-    const allCmds = require('./botCommands/all.js')
-    // console.log(allCmds)
-    allCmds.forEach(c => {
-        dsClient.commands.set(c.name, c)
-    })
-    console.log('Discord server started. Starting main server!')
+const startServer = function () {
     server.listen(process.env.PORT || 8080);
     server.on('error', function (err) {
         console.log('Oh no! Err:', err)
@@ -156,7 +153,20 @@ dsClient.once('ready', function () {
     server.on('request', function (req) {
         // console.log(req.url);
     })
-})
+}
+if (!process.argv.includes('nodisc')) {
+    dsClient.once('ready', function () {
+        const allCmds = require('./botCommands/all.js')
+        // console.log(allCmds)
+        allCmds.forEach(c => {
+            dsClient.commands.set(c.name, c)
+        })
+        console.log('Discord server started. Starting main server!')
+        startServer();
+    })
+} else {
+    startServer();
+}
 
 function getNameFromMention(mention) {
     if (!mention) return;
@@ -173,12 +183,12 @@ dsClient.on('message', message => {
         possCmd = message.content.toLowerCase().split(' '),
         randoCommands = ['/crossarms'];
     // console.log('allCmds', allCmds, 'Contents', message.content, 'possCmd', possCmd[0])
-    try{
+    try {
         if (possCmd[0] !== '/help' && allCmds.includes(possCmd[0])) {
             let toArg = !!message.content.match(/@\w+/) && message.content.match(/(?<=@)\w+/)[0];
             if (Array.from(message.mentions.users).length) {
                 toArg = getNameFromMention(Array.from(message.mentions.users)[0][0])
-            }else if (Array.from(message.mentions.roles).length) {
+            } else if (Array.from(message.mentions.roles).length) {
                 toArg = message.mentions.roles.get(Array.from(message.mentions.roles)[0][0])
             }
             const response = dsClient.commands.get(possCmd[0]).execute(message, toArg);
@@ -188,8 +198,8 @@ dsClient.on('message', message => {
             const cmdList = allCmds.filter(q => q !== '/help').map(q => {
                 let s = q;
                 const toSelf = dsClient.commands.get(q).execute(message, 'self'),
-                toOther = dsClient.commands.get(q).execute(message, 'other'),
-                untarg = dsClient.commands.get(q).execute(message, null);
+                    toOther = dsClient.commands.get(q).execute(message, 'other'),
+                    untarg = dsClient.commands.get(q).execute(message, null);
                 if (!randoCommands.includes(q)) {
                     if (untarg != toOther) {
                         s += `, ${q} @target`;
@@ -202,17 +212,17 @@ dsClient.on('message', message => {
             })
             console.log('CMDLIST', cmdList)
             const helpMsg = new Discord.MessageEmbed()
-            .setColor('#aa3300')
-            .setTitle('Brethren Site Bot')
-            .setDescription('The following commands are available for the Brethren Site Bot (BSB):')
-            .addFields(...cmdList)
-            // .setAuthor(user.user)
-            .setTimestamp();
+                .setColor('#aa3300')
+                .setTitle('Brethren Site Bot')
+                .setDescription('The following commands are available for the Brethren Site Bot (BSB):')
+                .addFields(...cmdList)
+                // .setAuthor(user.user)
+                .setTimestamp();
             message.channel.send(helpMsg)
         } else {
             //nothing for now
         }
-    }catch(e){
+    } catch (e) {
         message.channel.send(`Sorry, I don't understand what you're trying to do!`)
     }
     // if (!client.commands.has(command)) return;
