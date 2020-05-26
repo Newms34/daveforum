@@ -110,7 +110,7 @@ io.on('connection', function (socket) {
     socket.on('toDiscord',function(m){
         // console.log('WOULD send',m)
         // if(!dsClient)
-        dsClient.channels.cache.get('713496001822064845').send(`User ${m.u} on the website says: ${m.msg}`);
+        dsClient.channels.cache.get('713496001822064845').send(`User ${m.u} on the website says: ${m.msg||'absolutely nothing!'}`);
     })
     // 713496001822064845
     /* dsClient.on('message',m=>{

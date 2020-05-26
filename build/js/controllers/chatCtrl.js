@@ -77,8 +77,8 @@ app.controller('chat-cont', function ($scope, $http, $state, $filter, $sce) {
         } else if ($scope.newMsg.toLowerCase() == '/list') {
             socket.emit('getOnline', { u: $scope.user.user })
         } else{
-            if($scope.newMsg.toLowerCase().startsWith('/discord') || $scope.newMsg.toLowerCase().startsWith('/disc')){
-                socket.emit('toDiscord',{u:$scope.user.user,msg:$scope.newMsg.replace('/disc','').replace('/discord','')})
+            if($scope.newMsg.toLowerCase().startsWith('/disc')){
+                socket.emit('toDiscord',{u:$scope.user.user,msg:$scope.newMsg.replace('/disc','')})
             }
             socket.emit('chatMsg', { user: $scope.user.user, msg: $scope.newMsg.sanitize() })
         }
