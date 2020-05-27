@@ -43,6 +43,7 @@ const express = require('express'),
     ],
     validateColor = require('validate-color').default,
     sd = require('showdown');
+    sd.setOption('tables', true);
 app.use(compression());
 store.on('error', function (error) {
     console.log(error);

@@ -39,10 +39,6 @@ app.controller('nav-cont',function($scope,$http,$state,userFact){
         txt:'Blog Editor',
         icon:'pencil',
         protected:true
-    },{
-        sref:'app.help',
-        txt:'Help',
-        icon:'question-circle'
-    },]
+    }]
     $scope.mobActive=false;
 })

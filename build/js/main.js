@@ -382,3 +382,5 @@ String.prototype.md2h = function (noP) {
     }
     return cv.makeHtml(this);
 }
+
+showdown.setOption('tables', true);
