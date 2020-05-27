@@ -32,7 +32,7 @@ app.controller('chat-cont', function ($scope, $http, $state, $filter, $sce) {
             $scope.allUsers = au.data;
         });
     socket.on('msgOut', function (msg) {
-        console.log('raw msg',msg)
+        console.log('raw msg', msg)
         // console.log($scope.parseMsg(msg.msg),'IS THE MESSAGE')
         msg.msg = $sce.trustAsHtml($scope.parseMsg(msg.msg));
         $scope.msgs.push(msg);
@@ -76,11 +76,17 @@ app.controller('chat-cont', function ($scope, $http, $state, $filter, $sce) {
             return false;
         } else if ($scope.newMsg.toLowerCase() == '/list') {
             socket.emit('getOnline', { u: $scope.user.user })
-        } else{
-            if($scope.newMsg.toLowerCase().startsWith('/disc')){
-                socket.emit('toDiscord',{u:$scope.user.user,msg:$scope.newMsg.replace('/disc','')})
+        } else {
+            if ($scope.newMsg.toLowerCase().startsWith('/disc')) {
+                socket.emit('toDiscord', {
+                    u: $scope.user.user,
+                    msg: $scope.newMsg.replace('/disc', '')
+                })
             }
-            socket.emit('chatMsg', { user: $scope.user.user, msg: $scope.newMsg.sanitize() })
+            socket.emit('chatMsg', {
+                user: $scope.user.user,
+                msg: $scope.newMsg.sanAndParse().md2h(true)
+            })
         }
         $scope.newMsg = '';
     }

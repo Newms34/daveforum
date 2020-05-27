@@ -58,7 +58,6 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
         // return console.log(new showdown.Converter().makeHtml(theText).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`))
         $http.post('/forum/newPost', {
             thread: $scope.thr._id,
-            text: new showdown.Converter().makeHtml(theText.sanitize()).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`),
             md: theText,
             file: $scope.fileread || null
         })

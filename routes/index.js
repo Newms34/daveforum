@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router(),
     mongoose = require('mongoose'), models = require('../models/');
 
-module.exports = function(io, keys,dsClient) {
+module.exports = function (io, keys, dsClient) {
     router.use('/user', require('./subroutes/users')(io, keys, dsClient));
     router.use('/forum', require('./subroutes/forums')(io, keys));
     router.use('/tool', require('./subroutes/tools')(io, keys));
@@ -12,23 +12,23 @@ module.exports = function(io, keys,dsClient) {
     //     console.log('reset page!')
     //     res.sendFile('reset.html', { root: './views' })
     // });
-    router.get('/alive',function(req,res,next){
+    router.get('/alive', function (req, res, next) {
         res.send(true)
     })
-    router.get('*', function(req, res, next) {
-        if(process.env.SHUTDOWN||process.argv.includes('sd')){
+    router.get('*', function (req, res, next) {
+        if (process.env.SHUTDOWN || process.argv.includes('sd')) {
             return res.sendFile('index.html', { root: './sd' })
         }
         res.sendFile('index.html', { root: './views' })
     });
-    router.use(function(req, res) {
+    router.use(function (req, res) {
         res.status(404).end();
     });
     //cron stuff
-    const cronny = setInterval(function() {
+    const cronny = setInterval(function () {
         // console.log('Checking upcoming events at', new Date().toLocaleString())
         let now = Date.now();
-        mongoose.model('cal').find({ kind: { $in: ['lotto', 'payLotto'] } }, function(err, lottos) {
+        mongoose.model('cal').find({ kind: { $in: ['lotto', 'payLotto'] } }, function (err, lottos) {
             let lastWinner = null;
             const lottosExp = lottos.filter(lt => lt.eventDate < now && !lt.expired), //expiring (but not expired!) lottos
                 alreadyDone = lottos.filter(lt => lt.eventDate < now && lt.expired); //ones already done
@@ -46,7 +46,7 @@ module.exports = function(io, keys,dsClient) {
             // console.log(now, 'all lottos', lottos.map(e => e.eventDate), 'expiring/expired', lottosExp.map(e => e.eventDate));
             if (lottosExp.length) {
                 lottosExp.forEach(lto => {
-                    mongoose.model('User').find({ isBanned: false, confirmed: true }, function(err, usrs) {
+                    mongoose.model('User').find({ isBanned: false, confirmed: true }, function (err, usrs) {
                         console.log('Users available to win this contest are:', usrs);
                         //'win' one
                         let theWinner = null;
@@ -70,7 +70,7 @@ module.exports = function(io, keys,dsClient) {
                         if (!theWinner) {
                             return false;
                         }
-                        mongoose.model('User').findOne({ 'user': theWinner.user }, function(err, usr) {
+                        mongoose.model('User').findOne({ 'user': theWinner.user }, function (err, usr) {
                             usr.msgs.push({
                                 from: lto.user,
                                 date: Date.now(),
@@ -79,7 +79,7 @@ module.exports = function(io, keys,dsClient) {
                             })
                             console.log(usr)
                             io.emit('refCal', {})
-                            usr.save(function(err, usr) {
+                            usr.save(function (err, usr) {
                                 console.log('User updated!', usr, err)
                             });
                         });
@@ -90,7 +90,7 @@ module.exports = function(io, keys,dsClient) {
             }
         })
         //sort thru all other events that ARE expired but have not be MARKED as such
-        mongoose.model('cal').find({}, function(err, evts) {
+        mongoose.model('cal').find({}, function (err, evts) {
             evtsExp = evts.filter(ev => ev.eventDate < now && !ev.expired);
             evtsExp.forEach(e => {
                 e.expired = true;
@@ -103,7 +103,7 @@ module.exports = function(io, keys,dsClient) {
 };
 
 //helper stuff
-Array.prototype.findOne = function(p, v) {
+Array.prototype.findOne = function (p, v) {
     let i = 0;
     if (typeof p !== 'string' || !this.length) {
         return false;
@@ -116,9 +116,25 @@ Array.prototype.findOne = function(p, v) {
     return false;
 }
 
-Array.prototype.removeOne = function(n) {
+Array.prototype.removeOne = function (n) {
     this.splice(this.indexOf(n), 1);
 }
 
-// 1536537600000,
-// 1536302076654, 1536303943330 - 1536303685943
+// const snps = [
+//     {
+//         t: '<',
+//         s: '&lt;'
+//     },
+//     {
+//         t: '>',
+//         s: '&gt;'
+//     },
+//     {
+//         t: `\[&amp;D[\w+/]+=*\]`,
+//         s: `<build-template build='$&'></build-template>;`
+//     }
+// ]
+
+router.post('/testSNP', function (req, res, next) {
+    res.send(req.body.t.sanAndParse())
+});

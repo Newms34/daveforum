@@ -32,7 +32,8 @@
     "sendmail": "^1.6.1",
     "showdown": "^1.9.1",
     "socket.io": "^2.3.0",
-    "uuid": "^8.0.0"
+    "uuid": "^8.0.0",
+    "validate-color": "^2.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.9.6",

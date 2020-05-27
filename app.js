@@ -19,14 +19,30 @@ const express = require('express'),
         }
     },
     session = require('express-session'),
-    mangoStore = require('connect-mongodb-session')(session)
-passport = require('passport'),
+    mangoStore = require('connect-mongodb-session')(session),
+    passport = require('passport'),
     LocalStrategy = require('passport-local').Strategy,
     compression = require('compression'),
     store = new mangoStore({
         uri: process.env.NODE_ENV && process.env.NODE_ENV == 'production' ? process.env.MONGODB_URI : 'mongodb://localhost:27017/codementormatch',
         collection: 'cmmSeshes'
-    });
+    }),
+    snps = [
+        {
+            t: '<',
+            s: '&lt;'
+        },
+        {
+            t: '>',
+            s: '&gt;'
+        },
+        {
+            t: `\[&amp;D[\w+/]+=*\]`,
+            s: `<build-template build='$&'></build-template>;`
+        }
+    ],
+    validateColor = require('validate-color').default,
+    sd = require('showdown');
 app.use(compression());
 store.on('error', function (error) {
     console.log(error);
@@ -78,7 +94,7 @@ io.on('connection', function (socket) {
     socket.on('getOnline', function (u) {
         if (!!u && !!u.u) {//UwU
             // console.log('user requesting was')
-            return socket.emit('allNames', { names: names.map(q=>q.name), user: u.u, time:Date.now()})
+            return socket.emit('allNames', { names: names.map(q => q.name), user: u.u, time: Date.now() })
         }
         socket.emit('allNames', names);
     })
@@ -107,10 +123,10 @@ io.on('connection', function (socket) {
         // 713528260100620329
         io.emit('msgOut', msgObj)
     })
-    socket.on('toDiscord',function(m){
+    socket.on('toDiscord', function (m) {
         // console.log('WOULD send',m)
         // if(!dsClient)
-        dsClient.channels.cache.get('713496001822064845').send(`User ${m.u} on the website says: ${m.msg||'absolutely nothing!'}`);
+        dsClient.channels.cache.get('713496001822064845').send(`User ${m.u} on the website says: ${m.msg || 'absolutely nothing!'}`);
     })
     // 713496001822064845
     /* dsClient.on('message',m=>{
@@ -245,3 +261,34 @@ app.use(function (err, req, res, next) {
     console.log('Client (probly) err:', err)
     res.send('Error!' + err)
 });
+
+
+String.prototype.sanAndParse = function () {
+    /* Replace order:
+    1: replace < and > with escape sequences so we're not rendering any HTML
+    2: replace build codes with the build-template angular directive
+    3: replace color codes with correct 'span' elements ONLY if they're valid colors
+    */
+    let str = this;
+    for (rp of snps) {
+        console.log('replacing', rp.t, 'with', rp.s)
+        str = str.replace(new RegExp(rp.t, 'g'), rp.s);
+    }
+    // console.log('validateColor',validateColor)
+    return str.replace(/\[c=["']?[\w#\s,\(\)]{2,}['"]?\][^\[]*\[\/c\]/g, function (m) {
+        console.log('at beginning of col replace, m is', m)
+        //return m.slice(5,-1)
+        const col = m.match(/(?<=\[c=['"]?)[\w#\s\(\)]{2,}(?=['"]?\])/) && m.match(/(?<=\[c=['"]?)[\w#\s\(\)]{2,}(?=['"]?\])/)[0],
+            txt = m.match(/(?<=\])[^\[]{2,}(?=\[\/c\])/) && m.match(/(?<=\])[^\[]{2,}(?=\[\/c\])/)[0];
+        //if the color is a valid css col according to validate-color, return a span el. Otherwise, strip out the color tags and simply return the text
+        console.log('M', m, 'COLOR CODE', col, 'TEXT', txt)
+        if (validateColor(col)) {
+            return `<span style='color:${col}'>${txt}</span>`;
+        }
+        return txt;
+    });
+    // return this.replace('<', '&lt;').replace('>', '&gt;').replace(/\[&amp;D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`)
+}
+String.prototype.md2h = function(){
+    return new sd.Converter().makeHtml(this);
+}

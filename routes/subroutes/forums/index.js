@@ -6,10 +6,10 @@ const express = require('express'),
     _ = require('lodash'),
     cats = ['general', 'missions', 'random', 'management'],
     storage = multer.diskStorage({
-        destination: function(req, file, cb) {
+        destination: function (req, file, cb) {
             cb(null, 'uploads/')
         },
-        filename: function(req, file, cb) {
+        filename: function (req, file, cb) {
             cb(null, file.originalname);
         }
     }),
@@ -18,7 +18,7 @@ const express = require('express'),
     });
 
 
-const routeExp = function(io,keys) {
+const routeExp = function (io, keys) {
     // router.post('/uploadFile', upload.any(), (req, res, next) => {
     //     res.send(req.files)
     // })
@@ -33,7 +33,7 @@ const routeExp = function(io,keys) {
         }
     };
     this.isMod = (req, res, next) => {
-        mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
+        mongoose.model('User').findOne({ user: req.session.user.user }, function (err, usr) {
             if (!err && usr.mod) {
                 next();
             } else {
@@ -42,7 +42,7 @@ const routeExp = function(io,keys) {
         })
     }
     router.post('/newThread', this.authbit, (req, res, next) => {
-        mongoose.model('thread').find({ title: req.body.title }, function(err, thr) {
+        mongoose.model('thread').find({ title: req.body.title }, function (err, thr) {
             console.log('THREAD', req.body)
             if (thr && thr.length) {
                 res.send('err');
@@ -56,18 +56,18 @@ const routeExp = function(io,keys) {
                     title: req.body.title,
                     lastUpd: req.body.lastUpd
                 }
-                mongoose.model('thread').create(newThr, function(err, thrd) {
+                mongoose.model('thread').create(newThr, function (err, thrd) {
                     //now create the first post(this one)
                     console.log(thrd);
                     const theCat = req.body.grp && cats.indexOf(req.body.grp) > -1 ? req.body.grp : 'general';
                     mongoose.model('post').create({
-                        text: req.body.text,
+                        text: req.body.md.sanAndParse().md2h(),
                         md: req.body.md,
                         user: req.session.user.user,
                         thread: thrd._id,
                         grp: theCat,
                         file: req.body.file
-                    }, function(err, thpst) {
+                    }, function (err, thpst) {
                         thrd.posts.push({
                             id: thpst._id,
                             order: 0,
@@ -87,18 +87,18 @@ const routeExp = function(io,keys) {
             return false;
         }
         console.log("lookin for thread", req.query.id)
-        mongoose.model('thread').findOne({ _id: req.query.id }, function(err, thrd) {
+        mongoose.model('thread').findOne({ _id: req.query.id }, function (err, thrd) {
             if (err || !thrd) {
                 res.send('err');
             } else {
-                mongoose.model('post').find({ thread: thrd._id }, function(err, psts) {
+                mongoose.model('post').find({ thread: thrd._id }, function (err, psts) {
                     const usrList = _.map(_.uniqBy(psts, 'user'), 'user');
                     console.log('RESULT OF usrList', usrList)
-                    mongoose.model('User').find({ user: { $in: usrList } }, function(err, ufp) {
+                    mongoose.model('User').find({ user: { $in: usrList } }, function (err, ufp) {
                         //user forum post avatar (ufpa)
                         let ufpa = _.zipObject(_.map(ufp, 'user'), ufp.map(u => u.avatar || false));
 
-                        res.send({ thrd: thrd, psts: psts, ava: ufpa, mods:ufp.filter(um=>um.mod).map(umn=>umn.user)})
+                        res.send({ thrd: thrd, psts: psts, ava: ufpa, mods: ufp.filter(um => um.mod).map(umn => umn.user) })
                     })
                 })
             }
@@ -151,7 +151,7 @@ const routeExp = function(io,keys) {
                 res.status(400).send('err');
             } else {
                 mongoose.model('post').create({
-                    text: req.body.text, //html
+                    text: req.body.md.sanAndParse().md2h(), //html
                     md: req.body.md,
                     user: req.session.user.user,
                     file: req.body.file || null,
@@ -171,7 +171,10 @@ const routeExp = function(io,keys) {
         })
     })
     router.post('/editPost', this.authbit, (req, res, next) => {
-        mongoose.model('post').findOneAndUpdate({ id: req.body.id, user: req.session.user.name }, { text: req.body.text }, (err, pst) => {
+        mongoose.model('post').findOneAndUpdate({ id: req.body.id, user: req.session.user.name }, {
+            text: req.body.md.sanAndParse().md2h(),
+            md:req.body.md
+        }, (err, pst) => {
             if (err || !pst) {
                 res.status(400).send('err');
             } else {
@@ -180,7 +183,7 @@ const routeExp = function(io,keys) {
         })
     })
     router.get('/cats', (req, res, next) => {
-        mongoose.model('thread').find({}, function(err, grps) {
+        mongoose.model('thread').find({}, function (err, grps) {
             const cats = {
                 'general': { n: 0, t: -1 },
                 'missions': { n: 0, t: -1 },
@@ -210,7 +213,7 @@ const routeExp = function(io,keys) {
             res.send('err');
         }
         console.log('getting posts in cat', req.query.grp)
-        mongoose.model('thread').find({ grp: req.query.grp }, function(err, thrds) {
+        mongoose.model('thread').find({ grp: req.query.grp }, function (err, thrds) {
             if (err) res.send('err')
             res.send(thrds || {});
         })
@@ -221,25 +224,25 @@ const routeExp = function(io,keys) {
         }
         console.log("Lookin for", req.body.term)
         //First we search by thread title, THEN by individual posts
-        mongoose.model('thread').find({ $text: { $search: req.body.term } }, function(err, thrds) {
+        mongoose.model('thread').find({ $text: { $search: req.body.term } }, function (err, thrds) {
             console.log('ERR?', err)
             // res.send(thrd)
-            mongoose.model('post').find({ $text: { $search: req.body.term } }, function(err, psts) {
+            mongoose.model('post').find({ $text: { $search: req.body.term } }, function (err, psts) {
                 // //need to re-find each thread 'cat' for posts
                 console.log('threads for these posts:', _.uniqBy(psts, 'thread').map(p => p.thread))
-                mongoose.model('thread').find({ _id: { $in: _.uniqBy(psts, 'thread').map(p => p.thread) } }, function(err, pt) {
+                mongoose.model('thread').find({ _id: { $in: _.uniqBy(psts, 'thread').map(p => p.thread) } }, function (err, pt) {
                     console.log('threads for these posts', pt)
                     //pt is list of threads for posts. psts is list of posts that match initial search terms
                     let pstsOut = psts.map(p => {
                         let theThread = pt.filter(tf => tf._id == p.thread)[0],
-                            pn ={};
+                            pn = {};
                         console.log('Doin post', p, 'for thread', theThread)
                         pn.thrTitle = theThread.title;
                         pn.thrGrp = theThread.grp;
-                        ['createDate','lastUpd','file','profPic','_id','text','md','user','thread'].forEach(term=>{
-                            pn[term]=p[term];
+                        ['createDate', 'lastUpd', 'file', 'profPic', '_id', 'text', 'md', 'user', 'thread'].forEach(term => {
+                            pn[term] = p[term];
                         })
-                        console.log('PN now',pn)
+                        console.log('PN now', pn)
                         return pn;
                     })
                     res.send({ thrds: thrds, psts: pstsOut })
@@ -265,15 +268,15 @@ const routeExp = function(io,keys) {
             })
         })
     })
-    router.delete('/deleteThread',this.authbit,this.isMod,(req,res,next)=>{
-        if(!req.query.id){
+    router.delete('/deleteThread', this.authbit, this.isMod, (req, res, next) => {
+        if (!req.query.id) {
             res.send('err');
             return false;
         }
-        console.log('FIND AND REMOVE---------',mongoose.model('post').remove)
+        console.log('FIND AND REMOVE---------', mongoose.model('post').remove)
         // res.send('no')
-        mongoose.model('thread').findByIdAndRemove(req.query.id,(err,doc)=>{
-            mongoose.model('post').remove({thread:req.query._id},(perr,pdoc)=>{
+        mongoose.model('thread').findByIdAndRemove(req.query.id, (err, doc) => {
+            mongoose.model('post').remove({ thread: req.query._id }, (perr, pdoc) => {
                 res.send('done')
             })
         })

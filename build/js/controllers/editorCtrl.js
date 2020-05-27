@@ -27,7 +27,7 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
     $scope.mediaEdit = {};
     $scope.blgInst = defBlg;
     $scope.parseMd = t => {
-        return conv && conv.makeHtml && conv.makeHtml(t.sanitize()) && conv.makeHtml(t.sanitize()).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`) || '';
+        return t && t.sanAndParse().md2h();
     }
     $scope.hideInst = true;
     $scope.changeMedia = function () {
@@ -146,7 +146,7 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
         }else{
             saveMeth = 'POST'
         }
-        b.txtHtml = $scope.parseMd(b.txtMd);
+        b.txtHtml = null;//delete HTML, just in case. We'll rebuild it on the backend!
         $http({
             method:saveMeth,
             url:'/blog/blog',

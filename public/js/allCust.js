@@ -3,7 +3,22 @@
 
 const socket = io(),
     app = angular.module('brethren-app', ['ui.router', 'ngAnimate', 'ngSanitize', 'ngMessages', 'chart.js']),
-    resetApp = angular.module('reset-app', []);
+    resetApp = angular.module('reset-app', []),
+    snps = [
+        {
+            t: '<',
+            s: '&lt;'
+        },
+        {
+            t: '>',
+            s: '&gt;'
+        },
+        {
+            t: `\[&amp;D[\w+/]+=*\]`,
+            s: `<build-template build='$&'></build-template>;`
+        }
+    ],
+    cv = new showdown.Converter();
 
 const defaultPic = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHEAAACNCAIAAAAPTALlAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAANsSURBVHhe7dVRduIwEETR7GkWmK1HhMch9giw1dWyZNf9mZwM2F3vJ1//TM1N9dxUz0313FTPTfVGb/r9Fh8azIhNCbYTXx7AWE3JE8CDDjVEU3pI8egjHN+UBgl4QXdHNmV6Ml7W0WFNWdwFr+zlgKYM7Y7X5+vdlH0H4YhkXZuy7FCckqlfUzYNgIPSdGrKmmFwVo6LNi24LEGPpowYDMclSG/KgiFxotqlmxZcKZXblMMHxqFSiU25enicq+OmN1wsktWUYyfB0SJuesPRIilNuXQqnK7gpuB0BX1TbpwQA8Lc9IkBYW66wIYYcVNOmxYzYtx0gRkxbrrAjBhlU+6aHGMC3HSNMQFuusaYADddY0yAm64xJsBNK9jTStaUc06BSa3ctIJJrdy0gkmt3LSCSa3ctIJJrdy0gkmt3LSCSa3ctIJJrdy0gkmt3LSCSa3ctIJJrWRNCy6aH3tauekaYwLcdI0xAW66xpgAN11jTICbrjEmQNm04K5pMSPGTReYEeOmC8yIcdMFZsSImxZcNyEGhLnpEwPC9E0LbpwKpyu4KThdIaVpwaWT4GgRN73haBE3veFokaymBfcOj3N1EpsWXD0wDpVyU73cpgW3D4kT1dKbFiwYDMcl6NG0YMdIuCzBRZtyVo5OTQvWDICD0vRrWrDpUJySqWvTgmUH4YhkvZsW7OuO1+e7SlPe3cXl/kZxTaZOTRk0Bm5Kk96UHePhvgS5TTl/YBwqldWUk2fAxTopTTl2HtwtIm7KjXNiQ5iyKafNjCUxsqYcNT/2BGiacs5ZsKqVoCmHnAvbmkSbcsIZsXC/UFNefl7s3Km9Ka89O9bu0diUF14DmzdracqrroTl27jpJizfZndTXnI97N9gX1Mef1VU+GRHUx58bbR4y033ocVbW5vySNuQdVNTHmYPdHnBTVvQ5YXPTXmMLVGnxk0bUafmQ1MeYDU0+s+7pnzVXqPUkpuGUGrpZVO+ZJ/Q6w83jaLXH24qQLKHelM+a9tQ7cFNBaj2UGnKB20P2v1yUw3a/Vo35SO2HwXdVIiCbipEwVVT/tNa3TO6qdI9o5sq3TO6qVjJ+GzK7yymlHRTsVLSTcVKSZryC1NwUz031XNTPTfVuzXlRxNxUz031XNTPTfVc1M9N9VzU70v/jWV7+8ffZYE08zo+Y8AAAAASUVORK5CYII=';
 
@@ -255,7 +270,7 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
                 });
             }
         }
-    }]).directive("buildTemplate", function ($rootScope,$log) {
+    }]).directive("buildTemplate", function ($rootScope, $log) {
         return {
             scope: {
                 build: "@"
@@ -266,13 +281,13 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
             link: function (scope, element, attributes) {
                 //first, find loginBase OR logoutBase
                 let base = scope;
-                while(base.$parent && !base.label){
-                    console.log('Not yet found base! current:',base,base.label,'has parent?',base.$parent)
+                while (base.$parent && !base.label) {
+                    console.log('Not yet found base! current:', base, base.label, 'has parent?', base.$parent)
                     base = base.$parent;
                 }
                 //'base' should now be our all-app base
-                console.log('final base',base.label);
-                element.bind('click',function(e){
+                console.log('final base', base.label);
+                element.bind('click', function (e) {
                     base.inspectCode(attributes.build);
                 })
             }
@@ -341,11 +356,36 @@ const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
     img.src = datas;
 }
 
-
-String.prototype.sanitize = function(){
-    return this.replace(/</g,'&lt;').replace(/>/g,'&gt;')
+String.prototype.sanAndParse = function () {
+    /* Replace order:
+    1: replace < and > with escape sequences so we're not rendering any HTML
+    2: replace build codes with the build-template angular directive
+    3: replace color codes with correct 'span' elements ONLY if they're valid colors
+    */
+    let str = this;
+    for (rp of snps) {
+        console.log('replacing', rp.t, 'with', rp.s)
+        str = str.replace(new RegExp(rp.t, 'g'), rp.s);
+    }
+    // console.log('validateColor',validateColor)
+    return str.replace(/\[c=["']?[\w#\s,\(\)]{2,}['"]?\][^\[]*\[\/c\]/, function (m) {
+        console.log('at beginning of col replace, m is', m)
+        //return m.slice(5,-1)
+        const col = m.match(/(?<=\[c=['"]?)[\w#\s\(\)]{2,}(?=['"]?\])/) && m.match(/(?<=\[c=['"]?)[\w#\s\(\)]{2,}(?=['"]?\])/)[0],
+            txt = m.match(/(?<=\])[^\[]{2,}(?=\[\/c\])/) && m.match(/(?<=\])[^\[]{2,}(?=\[\/c\])/)[0];
+        //if the color is a valid css col according to validate-color, return a span el. Otherwise, strip out the color tags and simply return the text
+        console.log('M', m, 'COLOR CODE', col, 'TEXT', txt)
+        return `<span style='color:${col}'>${txt}</span>`;
+    });
+    // return this.replace('<', '&lt;').replace('>', '&gt;').replace(/\[&amp;D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`)
 }
-app.controller('all-cont',($scope,$http,$sce,$log)=>{
+String.prototype.md2h = function (noP) {
+    if(!!noP){
+        return cv.makeHtml(this).slice(3,-4);
+    }
+    return cv.makeHtml(this);
+}
+app.controller('all-cont', ($scope, $http, $sce, $log) => {
     $scope.label = 'allBase';
     $scope.currBuild = {
 
@@ -363,7 +403,7 @@ app.controller('all-cont',($scope,$http,$sce,$log)=>{
         $scope.currBuild.data = null;
     }
     $scope.copyCode = c => {
-       $log.debug('attempting to copy', c)
+        $log.debug('attempting to copy', c)
         prompt("Press ctrl-c (cmd-c on Mac) to copy this code!", c.parentNode.querySelector('.build-code').innerText);
     }
     $scope.infoBox = {
@@ -400,37 +440,37 @@ app.controller('all-cont',($scope,$http,$sce,$log)=>{
                 const replaceTrait = s.traited_facts && s.traited_facts.find(q => q.overrides == n);//if truthy, there DOES exist a replacement fact
                 if (!!replaceTrait && allUsedTraits.includes(replaceTrait.requires_trait)) {
                     sk = { ...JSON.parse(JSON.stringify(sk)), ...replaceTrait, isTraited: true };
-                   $log.debug('FOUND replacement fact', replaceTrait, 'FOR SKILL', s.name, 'REQUIRED TRAIT', replaceTrait.requires_trait, 'SKILL NOW', sk)
+                    $log.debug('FOUND replacement fact', replaceTrait, 'FOR SKILL', s.name, 'REQUIRED TRAIT', replaceTrait.requires_trait, 'SKILL NOW', sk)
                     // sk.isTraited = true;
                 }
                 return sk;
             })
-           $log.debug('SKILL INFO', s, 'CURR BUILD', $scope.currBuild.data, 'USED TRAITS', allUsedTraits)
+            $log.debug('SKILL INFO', s, 'CURR BUILD', $scope.currBuild.data, 'USED TRAITS', allUsedTraits)
             $scope.skillBox.on = true;
         } else {
             $scope.skillBox.on = false;
         }
     }
-    $scope.tryReconnect = ()=>{
+    $scope.tryReconnect = () => {
         $http.get('/alive')
-            .then(r=>{
-                console.log('Reconnected! Refreshing....')
-                bulmabox.confirm(`<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Server Restarted`,`There's been an update, and we need to reload the website to restore functionality.<br/>Click Okay to reload, or Cancel to stay on this page.`,function(r){
-                    if(!!r){
-                        window.location.reload();
-                    }
-                })
+            .then(r => {
+                    bulmabox.confirm(`<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Server Restarted`, `There's been an update, and we need to reload the website to restore functionality.<br/>Click Okay to reload, or Cancel to stay on this page.`, function (r) {
+                        if (!!r) {
+                            window.location.reload();
+                        }
+                    })
+            
             })
-            .catch(e=>{
+            .catch(e => {
                 // no reconnect
-                setTimeout(function(){
+                setTimeout(function () {
                     $scope.tryReconnect();
-                },500)
+                }, 500)
             })
     }
-    socket.on('disconnect',function(e){
+    socket.on('disconnect', function (e) {
         $scope.tryReconnect();
-        console.log('disconnected!',e)
+        $log.debug('disconnected!', e)
     })
 })
 Date.prototype.stdTimezoneOffset = function() {
@@ -762,7 +802,7 @@ app.controller('chat-cont', function ($scope, $http, $state, $filter, $sce) {
             $scope.allUsers = au.data;
         });
     socket.on('msgOut', function (msg) {
-        console.log('raw msg',msg)
+        console.log('raw msg', msg)
         // console.log($scope.parseMsg(msg.msg),'IS THE MESSAGE')
         msg.msg = $sce.trustAsHtml($scope.parseMsg(msg.msg));
         $scope.msgs.push(msg);
@@ -806,11 +846,17 @@ app.controller('chat-cont', function ($scope, $http, $state, $filter, $sce) {
             return false;
         } else if ($scope.newMsg.toLowerCase() == '/list') {
             socket.emit('getOnline', { u: $scope.user.user })
-        } else{
-            if($scope.newMsg.toLowerCase().startsWith('/disc')){
-                socket.emit('toDiscord',{u:$scope.user.user,msg:$scope.newMsg.replace('/disc','')})
+        } else {
+            if ($scope.newMsg.toLowerCase().startsWith('/disc')) {
+                socket.emit('toDiscord', {
+                    u: $scope.user.user,
+                    msg: $scope.newMsg.replace('/disc', '')
+                })
             }
-            socket.emit('chatMsg', { user: $scope.user.user, msg: $scope.newMsg.sanitize() })
+            socket.emit('chatMsg', {
+                user: $scope.user.user,
+                msg: $scope.newMsg.sanAndParse().md2h(true)
+            })
         }
         $scope.newMsg = '';
     }
@@ -1406,7 +1452,7 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
     $scope.mediaEdit = {};
     $scope.blgInst = defBlg;
     $scope.parseMd = t => {
-        return conv && conv.makeHtml && conv.makeHtml(t.sanitize()) && conv.makeHtml(t.sanitize()).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`) || '';
+        return t && t.sanAndParse().md2h();
     }
     $scope.hideInst = true;
     $scope.changeMedia = function () {
@@ -1525,7 +1571,7 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
         }else{
             saveMeth = 'POST'
         }
-        b.txtHtml = $scope.parseMd(b.txtMd);
+        b.txtHtml = null;//delete HTML, just in case. We'll rebuild it on the backend!
         $http({
             method:saveMeth,
             url:'/blog/blog',
@@ -1744,7 +1790,6 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
         // return console.log(new showdown.Converter().makeHtml(theText).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`))
         $http.post('/forum/newPost', {
             thread: $scope.thr._id,
-            text: new showdown.Converter().makeHtml(theText.sanitize()).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`),
             md: theText,
             file: $scope.fileread || null
         })

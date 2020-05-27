@@ -9,7 +9,7 @@ const routeExp = function(io,keys,dscrd) {
     // router.post('/uploadFile', upload.any(), (req, res, next) => {
     //     res.send(req.files)
     // })
-    this.blogParams = ['title','txtHtml','txtMd'];
+    this.blogParams = ['title','txtMd'];
     this.authbit = (req, res, next) => {
         if (req.session && req.session.user && req.session.user._id) {
             if (req.session.user.isBanned) {
@@ -67,6 +67,7 @@ const routeExp = function(io,keys,dscrd) {
             delete req.body.timeCreated;
             delete req.body.pid;
             req.body.announceToDiscord = !!req.body.announceToDiscord;//ensure bool
+            req.body.txtHtml = req.body.txtMd.sanAndParse().md2h();
             if(!!req.body.announceToDiscord){
                 const msg = dscrd.genBrethrenMsg(req.body,req.session.user);
                 // console.log(msg)
@@ -93,6 +94,7 @@ const routeExp = function(io,keys,dscrd) {
                     pst[p]=Date.now();
                 }else if(p=='announceToDiscord'){
                     pst[p]== !!req.body.announceToDiscord;//ensure bool
+                    req.body.txtHtml = req.body.txtMd.sanAndParse().md2h();
                 }else{
                     pst[p] = req.body[p];
                 }

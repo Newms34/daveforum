@@ -1,4 +1,4 @@
-app.controller('all-cont',($scope,$http,$sce,$log)=>{
+app.controller('all-cont', ($scope, $http, $sce, $log) => {
     $scope.label = 'allBase';
     $scope.currBuild = {
 
@@ -16,7 +16,7 @@ app.controller('all-cont',($scope,$http,$sce,$log)=>{
         $scope.currBuild.data = null;
     }
     $scope.copyCode = c => {
-       $log.debug('attempting to copy', c)
+        $log.debug('attempting to copy', c)
         prompt("Press ctrl-c (cmd-c on Mac) to copy this code!", c.parentNode.querySelector('.build-code').innerText);
     }
     $scope.infoBox = {
@@ -53,36 +53,36 @@ app.controller('all-cont',($scope,$http,$sce,$log)=>{
                 const replaceTrait = s.traited_facts && s.traited_facts.find(q => q.overrides == n);//if truthy, there DOES exist a replacement fact
                 if (!!replaceTrait && allUsedTraits.includes(replaceTrait.requires_trait)) {
                     sk = { ...JSON.parse(JSON.stringify(sk)), ...replaceTrait, isTraited: true };
-                   $log.debug('FOUND replacement fact', replaceTrait, 'FOR SKILL', s.name, 'REQUIRED TRAIT', replaceTrait.requires_trait, 'SKILL NOW', sk)
+                    $log.debug('FOUND replacement fact', replaceTrait, 'FOR SKILL', s.name, 'REQUIRED TRAIT', replaceTrait.requires_trait, 'SKILL NOW', sk)
                     // sk.isTraited = true;
                 }
                 return sk;
             })
-           $log.debug('SKILL INFO', s, 'CURR BUILD', $scope.currBuild.data, 'USED TRAITS', allUsedTraits)
+            $log.debug('SKILL INFO', s, 'CURR BUILD', $scope.currBuild.data, 'USED TRAITS', allUsedTraits)
             $scope.skillBox.on = true;
         } else {
             $scope.skillBox.on = false;
         }
     }
-    $scope.tryReconnect = ()=>{
+    $scope.tryReconnect = () => {
         $http.get('/alive')
-            .then(r=>{
-                console.log('Reconnected! Refreshing....')
-                bulmabox.confirm(`<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Server Restarted`,`There's been an update, and we need to reload the website to restore functionality.<br/>Click Okay to reload, or Cancel to stay on this page.`,function(r){
-                    if(!!r){
-                        window.location.reload();
-                    }
-                })
+            .then(r => {
+                    bulmabox.confirm(`<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Server Restarted`, `There's been an update, and we need to reload the website to restore functionality.<br/>Click Okay to reload, or Cancel to stay on this page.`, function (r) {
+                        if (!!r) {
+                            window.location.reload();
+                        }
+                    })
+            
             })
-            .catch(e=>{
+            .catch(e => {
                 // no reconnect
-                setTimeout(function(){
+                setTimeout(function () {
                     $scope.tryReconnect();
-                },500)
+                }, 500)
             })
     }
-    socket.on('disconnect',function(e){
+    socket.on('disconnect', function (e) {
         $scope.tryReconnect();
-        console.log('disconnected!',e)
+        $log.debug('disconnected!', e)
     })
 })
