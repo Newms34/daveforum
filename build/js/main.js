@@ -367,15 +367,23 @@ String.prototype.sanAndParse = function () {
     // console.log('validateColor',validateColor)
     return str.replace(/\[c=["']?[\w#\s,\(\)]{2,}['"]?\][^\[]*\[\/c\]/, function (m) {
         console.log('at beginning of col replace, m is', m)
-        //return m.slice(5,-1)
-        const col = m.match(/(?<=\[c=['"]?)[\w#\s\(\)]{2,}(?=['"]?\])/) && m.match(/(?<=\[c=['"]?)[\w#\s\(\)]{2,}(?=['"]?\])/)[0],
-            txt = m.match(/(?<=\])[^\[]{2,}(?=\[\/c\])/) && m.match(/(?<=\])[^\[]{2,}(?=\[\/c\])/)[0];
+
+        const bc = m.indexOf('[c=')+3,
+            ec  = m.indexOf(']'),
+            bt = m.indexOf(']')+1
+            et = m.indexOf('[/'),
+            col = m.slice(bc,ec).replace(/['"]/g,''),
+            txt = m.slice(bt,et);
+
+        // const col = m.match(/(?<=\[c=['"]?)[\w#\s\(\)]{2,}(?=['"]?\])/) && m.match(/(?<=\[c=['"]?)[\w#\s\(\)]{2,}(?=['"]?\])/)[0],
+        //     txt = m.match(/(?<=\])[^\[]{2,}(?=\[\/c\])/) && m.match(/(?<=\])[^\[]{2,}(?=\[\/c\])/)[0];
         //if the color is a valid css col according to validate-color, return a span el. Otherwise, strip out the color tags and simply return the text
         console.log('M', m, 'COLOR CODE', col, 'TEXT', txt)
         return `<span style='color:${col}'>${txt}</span>`;
     });
     // return this.replace('<', '&lt;').replace('>', '&gt;').replace(/\[&amp;D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`)
 }
+console.log(`*meep* [c='red']Hello there[/c]`.sanAndParse());
 String.prototype.md2h = function (noP) {
     if(!!noP){
         return cv.makeHtml(this).slice(3,-4);
