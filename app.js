@@ -38,7 +38,7 @@ const express = require('express'),
         },
         {
             t: `\[&amp;D[\w+/]+=*\]`,
-            s: `<build-template build='$&'></build-template>;`
+            s: `<build-template build='$&'></build-template>`
         }
     ],
     validateColor = require('validate-color').default,
