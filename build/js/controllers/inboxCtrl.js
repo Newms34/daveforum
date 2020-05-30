@@ -1,9 +1,9 @@
-app.controller('inbox-cont',function($scope,$http,userFact){
+app.controller('inbox-cont',function($scope,$http,userFact,$log){
 	$scope.currMsg = 0;
-	console.log('PARENT USER IS:',$scope.$parent.user);
+	$log.debug('PARENT USER IS:',$scope.$parent.user);
 	$scope.chMsg = function(dir){
 		if(dir && $scope.currMsg<$scope.$parent.user.msgs.length-1){
-			console.log('goin up 1 msg')
+			$log.debug('goin up 1 msg')
 			$scope.currMsg++;
 		}else if(!dir && $scope.currMsg>0){
 			$scope.currMsg--;
@@ -28,7 +28,7 @@ app.controller('inbox-cont',function($scope,$http,userFact){
 					if(r.data && r.data.name){
 						//refresh user.
 						$scope.$parent.user = r.data;
-						console.log('affected user',$scope.$parent.user)
+						$log.debug('affected user',$scope.$parent.user)
 						angular.element('body').scope().$digest();
 						$scope.currMsgs = Math.min($scope.$parent.user.msgs.length-1,$scope.currMsgs);
 					}else if (r.data=='err'){

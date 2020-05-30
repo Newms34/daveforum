@@ -1,4 +1,5 @@
 const conv = new showdown.Converter(),
+copyObj = o=>JSON.parse(JSON.stringify(o)),
     ytu = ['http://www.youtube.com/watch?v=&lt;VIDEO-CODE&gt;', 'http://www.youtube.com/v/&lt;VIDEO-CODE&gt;', 'http://youtu.be/&lt;VIDEO-CODE&gt;', 'https://www.youtube.com/embed/&lt;VIDEO-CODE&gt;', '&lt;VIDEO-CODE&gt;'];
 app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$log) => {
     $scope.postList = null;
@@ -8,7 +9,7 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
                 return a.time - b.time;
             });
             //either select the most recent blog (if none was previously selected) or the previously selected blog.
-            $scope.currBlg = (id ? $scope.postList.find(q => q.pid == id) : $scope.postList[0]).copy();
+            $scope.currBlg = (id ? $scope.postList.find(q => q.pid == id) : copyObj($scope.postList[0]));
             $log.debug('ALL POSTS', $scope.postList, 'SELECTED POST', $scope.currBlg)
         })
     }
@@ -33,7 +34,7 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
     $scope.changeMedia = function () {
         // $log.debug('New media is:',$scope.getMediaInfo($scope.currBlg.media.url))
         $scope.getMediaInfo($scope.currBlg.media.url).then(r => {
-            $scope.currBlg.media = r.copy();
+            $scope.currBlg.media = copyObj(r);
             $scope.edit.media = false;
             $scope.$digest();
         });
@@ -122,7 +123,7 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
                         bulmabox.confirm('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Discard changes', `The blog post ${$scope.currBlg.title} has been modified. Switching blogs posts now will discard those changes. Switch anyway?`, r => {
                             if (!!r) {
                                 $log.debug('current blog was changed. Said yes to discard; discarding and changing')
-                                $scope.currBlg = hasEdit? hasEdit.copy():$scope.emptyBlog.copy();
+                                $scope.currBlg = hasEdit? copyObj(hasEdit):copyObj($scope.emptyBlog);
                             }
                             else {
                                 $scope.candBlg = '';
@@ -132,7 +133,7 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
                         })
                     } else {
                         //no changes
-                        $scope.currBlg = hasEdit? hasEdit.copy():$scope.emptyBlog.copy();
+                        $scope.currBlg = hasEdit? copyObj(hasEdit):copyObj($scope.emptyBlog);
                         $scope.waitings.changeBlg = false;
                     }
                 })

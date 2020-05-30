@@ -1,8 +1,8 @@
 String.prototype.capMe = function() {
     return this.slice(0, 1).toUpperCase() + this.slice(1);
 }
-app.controller('main-cont', function($scope, $http, $state,userFact) {
-    console.log('main controller registered!')
+app.controller('main-cont', function($scope, $http, $state,userFact,$log) {
+    $log.debug('main controller registered!')
     $scope.user=null;
     userFact.getUser().then(r=>{
     	$scope.user=r.data;
@@ -16,6 +16,6 @@ app.controller('main-cont', function($scope, $http, $state,userFact) {
     })
     // socket.on('allNames',function(r){
     // 	$scope.online = r;
-    // 	console.log('users now online are',r)
+    // 	$log.debug('users now online are',r)
     // })
 })

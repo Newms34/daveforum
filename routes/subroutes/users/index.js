@@ -48,7 +48,10 @@ const routeExp = function (io, keys, dscrd) {
         }
     };
     router.get('/getUsr', this.authbit, (req, res, next) => {
-        res.send(req.session.user);
+        const usr = JSON.parse(JSON.stringify(req.session.user));
+        delete usr.pass;
+        delete usr.salt;
+        res.send(usr);
     });
     router.get('/memberCount', (req, res, next) => {
         //gets the count of brethren members

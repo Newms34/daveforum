@@ -1,8 +1,8 @@
-resetApp.controller('reset-contr',function($scope,$http,$location){
+resetApp.controller('reset-contr',function($scope,$http,$location,$log){
 	$scope.key = window.location.search.slice(5);
 
 	$http.get('/user/resetUsr?key='+$scope.key).then(function(u){
-		console.log('getting reset user status?',u)
+		$log.debug('getting reset user status?',u)
 		$scope.user=u.data;
 	});
 	$scope.doReset = function(){
@@ -15,7 +15,6 @@ resetApp.controller('reset-contr',function($scope,$http,$location){
 				pwdDup:$scope.pwdDup,
 				key:$scope.key
 			}).then(function(r){
-				console.log('')
 				if(r.data=='err'){
 					bulmabox.alert('Error resetting password','There was an error resetting your password. Please contact a mod');
 				}else{

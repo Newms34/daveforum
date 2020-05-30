@@ -8,7 +8,7 @@ Date.prototype.isDstObserved = function() {
     return this.getTimezoneOffset() < this.stdTimezoneOffset();
 }
 
-app.controller('cal-cont', function($scope, $http, $state) {
+app.controller('cal-cont', function($scope, $http, $state,userFact) {
     $scope.cal = [];
     $scope.days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     $scope.calLoaded = false;
@@ -29,7 +29,7 @@ app.controller('cal-cont', function($scope, $http, $state) {
         lbl: 'Every five weeks',
         n: 5
     }]
-    $http.get('/user/usrData')
+    userFact.getUser()
         .then(r => {
             $scope.user = r.data;
         })
@@ -184,7 +184,7 @@ app.controller('cal-cont', function($scope, $http, $state) {
         repeatOn: false,
         repeatFreq: 1
     };
-    $http.get('/user/allUsrs')
+    userFact.getUsers()
         .then(au => {
             $scope.allUsrs = au.data.map(u => u.user);
         })

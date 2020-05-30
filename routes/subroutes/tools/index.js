@@ -572,6 +572,12 @@ const routeExp = function (io,keys) {
 
     */
 
+    router.get('/worldData',this.authbit,(req,res,next)=>{
+        axios.get('https://api.guildwars2.com/v2/worlds?ids=all').then(r=>{
+            res.send(r.data)
+        })
+    })
+
     router.get('/build', async function (req, res, next) {
         if (!req.query.build || !req.query.build.startsWith('[&') || !req.query.build.endsWith(']')) {
             //not a valid build code!

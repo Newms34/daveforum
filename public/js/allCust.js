@@ -36,7 +36,7 @@ const dcRedirect = ['$location', '$q', '$injector', function ($location, $q, $in
     let currLoc = '';
     return {
         request: function (config) {
-            // console.log('STATE', $injector.get('$state'));
+            console.log('STATE', $injector.get('$state'));
             currLoc = $location.path();
             return config;
         },
@@ -47,7 +47,7 @@ const dcRedirect = ['$location', '$q', '$injector', function ($location, $q, $in
             return result;
         },
         responseError: function (response) {
-            // console.log('Something bad happened!', response,currLoc, $location.path())
+            console.log('Something bad happened!', response,currLoc, $location.path())
             hadDirect = true;
             bulmabox.alert(`App Restarting`, `Hi! I've made some sort of change just now to make this app more awesome! Unfortunately, this also means I've needed to restart it. I'm gonna log you out now.`, function (r) {
                 fetch('/user/logout')
@@ -228,15 +228,15 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
                     const reader = new FileReader(),
                         theFile = changeEvent.target.files[0],
                         tempName = theFile.name;
-                    console.log('UPLOADING FILE', theFile);
+                    // console.log('UPLOADING FILE', theFile);
                     reader.onload = function (loadEvent) {
                         let theURI = loadEvent.target.result;
-                        console.log('URI before optional resize', theURI, theURI.length)
+                        // console.log('URI before optional resize', theURI, theURI.length)
                         if (scope.$parent.needsResize) {
                             //needs to resize img (usually for avatar)
                             resizeDataUrl(scope, theURI, scope.$parent.needsResize, scope.$parent.needsResize, tempName);
                         } else {
-                            console.log('APPLYING file to $parent')
+                            // console.log('APPLYING file to $parent')
                             scope.$apply(function () {
                                 if (scope.$parent && scope.$parent.$parent && scope.$parent.$parent.avas) {
 
@@ -282,11 +282,11 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
                 //first, find loginBase OR logoutBase
                 let base = scope;
                 while (base.$parent && !base.label) {
-                    console.log('Not yet found base! current:', base, base.label, 'has parent?', base.$parent)
+                    // console.log('Not yet found base! current:', base, base.label, 'has parent?', base.$parent)
                     base = base.$parent;
                 }
                 //'base' should now be our all-app base
-                console.log('final base', base.label);
+                // console.log('final base', base.label);
                 element.bind('click', function (e) {
                     base.inspectCode(attributes.build);
                 })
@@ -320,9 +320,9 @@ String.prototype.titleCase = function () {
     return this.split(/\s/).map(t => t.slice(0, 1).toUpperCase() + t.slice(1).toLowerCase()).join(' ');
 }
 
-Object.prototype.copy = function () {
-    return JSON.parse(JSON.stringify(this));
-}
+// Object.prototype.healyCopy = function () {
+//     return JSON.parse(JSON.stringify(this));
+// }
 const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
     // We create an image to receive the Data URI
     const img = document.createElement('img');
@@ -364,12 +364,12 @@ String.prototype.sanAndParse = function () {
     */
     let str = this;
     for (rp of snps) {
-        console.log('replacing', rp.t, 'with', rp.s)
+        // console.log('replacing', rp.t, 'with', rp.s)
         str = str.replace(new RegExp(rp.t, 'g'), rp.s);
     }
-    // console.log('validateColor',validateColor)
+    console.log('validateColor',validateColor)
     return str.replace(/\[c=["']?[\w#\s,\(\)]{2,}['"]?\][^\[]*\[\/c\]/, function (m) {
-        console.log('at beginning of col replace, m is', m)
+        // console.log('at beginning of col replace, m is', m)
 
         const bc = m.indexOf('[c=')+3,
             ec  = m.indexOf(']'),
@@ -381,12 +381,11 @@ String.prototype.sanAndParse = function () {
         // const col = m.match(/(?<=\[c=['"]?)[\w#\s\(\)]{2,}(?=['"]?\])/) && m.match(/(?<=\[c=['"]?)[\w#\s\(\)]{2,}(?=['"]?\])/)[0],
         //     txt = m.match(/(?<=\])[^\[]{2,}(?=\[\/c\])/) && m.match(/(?<=\])[^\[]{2,}(?=\[\/c\])/)[0];
         //if the color is a valid css col according to validate-color, return a span el. Otherwise, strip out the color tags and simply return the text
-        console.log('M', m, 'COLOR CODE', col, 'TEXT', txt)
+        // console.log('M', m, 'COLOR CODE', col, 'TEXT', txt)
         return `<span style='color:${col}'>${txt}</span>`;
     });
     // return this.replace('<', '&lt;').replace('>', '&gt;').replace(/\[&amp;D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`)
 }
-console.log(`*meep* [c='red']Hello there[/c]`.sanAndParse());
 String.prototype.md2h = function (noP) {
     if(!!noP){
         return cv.makeHtml(this).slice(3,-4);
@@ -493,7 +492,7 @@ Date.prototype.isDstObserved = function() {
     return this.getTimezoneOffset() < this.stdTimezoneOffset();
 }
 
-app.controller('cal-cont', function($scope, $http, $state) {
+app.controller('cal-cont', function($scope, $http, $state,userFact) {
     $scope.cal = [];
     $scope.days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     $scope.calLoaded = false;
@@ -514,7 +513,7 @@ app.controller('cal-cont', function($scope, $http, $state) {
         lbl: 'Every five weeks',
         n: 5
     }]
-    $http.get('/user/usrData')
+    userFact.getUser()
         .then(r => {
             $scope.user = r.data;
         })
@@ -669,7 +668,7 @@ app.controller('cal-cont', function($scope, $http, $state) {
         repeatOn: false,
         repeatFreq: 1
     };
-    $http.get('/user/allUsrs')
+    userFact.getUsers()
         .then(au => {
             $scope.allUsrs = au.data.map(u => u.user);
         })
@@ -778,8 +777,8 @@ app.controller('cal-cont', function($scope, $http, $state) {
         }
     }
 })
-app.controller('chat-cont', function ($scope, $http, $state, $filter, $sce) {
-    $http.get('/user/getUsr')
+app.controller('chat-cont', function ($scope, $http, $state, $filter, $sce,userFact) {
+    userFact.getUser()
         .then(r => {
             $scope.doUser(r.data);
             console.log('user', $scope.user)
@@ -805,7 +804,7 @@ app.controller('chat-cont', function ($scope, $http, $state, $filter, $sce) {
         }
         return t;
     }
-    $http.get('/user/allUsrs')
+    userFact.getUsers()
         .then((au) => {
             //Auch!
             console.log('all users is', au)
@@ -871,9 +870,9 @@ app.controller('chat-cont', function ($scope, $http, $state, $filter, $sce) {
         $scope.newMsg = '';
     }
 })
-app.controller('dash-cont', function ($scope, $http, $state, $filter) {
+app.controller('dash-cont', function ($scope, $http, $state, $filter, userFact) {
     $scope.showDups = localStorage.brethDups; //show this user in 'members' list (for testing)
-    $http.get('/user/usrData')
+    userFact.getUser()
         .then(r => {
             $scope.doUser(r.data);
             console.log('user', $scope.user)
@@ -883,7 +882,7 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
         $http.put('/user/accountName?account=' + $scope.user.account)
             .then(rd => {
                 bulmabox.alert('Account Name Saved', 'Thanks! We&rsquo;ve saved your account name!')
-                $http.get('/user/usrData')
+                userFact.getUser()
                     .then(r => {
                         $scope.doUser(r.data);
                         // console.log('user', $scope.user)
@@ -922,7 +921,7 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
         console.log('SOCKET USER', u, 'this user', $scope.user)
         if (u.user == $scope.user.user || u.from == $scope.user.user) {
             console.log('re-getting user')
-            $http.get('/user/usrData')
+            userFact.getUser()
                 .then(r => {
                     $scope.doUser(r.data);
                 });
@@ -1048,7 +1047,7 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
     }
     //end search stuff
     $scope.getMembers = () => {
-        $http.get('/user/allUsrs')
+        userFact.getUsers()
             .then((au) => {
                 console.log('all users is', au)
                 $scope.allUsers = au.data;
@@ -1063,7 +1062,7 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
     $scope.getMembers();
     socket.on('allNames', function (r) {
         // console.log('ALLNAMES',r)
-        if(!!r.user){
+        if (!!r.user) {
             // console.log('not for dash, returning false!')
             return false;
         }
@@ -1085,8 +1084,8 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
         $scope.currTab = t;
     }
     $scope.currTab = 'Profile/Characters'
-    $scope.explRank = ()=>{
-        bulmabox.alert(`Member Rank`,`
+    $scope.explRank = () => {
+        bulmabox.alert(`Member Rank`, `
         This is the guild rank of each member (viewable by pressing "G" in game).<br>
         To get <i>your</i> rank to display:<br>
         <ol>
@@ -1434,6 +1433,7 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
         };
     })
 const conv = new showdown.Converter(),
+copyObj = o=>JSON.parse(JSON.stringify(o)),
     ytu = ['http://www.youtube.com/watch?v=&lt;VIDEO-CODE&gt;', 'http://www.youtube.com/v/&lt;VIDEO-CODE&gt;', 'http://youtu.be/&lt;VIDEO-CODE&gt;', 'https://www.youtube.com/embed/&lt;VIDEO-CODE&gt;', '&lt;VIDEO-CODE&gt;'];
 app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$log) => {
     $scope.postList = null;
@@ -1443,7 +1443,7 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
                 return a.time - b.time;
             });
             //either select the most recent blog (if none was previously selected) or the previously selected blog.
-            $scope.currBlg = (id ? $scope.postList.find(q => q.pid == id) : $scope.postList[0]).copy();
+            $scope.currBlg = (id ? $scope.postList.find(q => q.pid == id) : copyObj($scope.postList[0]));
             $log.debug('ALL POSTS', $scope.postList, 'SELECTED POST', $scope.currBlg)
         })
     }
@@ -1468,7 +1468,7 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
     $scope.changeMedia = function () {
         // $log.debug('New media is:',$scope.getMediaInfo($scope.currBlg.media.url))
         $scope.getMediaInfo($scope.currBlg.media.url).then(r => {
-            $scope.currBlg.media = r.copy();
+            $scope.currBlg.media = copyObj(r);
             $scope.edit.media = false;
             $scope.$digest();
         });
@@ -1557,7 +1557,7 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
                         bulmabox.confirm('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Discard changes', `The blog post ${$scope.currBlg.title} has been modified. Switching blogs posts now will discard those changes. Switch anyway?`, r => {
                             if (!!r) {
                                 $log.debug('current blog was changed. Said yes to discard; discarding and changing')
-                                $scope.currBlg = hasEdit? hasEdit.copy():$scope.emptyBlog.copy();
+                                $scope.currBlg = hasEdit? copyObj(hasEdit):copyObj($scope.emptyBlog);
                             }
                             else {
                                 $scope.candBlg = '';
@@ -1567,7 +1567,7 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
                         })
                     } else {
                         //no changes
-                        $scope.currBlg = hasEdit? hasEdit.copy():$scope.emptyBlog.copy();
+                        $scope.currBlg = hasEdit? copyObj(hasEdit):copyObj($scope.emptyBlog);
                         $scope.waitings.changeBlg = false;
                     }
                 })
@@ -1591,12 +1591,12 @@ app.controller('edit-cont', ($scope, $sce, $http, imgTypes, vidTypes, defBlg,$lo
         })
     }
 })
-app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
+app.controller('forum-cat-cont', function($scope, $http, $state, $location,userFact) {
     if (!localStorage.brethUsr) {
         $state.go('app.login');
         //since we really cannot do anything here if user is NOT logged in
     }
-    $http.get('/user/getUsr')
+    userFact.getUser()
         .then(r => {
             $scope.user = r.data;
             console.log('user', $scope.user)
@@ -1695,7 +1695,7 @@ app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
 //         console.log(fr.result)
 //     })
 // }
-app.controller('forum-cont', function($scope, $http, $state,$sce) {
+app.controller('forum-cont', function($scope, $http, $state,$sce,$log) {
     $scope.currMsg = 0;
     $scope.forObj = {};
     if (!localStorage.brethUsr) {
@@ -1708,7 +1708,7 @@ app.controller('forum-cont', function($scope, $http, $state,$sce) {
     $http.get('/forum/cats')
         .then((r) => {
             const forCats = Object.keys(r.data);
-            console.log('CATS',r)
+            $log.debug('CATS',r)
             $scope.forObj = forCats.map(ct => {
                 return {
                     name: ct,
@@ -1729,7 +1729,7 @@ app.controller('forum-cont', function($scope, $http, $state,$sce) {
             if ($scope.search && $scope.search.length) {
                 $http.post('/forum/searchThr', { term: $scope.search })
                     .then(r => {
-                        console.log('search response', r);
+                        $log.debug('search response', r);
                         $scope.searchResults = r.data;
                     })
             }
@@ -1740,7 +1740,7 @@ app.controller('forum-cont', function($scope, $http, $state,$sce) {
         $state.go('app.forumCat', { c: n })
     }
 })
-app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sce) {
+app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sce,userFact,$log) {
     $scope.currMsg = 0;
     $scope.defaultPic = defaultPic;
     $scope.forObj = {};
@@ -1756,12 +1756,12 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
     }
     $scope.currCat = $location.search().c;
     $scope.id = $location.search().t;
-    // console.log($scope.currCat,)
+    // $log.debug($scope.currCat,)
     $scope.refThred = () => {
-        console.log('info to back:', $scope.id)
+        $log.debug('info to back:', $scope.id)
         $http.get('/forum/thread?id=' + $scope.id)
             .then((r) => {
-                console.log('response', r)
+                $log.debug('response', r)
                 $scope.thr = r.data.thrd;
                 r.data.psts.map(ps => {
                     ps.rawText = ps.text;
@@ -1772,7 +1772,7 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
                 });
                 $scope.avas = r.data.ava;
                 $scope.thr.posts = $scope.thr.posts.map(psth => {
-                    // console.log('PSTH', psth, r.data.psts.filter(psps => psps._id == psth.id)[0])
+                    // $log.debug('PSTH', psth, r.data.psts.filter(psps => psps._id == psth.id)[0])
                     const thePst = r.data.psts.filter(psps => psps._id == psth.id)[0];
                     thePst.votesUp = psth.votesUp;
                     thePst.votesDown = psth.votesDown;
@@ -1782,22 +1782,23 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
                 }).sort((a, b) => {
                     return a.order - b.order;
                 })
-                console.log('thred response', $scope.thr, r);
+                $log.debug('thred response', $scope.thr, r);
             })
     }
     $scope.refThred();
-    $http.get('/user/getUsr').then((r) => {
-        $scope.user = r.data;
-        console.log('user', $scope.user)
-    })
+    userFact.getUser()
+        .then((r) => {
+            $scope.user = r.data;
+            $log.debug('user', $scope.user)
+        })
     $scope.newPost = () => {
         let theText = document.querySelector('#postTxt').value;
-        console.log('new POST', theText, $scope.fileread);
+        $log.debug('new POST', theText, $scope.fileread);
         if (!theText && !$scope.fileread) {
             bulmabox.alert('Say Something', `You can't just post nothing!`);
             return false;
         }
-        // return console.log(new showdown.Converter().makeHtml(theText).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`))
+        // return $log.debug(new showdown.Converter().makeHtml(theText).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`))
         $http.post('/forum/newPost', {
             thread: $scope.thr._id,
             md: theText,
@@ -1808,14 +1809,14 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
             })
     };
     $scope.vote = (pst, dir) => {
-        console.log('voting for', pst, 'direction', dir, 'which is', typeof dir)
+        $log.debug('voting for', pst, 'direction', dir, 'which is', typeof dir)
         $http.post('/forum/vote', {
             thread: pst.thread,
             post: pst._id,
             voteUp: !!dir
         })
             .then((r) => {
-                console.log('vote response is:', r)
+                $log.debug('vote response is:', r)
                 $scope.refThred();
             })
     }
@@ -1826,7 +1827,7 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
     $scope.currBuild = {
         data: null,
     };
-    
+
 })
 app.controller('help-cont', ($scope,$sce) => {
     $scope.tabs = [{
@@ -2044,12 +2045,12 @@ app.controller('home-cont', function ($scope, $http, $state, $sce, imgTypes, vid
         $state.go('appSimp.login');
     }
 })
-app.controller('inbox-cont',function($scope,$http,userFact){
+app.controller('inbox-cont',function($scope,$http,userFact,$log){
 	$scope.currMsg = 0;
-	console.log('PARENT USER IS:',$scope.$parent.user);
+	$log.debug('PARENT USER IS:',$scope.$parent.user);
 	$scope.chMsg = function(dir){
 		if(dir && $scope.currMsg<$scope.$parent.user.msgs.length-1){
-			console.log('goin up 1 msg')
+			$log.debug('goin up 1 msg')
 			$scope.currMsg++;
 		}else if(!dir && $scope.currMsg>0){
 			$scope.currMsg--;
@@ -2074,7 +2075,7 @@ app.controller('inbox-cont',function($scope,$http,userFact){
 					if(r.data && r.data.name){
 						//refresh user.
 						$scope.$parent.user = r.data;
-						console.log('affected user',$scope.$parent.user)
+						$log.debug('affected user',$scope.$parent.user)
 						angular.element('body').scope().$digest();
 						$scope.currMsgs = Math.min($scope.$parent.user.msgs.length-1,$scope.currMsgs);
 					}else if (r.data=='err'){
@@ -2085,7 +2086,7 @@ app.controller('inbox-cont',function($scope,$http,userFact){
 		});
 	}
 })
-app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
+app.controller('log-cont', function ($scope, $http, $state, $q, userFact, $log) {
     $scope.noWarn = false;
     $scope.nameOkay = true;
     delete localStorage.brethUsr;
@@ -2096,38 +2097,38 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
     $scope.goLog = () => {
         $state.go('appSimp.login')
     };
-    $scope.doForgot = ()=>{
-        // console.log('USER ATTEMPTING TO REMEMBER PWD')
+    $scope.doForgot = () => {
+        // $log.debug('USER ATTEMPTING TO REMEMBER PWD')
         bulmabox.kill('bulmabox')
-        $http.get('/user/forgotToMods?u='+$scope.user)
-            .then(r=>{
+        $http.get('/user/forgotToMods?u=' + $scope.user)
+            .then(r => {
                 bulmabox.alert
             })
     }
     $scope.forgot = () => {
-        $http.get('/user/okayToReset?u='+$scope.user)
-        .then(r=>{
-                if(!$scope.user){
-                    return bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Need Username',"We can't help you reset your password if you don't tell us who you are!")
+        $http.get('/user/okayToReset?u=' + $scope.user)
+            .then(r => {
+                if (!$scope.user) {
+                    return bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Need Username', "We can't help you reset your password if you don't tell us who you are!")
                 }
                 bulmabox.custom('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Forgot Password',
-                `Forgot your password? Click the magic button below, and one of the [PAIN] moderators will reset your password! <br>NOTE: You'll need to talk to a PAIN officer in game to recieve your temporary password.`,()=>{
-                    $http.get('/user/requestReset?u='+$scope.user)
-                        .then(r=>{
-                            alert('Done!');
-                        })
-                },`<button class='button is-info' onclick='bulmabox.runCb(bulmabox.params.cb,true)'><i class='fa fa-check'></i>&nbsp;Ask for reset</button>`)
-        })
-        .catch(e=>{
-            bulmabox.alert(`<i class="fa fa-exclamation-triangle is-size-3"></i>&nbspCan't reset password`,"Unfortunately, we can't reset the password for that username. Please contact a [PAIN] officer in-game for further details.")
-        })               
-                
-                // if (!$scope.user) {
-                    //     bulmabox.alert('<i class="fa fa-exclamation-triangle isas-size-3"></i>&nbsp;Forgot Password', 'To recieve a password reset email, please enter your username!')
+                    `Forgot your password? Click the magic button below, and one of the [PAIN] moderators will reset your password! <br>NOTE: You'll need to talk to a PAIN officer in game to recieve your temporary password.`, () => {
+                        $http.get('/user/requestReset?u=' + $scope.user)
+                            .then(r => {
+                                alert('Done!');
+                            })
+                    }, `<button class='button is-info' onclick='bulmabox.runCb(bulmabox.params.cb,true)'><i class='fa fa-check'></i>&nbsp;Ask for reset</button>`)
+            })
+            .catch(e => {
+                bulmabox.alert(`<i class="fa fa-exclamation-triangle is-size-3"></i>&nbspCan't reset password`, "Unfortunately, we can't reset the password for that username. Please contact a [PAIN] officer in-game for further details.")
+            })
+
+        // if (!$scope.user) {
+        //     bulmabox.alert('<i class="fa fa-exclamation-triangle isas-size-3"></i>&nbsp;Forgot Password', 'To recieve a password reset email, please enter your username!')
         //     return;
         // }
         // $http.post('/user/forgot', { user: $scope.user }).then(function(r) {
-        //     console.log('forgot route response', r)
+        //     $log.debug('forgot route response', r)
         //     if (r.data == 'err') {
         //         bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Forgot Password Error', "It looks like that account either doesn't exist, or doesn't have an email registered with it! Contact a mod for further help.")
         //     } else {
@@ -2135,25 +2136,25 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
         //     }
         // })
     }
-    $scope.backHome = ()=>{
+    $scope.backHome = () => {
         $state.go('appSimp.home')
     }
     $scope.signin = () => {
-        $http.put('/user/login', { user: $scope.user, pass: $scope.pwd })
+        userFact.login({ user: $scope.user, pass: $scope.pwd })
             .then((r) => {
-                console.log(r);
-                if (r.data=='authErr') {
+                $log.debug(r);
+                if (r.data == 'authErr') {
                     bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Incorrect Login', 'Either your username or password (or both!) are incorrect.');
-                }else if(r.data=='banned'){
+                } else if (r.data == 'banned') {
                     bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Banned', "You've been banned! We're a pretty laid-back guild, so you must have <i>really</i> done something to piss us off!")
-                }else if(r.data=='expPwd'){
+                } else if (r.data == 'expPwd') {
                     bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Expired Password', "That password's expired! Please ask a moderator to reset your password, and this time <i>remember</i> to change it!")
                 } else {
                     // delete r.data.msgs;
-                    console.log('LOGIN RESPONSE',r.data)
+                    $log.debug('LOGIN RESPONSE', r.data)
                     socket.emit('chatMsg', { msg: `${$scope.user} logged in!` })
-                    if(r.data.news){
-                        bulmabox.alert('Updates/News',`Since you last logged in, the following updates have been implemented:<br><ul style='list-style:disc;'><li>${r.data.news.join('</li><li>')}</li></ul>`)
+                    if (r.data.news) {
+                        bulmabox.alert('Updates/News', `Since you last logged in, the following updates have been implemented:<br><ul style='list-style:disc;'><li>${r.data.news.join('</li><li>')}</li></ul>`)
                     }
                     localStorage.brethUsr = JSON.stringify(r.data.usr);
                     $state.go('app.dash');
@@ -2161,14 +2162,14 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
             })
             .catch(e => {
                 bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Error', "There's been some sort of error logging in. This is <i>probably</i> not an issue necessarily with your credentials. Blame Dave!")
-                console.log(e);
+                $log.debug(e);
             })
     }
     $scope.checkUser = () => {
         if ($scope.checkTimer) {
             clearTimeout($scope.checkTimer);
         }
-        $scope.checkTimer = setTimeout(function() {
+        $scope.checkTimer = setTimeout(function () {
             $http.get('/user/nameOkay?name=' + $scope.user)
                 .then((r) => {
                     $scope.nameOkay = r.data;
@@ -2179,27 +2180,23 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
         if (!$scope.pwd || !$scope.pwdDup || !$scope.user) {
             bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Missing Information', 'Please enter a username, and a password (twice).')
         } else if ($scope.pwd != $scope.pwdDup) {
-            console.log('derp')
+            $log.debug('derp')
             bulmabox.alert('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Password Mismatch', 'Your passwords don\'t match, or are missing!');
-        }else if(!$scope.account){
-            bulmabox.confirm('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Send Without Account?',`You've not included Guild Wars 2 account! <br>While you can register without a gw2 account name, certain features will be unavailable.<br>Register anyway?`,function(resp){
-                if(!resp||resp==null){
+        } else if (!$scope.account) {
+            bulmabox.confirm('<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Send Without Account?', `You've not included Guild Wars 2 account! <br>While you can register without a gw2 account name, certain features will be unavailable.<br>Register anyway?`, function (resp) {
+                if (!resp || resp == null) {
                     return false;
                 }
-                $http.post('/user/new', {
-                    user: $scope.user,
-                    pass: $scope.pwd,
-                    account:$scope.account
-                })
-                .then((r) => {
-                    $http.put('/user/login', { user: $scope.user, pass: $scope.pwd })
-                        .then(() => {
-                            $state.go('app.dash')
-                        })
-                })
-                .catch(e=>{
-                    console.log(e)
-                    bulmabox.alert(`<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Problem Registering`,`Sorry, but there was an issue with registering your account. Please contact HealyUnit (me) in game/on discord if this continues to happen, and tell me the following error info:<br/>
+                userFact.signup({ user: $scope.user, pass: $scope.pwd, account: $scope.account })
+                    .then((r) => {
+                        userFact.login({ user: $scope.user, pass: $scope.pwd })
+                            .then(() => {
+                                $state.go('app.dash')
+                            })
+                    })
+                    .catch(e => {
+                        $log.debug(e)
+                        bulmabox.alert(`<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Problem Registering`, `Sorry, but there was an issue with registering your account. Please contact HealyUnit (me) in game/on discord if this continues to happen, and tell me the following error info:<br/>
                     <div class='message has-background-grey-lighter'>
                         Error:{<br/>
                         &nbsp;status:${e.status},<br/>
@@ -2208,23 +2205,19 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
                     </div><br/>
                     Thanks!
                     `)
-                })
+                    })
             })
         } else {
-            $http.post('/user/new', {
-                    user: $scope.user,
-                    pass: $scope.pwd,
-                    account:$scope.account
-                })
+            userFact.signup({ user: $scope.user, pass: $scope.pwd, account: $scope.account })
                 .then((r) => {
-                    $http.put('/user/login', { user: $scope.user, pass: $scope.pwd })
+                    userFact.login({ user: $scope.user, pass: $scope.pwd })
                         .then(() => {
                             $state.go('app.dash')
                         })
                 })
-                .catch(e=>{
-                    console.log(e)
-                    bulmabox.alert(`<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Problem Registering`,`Sorry, but there was an issue with registering your account. Please contact HealyUnit in game if you have further issues. Please tell him<br/>`)
+                .catch(e => {
+                    $log.debug(e)
+                    bulmabox.alert(`<i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Problem Registering`, `Sorry, but there was an issue with registering your account. Please contact HealyUnit in game if you have further issues. Please tell him<br/>`)
                 })
         }
     }
@@ -2232,8 +2225,8 @@ app.controller('log-cont', function($scope, $http, $state, $q, userFact) {
 String.prototype.capMe = function() {
     return this.slice(0, 1).toUpperCase() + this.slice(1);
 }
-app.controller('main-cont', function($scope, $http, $state,userFact) {
-    console.log('main controller registered!')
+app.controller('main-cont', function($scope, $http, $state,userFact,$log) {
+    $log.debug('main controller registered!')
     $scope.user=null;
     userFact.getUser().then(r=>{
     	$scope.user=r.data;
@@ -2247,7 +2240,7 @@ app.controller('main-cont', function($scope, $http, $state,userFact) {
     })
     // socket.on('allNames',function(r){
     // 	$scope.online = r;
-    // 	console.log('users now online are',r)
+    // 	$log.debug('users now online are',r)
     // })
 })
 
@@ -2295,11 +2288,11 @@ app.controller('nav-cont',function($scope,$http,$state,userFact){
     }]
     $scope.mobActive=false;
 })
-resetApp.controller('reset-contr',function($scope,$http,$location){
+resetApp.controller('reset-contr',function($scope,$http,$location,$log){
 	$scope.key = window.location.search.slice(5);
 
 	$http.get('/user/resetUsr?key='+$scope.key).then(function(u){
-		console.log('getting reset user status?',u)
+		$log.debug('getting reset user status?',u)
 		$scope.user=u.data;
 	});
 	$scope.doReset = function(){
@@ -2312,7 +2305,6 @@ resetApp.controller('reset-contr',function($scope,$http,$location){
 				pwdDup:$scope.pwdDup,
 				key:$scope.key
 			}).then(function(r){
-				console.log('')
 				if(r.data=='err'){
 					bulmabox.alert('Error resetting password','There was an error resetting your password. Please contact a mod');
 				}else{
@@ -2453,267 +2445,14 @@ const timezoneList = [
       "text": "(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka"
    }
 ]
-const worlds = [{
-        id: 1001,
-        name: "Anvil Rock",
-        population: "High"
-    },
-    {
-        id: 1002,
-        name: "Borlis Pass",
-        population: "Medium"
-    },
-    {
-        id: 1003,
-        name: "Yak's Bend",
-        population: "High"
-    },
-    {
-        id: 1004,
-        name: "Henge of Denravi",
-        population: "Medium"
-    },
-    {
-        id: 1005,
-        name: "Maguuma",
-        population: "High"
-    },
-    {
-        id: 1006,
-        name: "Sorrow's Furnace",
-        population: "Medium"
-    },
-    {
-        id: 1007,
-        name: "Gate of Madness",
-        population: "Medium"
-    },
-    {
-        id: 1008,
-        name: "Jade Quarry",
-        population: "Medium"
-    },
-    {
-        id: 1009,
-        name: "Fort Aspenwood",
-        population: "Full"
-    },
-    {
-        id: 1010,
-        name: "Ehmry Bay",
-        population: "Medium"
-    },
-    {
-        id: 1011,
-        name: "Stormbluff Isle",
-        population: "Medium"
-    },
-    {
-        id: 1012,
-        name: "Darkhaven",
-        population: "Medium"
-    },
-    {
-        id: 1013,
-        name: "Sanctum of Rall",
-        population: "VeryHigh"
-    },
-    {
-        id: 1014,
-        name: "Crystal Desert",
-        population: "Medium"
-    },
-    {
-        id: 1015,
-        name: "Isle of Janthir",
-        population: "Medium"
-    },
-    {
-        id: 1016,
-        name: "Sea of Sorrows",
-        population: "VeryHigh"
-    },
-    {
-        id: 1017,
-        name: "Tarnished Coast",
-        population: "High"
-    },
-    {
-        id: 1018,
-        name: "Northern Shiverpeaks",
-        population: "High"
-    },
-    {
-        id: 1019,
-        name: "Blackgate",
-        population: "Full"
-    },
-    {
-        id: 1020,
-        name: "Ferguson's Crossing",
-        population: "Medium"
-    },
-    {
-        id: 1021,
-        name: "Dragonbrand",
-        population: "Medium"
-    },
-    {
-        id: 1022,
-        name: "Kaineng",
-        population: "High"
-    },
-    {
-        id: 1023,
-        name: "Devona's Rest",
-        population: "Medium"
-    },
-    {
-        id: 1024,
-        name: "Eredon Terrace",
-        population: "Medium"
-    },
-    {
-        id: 2001,
-        name: "Fissure of Woe",
-        population: "Medium"
-    },
-    {
-        id: 2002,
-        name: "Desolation",
-        population: "VeryHigh"
-    },
-    {
-        id: 2003,
-        name: "Gandara",
-        population: "High"
-    },
-    {
-        id: 2004,
-        name: "Blacktide",
-        population: "Medium"
-    },
-    {
-        id: 2005,
-        name: "Ring of Fire",
-        population: "Medium"
-    },
-    {
-        id: 2006,
-        name: "Underworld",
-        population: "Medium"
-    },
-    {
-        id: 2007,
-        name: "Far Shiverpeaks",
-        population: "Medium"
-    },
-    {
-        id: 2008,
-        name: "Whiteside Ridge",
-        population: "High"
-    },
-    {
-        id: 2009,
-        name: "Ruins of Surmia",
-        population: "Medium"
-    },
-    {
-        id: 2010,
-        name: "Seafarer's Rest",
-        population: "VeryHigh"
-    },
-    {
-        id: 2011,
-        name: "Vabbi",
-        population: "High"
-    },
-    {
-        id: 2012,
-        name: "Piken Square",
-        population: "VeryHigh"
-    },
-    {
-        id: 2013,
-        name: "Aurora Glade",
-        population: "High"
-    },
-    {
-        id: 2014,
-        name: "Gunnar's Hold",
-        population: "Medium"
-    },
-    {
-        id: 2101,
-        name: "Jade Sea",
-        population: "High"
-    },
-    {
-        id: 2102,
-        name: "Fort Ranik",
-        population: "Medium"
-    },
-    {
-        id: 2103,
-        name: "Augury Rock",
-        population: "High"
-    },
-    {
-        id: 2104,
-        name: "Vizunah Square",
-        population: "Medium"
-    },
-    {
-        id: 2105,
-        name: "Arborstone",
-        population: "Medium"
-    },
-    {
-        id: 2201,
-        name: "Kodash",
-        population: "High"
-    },
-    {
-        id: 2202,
-        name: "Riverside",
-        population: "Full"
-    },
-    {
-        id: 2203,
-        name: "Elona Reach",
-        population: "VeryHigh"
-    },
-    {
-        id: 2204,
-        name: "Abaddon's Mouth",
-        population: "Medium"
-    },
-    {
-        id: 2205,
-        name: "Drakkar Lake",
-        population: "High"
-    },
-    {
-        id: 2206,
-        name: "Miller's Sound",
-        population: "Medium"
-    },
-    {
-        id: 2207,
-        name: "Dzagonur",
-        population: "Medium"
-    },
-    {
-        id: 2301,
-        name: "Baruch Bay",
-        population: "VeryHigh"
-    }
-];
-app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $window) {
+app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $window,$log) {
     $scope.showTab = (t) => {
         $scope.currTab = t;
         if($scope.currTab=='WvW Current Match History'){
-            $scope.refWvw()
+            $http.get('/tool/worldData').then(r=>{
+
+                $scope.refWvw(r.data)
+            })
         }
     }
     $scope.currTab = 'Dailies'
@@ -2736,7 +2475,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
     $scope.regetDaily = () => {
         const spd = Object.keys($scope.dailyRestrict).filter(sp => $scope.dailyRestrict[sp]);
         $http.get('/tool/daily' + ($scope.tmrw ? '/tomorrow' : '') + (spd.length ? '?modes=' + spd.join(',') : '')).then(r => {
-            console.log('dailyObj', r.data)
+            $log.debug('dailyObj', r.data)
             $scope.dailies = r.data;
         })
     }
@@ -2810,12 +2549,13 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                 popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
             });
         });
-        console.log('Map Markers', $scope.mapMarkers)
+        $log.debug('Map Markers', $scope.mapMarkers)
     }
-    $scope.refWvw = () => {
+    $scope.refWvw = worlds => {
+        // return console.log('World data!',d)
         $http.get('/tool/wvw' + ($scope.wvwWorld ? '?world=' + $scope.wvwWorld : ''))
             .then(r => {
-                console.log('WVW STUFF', r, r.data)
+                $log.debug('WVW STUFF', r, r.data)
                 if (r.data == 'newMatch') {
                     $scope.wvwDisabled = true;
                     $scope.wvw = null;
@@ -2851,15 +2591,15 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                     borderColor: '#00f',
                     pointBackgroundColor: '#00f'
                 }]
-                console.log('WVW', $scope.wvw)
+                $log.debug('WVW', $scope.wvw)
                 // $scope.currSkirm = {s:$scope.wvwColors.map(c=>r.data.wvw.scores[c]),l:labels,v:$scope.wvwColors.map(c=>r.data.data.victory_points[c])}
                 $scope.mapMarkers = [];
                 $scope.wvwOwned = r.data.owned||null;//wot do we own
                 $scope.makeMarkers()
                 let mapDiv = document.querySelector('#wvw-map');
-                console.log('mapDiv', mapDiv, mapDiv.offsetWidth)
+                $log.debug('mapDiv', mapDiv, mapDiv.offsetWidth)
                 // mapDiv.style.height = mapDiv.getBoundingClientRect().right +'px';
-                $scope.doMap( $scope.wvw.maps)
+                $scope.doMap($scope.wvw.maps)
             })
     }
     $scope.nextSkirm = () => {
@@ -2896,7 +2636,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
     $scope.mats = ['blood', 'bone', 'claw', 'fang', 'scale', 'totem', 'venom'];
     $scope.cores = ['glacial', 'onyx', 'destroyer', 'molten', 'corrupted', 'essence', 'crystal', 'charged']
     $scope.calcPrices = (data) => {
-        console.log('DATA before prices', data)
+        $log.debug('DATA before prices', data)
         data.push({ hi: 2504, lo: 2504, lName: 'Bottle of Elonian Wine', id: 19663, sName: 'wine' }); //push in bottle of elonian whine
         //mats
         //output is 5-12 t6 for input of 50 t5, 1 t6, 5 cdust, 5 philosorocks
@@ -2923,7 +2663,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         $scope.cores.forEach(c => {
             let core = data.find(d => d.sName == 'c' + c),
                 l = data.find(d => d.sName == 'l' + c);
-            // console.log('TYPE:',c,'CORE',core,'LODE',l)
+            // $log.debug('TYPE:',c,'CORE',core,'LODE',l)
             l.c = core;
             l.hiProf = l.hi - ((2 * core.lo) + dust.lo + 2504);
             l.loProf = l.lo - ((2 * core.hi) + dust.hi + 2504);
@@ -2934,18 +2674,18 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                 l.profGood = -1;
             }
         })
-        console.log('PRICES!', data)
+        $log.debug('PRICES!', data)
         return data;
     }
     $scope.isMat = (m) => {
         return m.sName.indexOf('t6') > -1 && m.sName != 't6dust';
     }
     $scope.isGem = (m) => {
-        // console.log('checking',m,m.sName[0])
+        // $log.debug('checking',m,m.sName[0])
         return m.sName.indexOf('t6') < 0 && m.sName != 'wine' && m.sName.indexOf('t5') < 0 && m.sName[0] == 'l';
     }
     $scope.histClick = (e) => {
-        console.log('CLICKED:', e, Chart)
+        $log.debug('CLICKED:', e, Chart)
         if (!e || !e[0]) return false;
         $scope.currentMatch = e[0]._index;
         $scope.positionVert();
@@ -2963,8 +2703,8 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                 $scope.lineYWid = chart.chartArea.left;
                 $scope.lineHeight = chart.chartArea.bottom - chart.chartArea.top;
                 $scope.lineStepWid = $scope.lineXWid / ($scope.wvw.skirmishes.length - 1);
-                // console.log('After Draw', chart, 'WIDTH:', $scope.lineXWid, $scope.lineYWid, $scope.lineHeight, 'SCALE NAMES:', Object.keys(chart.scales));
-                // console.log('CHART',JSON.stringify(chart))
+                // $log.debug('After Draw', chart, 'WIDTH:', $scope.lineXWid, $scope.lineYWid, $scope.lineHeight, 'SCALE NAMES:', Object.keys(chart.scales));
+                // $log.debug('CHART',JSON.stringify(chart))
                 const ctx = chart.canvas.getContext("2d");
                 ctx.moveTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), 5)
                 ctx.lineTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), $scope.lineHeight + 5);
@@ -2996,7 +2736,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
     // $scope.refWvw();
     $scope.getMapState=()=>{
         //
-        console.log('ZOOM',$scope.map.getZoom(),'BOUNDS',$scope.map.getBounds())
+        $log.debug('ZOOM',$scope.map.getZoom(),'BOUNDS',$scope.map.getBounds())
     }
     $scope.unproject = function(m, c) {
         return m.unproject(c, m.getMaxZoom())
@@ -3007,10 +2747,10 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         //     return map.unproject(coord, map.getMaxZoom());
         // }
         let southWest, northEast;
-
+        // return console.log('stopping just before map push!')
         $scope.map = L.map("wvw-map", {
             minZoom: 0,
-            maxZoom: 6,
+            maxZoom: 6
             // zoomSnap: 0,
             // zoomDelta: 0.3,
             /* wheelPxPerZoomLevel: 140,
@@ -3025,9 +2765,6 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
 
         const renderBounds = new L.LatLngBounds($scope.unproject($scope.map, [16384, 0]), $scope.unproject($scope.map, [0, 16384]));
         L.tileLayer("https://tiles.guildwars2.com/2/3/{z}/{x}/{y}.jpg", {
-            /* minZoom: 0,
-            maxZoom: 7,
-            continuousWorld: true */
             subdomains: ["tiles1", "tiles2", "tiles3", "tiles4"],
             bounds: renderBounds,
             minNativeZoom: 4,
@@ -3043,7 +2780,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         mapObjs.forEach(mp => {
             mp.objectives.filter(mpf => !!mpf.marker).forEach(mpo => {
                 let theMarker = $scope.mapMarkers.find(mmr => mmr.options.iconName == mpo.type.toLowerCase()+'-'+mpo.owner.toLowerCase());
-                console.log('THIS OBJECTIVE',mpo,'MARKER (probly)',theMarker,'FROM', mpo.type.toLowerCase()+'-'+mpo.owner.toLowerCase())
+                // $log.debug('THIS OBJECTIVE',mpo,'MARKER (probly)',theMarker,'FROM', mpo.type.toLowerCase()+'-'+mpo.owner.toLowerCase())
                 L.marker($scope.unproject($scope.map, mpo.coord), { title: `${mpo.name} (owned by: ${mpo.owner})`, icon: theMarker }).addTo($scope.map)
             })
         })
@@ -3124,10 +2861,24 @@ app.run(['$rootScope', '$state', '$stateParams', '$transitions', '$q','userFact'
 }]);
 app.factory('userFact', function($http) {
     return {
-        getUser: function() {
+        getUser() {
             return $http.get('/user/getUsr').then(function(s) {
-                console.log('getUser in fac says:', s)
                 return s;
+            })
+        },
+        getUsers() {
+            return $http.get('/user/allUsrs').then(function(s) {
+                return s;
+            })
+        },
+        login(u){
+            return $http.put('/user/login', { user: u.user, pass: u.pass }).then(function(s){
+                return s;
+            })
+        },
+        signup(u){
+            return $http.post('/user/new', u).then(function(r){
+                return r;
             })
         }
     };

@@ -1,264 +1,11 @@
-const worlds = [{
-        id: 1001,
-        name: "Anvil Rock",
-        population: "High"
-    },
-    {
-        id: 1002,
-        name: "Borlis Pass",
-        population: "Medium"
-    },
-    {
-        id: 1003,
-        name: "Yak's Bend",
-        population: "High"
-    },
-    {
-        id: 1004,
-        name: "Henge of Denravi",
-        population: "Medium"
-    },
-    {
-        id: 1005,
-        name: "Maguuma",
-        population: "High"
-    },
-    {
-        id: 1006,
-        name: "Sorrow's Furnace",
-        population: "Medium"
-    },
-    {
-        id: 1007,
-        name: "Gate of Madness",
-        population: "Medium"
-    },
-    {
-        id: 1008,
-        name: "Jade Quarry",
-        population: "Medium"
-    },
-    {
-        id: 1009,
-        name: "Fort Aspenwood",
-        population: "Full"
-    },
-    {
-        id: 1010,
-        name: "Ehmry Bay",
-        population: "Medium"
-    },
-    {
-        id: 1011,
-        name: "Stormbluff Isle",
-        population: "Medium"
-    },
-    {
-        id: 1012,
-        name: "Darkhaven",
-        population: "Medium"
-    },
-    {
-        id: 1013,
-        name: "Sanctum of Rall",
-        population: "VeryHigh"
-    },
-    {
-        id: 1014,
-        name: "Crystal Desert",
-        population: "Medium"
-    },
-    {
-        id: 1015,
-        name: "Isle of Janthir",
-        population: "Medium"
-    },
-    {
-        id: 1016,
-        name: "Sea of Sorrows",
-        population: "VeryHigh"
-    },
-    {
-        id: 1017,
-        name: "Tarnished Coast",
-        population: "High"
-    },
-    {
-        id: 1018,
-        name: "Northern Shiverpeaks",
-        population: "High"
-    },
-    {
-        id: 1019,
-        name: "Blackgate",
-        population: "Full"
-    },
-    {
-        id: 1020,
-        name: "Ferguson's Crossing",
-        population: "Medium"
-    },
-    {
-        id: 1021,
-        name: "Dragonbrand",
-        population: "Medium"
-    },
-    {
-        id: 1022,
-        name: "Kaineng",
-        population: "High"
-    },
-    {
-        id: 1023,
-        name: "Devona's Rest",
-        population: "Medium"
-    },
-    {
-        id: 1024,
-        name: "Eredon Terrace",
-        population: "Medium"
-    },
-    {
-        id: 2001,
-        name: "Fissure of Woe",
-        population: "Medium"
-    },
-    {
-        id: 2002,
-        name: "Desolation",
-        population: "VeryHigh"
-    },
-    {
-        id: 2003,
-        name: "Gandara",
-        population: "High"
-    },
-    {
-        id: 2004,
-        name: "Blacktide",
-        population: "Medium"
-    },
-    {
-        id: 2005,
-        name: "Ring of Fire",
-        population: "Medium"
-    },
-    {
-        id: 2006,
-        name: "Underworld",
-        population: "Medium"
-    },
-    {
-        id: 2007,
-        name: "Far Shiverpeaks",
-        population: "Medium"
-    },
-    {
-        id: 2008,
-        name: "Whiteside Ridge",
-        population: "High"
-    },
-    {
-        id: 2009,
-        name: "Ruins of Surmia",
-        population: "Medium"
-    },
-    {
-        id: 2010,
-        name: "Seafarer's Rest",
-        population: "VeryHigh"
-    },
-    {
-        id: 2011,
-        name: "Vabbi",
-        population: "High"
-    },
-    {
-        id: 2012,
-        name: "Piken Square",
-        population: "VeryHigh"
-    },
-    {
-        id: 2013,
-        name: "Aurora Glade",
-        population: "High"
-    },
-    {
-        id: 2014,
-        name: "Gunnar's Hold",
-        population: "Medium"
-    },
-    {
-        id: 2101,
-        name: "Jade Sea",
-        population: "High"
-    },
-    {
-        id: 2102,
-        name: "Fort Ranik",
-        population: "Medium"
-    },
-    {
-        id: 2103,
-        name: "Augury Rock",
-        population: "High"
-    },
-    {
-        id: 2104,
-        name: "Vizunah Square",
-        population: "Medium"
-    },
-    {
-        id: 2105,
-        name: "Arborstone",
-        population: "Medium"
-    },
-    {
-        id: 2201,
-        name: "Kodash",
-        population: "High"
-    },
-    {
-        id: 2202,
-        name: "Riverside",
-        population: "Full"
-    },
-    {
-        id: 2203,
-        name: "Elona Reach",
-        population: "VeryHigh"
-    },
-    {
-        id: 2204,
-        name: "Abaddon's Mouth",
-        population: "Medium"
-    },
-    {
-        id: 2205,
-        name: "Drakkar Lake",
-        population: "High"
-    },
-    {
-        id: 2206,
-        name: "Miller's Sound",
-        population: "Medium"
-    },
-    {
-        id: 2207,
-        name: "Dzagonur",
-        population: "Medium"
-    },
-    {
-        id: 2301,
-        name: "Baruch Bay",
-        population: "VeryHigh"
-    }
-];
-app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $window) {
+app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $window,$log) {
     $scope.showTab = (t) => {
         $scope.currTab = t;
         if($scope.currTab=='WvW Current Match History'){
-            $scope.refWvw()
+            $http.get('/tool/worldData').then(r=>{
+
+                $scope.refWvw(r.data)
+            })
         }
     }
     $scope.currTab = 'Dailies'
@@ -281,7 +28,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
     $scope.regetDaily = () => {
         const spd = Object.keys($scope.dailyRestrict).filter(sp => $scope.dailyRestrict[sp]);
         $http.get('/tool/daily' + ($scope.tmrw ? '/tomorrow' : '') + (spd.length ? '?modes=' + spd.join(',') : '')).then(r => {
-            console.log('dailyObj', r.data)
+            $log.debug('dailyObj', r.data)
             $scope.dailies = r.data;
         })
     }
@@ -355,12 +102,13 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                 popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
             });
         });
-        console.log('Map Markers', $scope.mapMarkers)
+        $log.debug('Map Markers', $scope.mapMarkers)
     }
-    $scope.refWvw = () => {
+    $scope.refWvw = worlds => {
+        // return console.log('World data!',d)
         $http.get('/tool/wvw' + ($scope.wvwWorld ? '?world=' + $scope.wvwWorld : ''))
             .then(r => {
-                console.log('WVW STUFF', r, r.data)
+                $log.debug('WVW STUFF', r, r.data)
                 if (r.data == 'newMatch') {
                     $scope.wvwDisabled = true;
                     $scope.wvw = null;
@@ -396,15 +144,15 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                     borderColor: '#00f',
                     pointBackgroundColor: '#00f'
                 }]
-                console.log('WVW', $scope.wvw)
+                $log.debug('WVW', $scope.wvw)
                 // $scope.currSkirm = {s:$scope.wvwColors.map(c=>r.data.wvw.scores[c]),l:labels,v:$scope.wvwColors.map(c=>r.data.data.victory_points[c])}
                 $scope.mapMarkers = [];
                 $scope.wvwOwned = r.data.owned||null;//wot do we own
                 $scope.makeMarkers()
                 let mapDiv = document.querySelector('#wvw-map');
-                console.log('mapDiv', mapDiv, mapDiv.offsetWidth)
+                $log.debug('mapDiv', mapDiv, mapDiv.offsetWidth)
                 // mapDiv.style.height = mapDiv.getBoundingClientRect().right +'px';
-                $scope.doMap( $scope.wvw.maps)
+                $scope.doMap($scope.wvw.maps)
             })
     }
     $scope.nextSkirm = () => {
@@ -441,7 +189,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
     $scope.mats = ['blood', 'bone', 'claw', 'fang', 'scale', 'totem', 'venom'];
     $scope.cores = ['glacial', 'onyx', 'destroyer', 'molten', 'corrupted', 'essence', 'crystal', 'charged']
     $scope.calcPrices = (data) => {
-        console.log('DATA before prices', data)
+        $log.debug('DATA before prices', data)
         data.push({ hi: 2504, lo: 2504, lName: 'Bottle of Elonian Wine', id: 19663, sName: 'wine' }); //push in bottle of elonian whine
         //mats
         //output is 5-12 t6 for input of 50 t5, 1 t6, 5 cdust, 5 philosorocks
@@ -468,7 +216,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         $scope.cores.forEach(c => {
             let core = data.find(d => d.sName == 'c' + c),
                 l = data.find(d => d.sName == 'l' + c);
-            // console.log('TYPE:',c,'CORE',core,'LODE',l)
+            // $log.debug('TYPE:',c,'CORE',core,'LODE',l)
             l.c = core;
             l.hiProf = l.hi - ((2 * core.lo) + dust.lo + 2504);
             l.loProf = l.lo - ((2 * core.hi) + dust.hi + 2504);
@@ -479,18 +227,18 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                 l.profGood = -1;
             }
         })
-        console.log('PRICES!', data)
+        $log.debug('PRICES!', data)
         return data;
     }
     $scope.isMat = (m) => {
         return m.sName.indexOf('t6') > -1 && m.sName != 't6dust';
     }
     $scope.isGem = (m) => {
-        // console.log('checking',m,m.sName[0])
+        // $log.debug('checking',m,m.sName[0])
         return m.sName.indexOf('t6') < 0 && m.sName != 'wine' && m.sName.indexOf('t5') < 0 && m.sName[0] == 'l';
     }
     $scope.histClick = (e) => {
-        console.log('CLICKED:', e, Chart)
+        $log.debug('CLICKED:', e, Chart)
         if (!e || !e[0]) return false;
         $scope.currentMatch = e[0]._index;
         $scope.positionVert();
@@ -508,8 +256,8 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
                 $scope.lineYWid = chart.chartArea.left;
                 $scope.lineHeight = chart.chartArea.bottom - chart.chartArea.top;
                 $scope.lineStepWid = $scope.lineXWid / ($scope.wvw.skirmishes.length - 1);
-                // console.log('After Draw', chart, 'WIDTH:', $scope.lineXWid, $scope.lineYWid, $scope.lineHeight, 'SCALE NAMES:', Object.keys(chart.scales));
-                // console.log('CHART',JSON.stringify(chart))
+                // $log.debug('After Draw', chart, 'WIDTH:', $scope.lineXWid, $scope.lineYWid, $scope.lineHeight, 'SCALE NAMES:', Object.keys(chart.scales));
+                // $log.debug('CHART',JSON.stringify(chart))
                 const ctx = chart.canvas.getContext("2d");
                 ctx.moveTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), 5)
                 ctx.lineTo($scope.lineYWid + ($scope.currentMatch * $scope.lineStepWid), $scope.lineHeight + 5);
@@ -541,7 +289,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
     // $scope.refWvw();
     $scope.getMapState=()=>{
         //
-        console.log('ZOOM',$scope.map.getZoom(),'BOUNDS',$scope.map.getBounds())
+        $log.debug('ZOOM',$scope.map.getZoom(),'BOUNDS',$scope.map.getBounds())
     }
     $scope.unproject = function(m, c) {
         return m.unproject(c, m.getMaxZoom())
@@ -552,10 +300,10 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         //     return map.unproject(coord, map.getMaxZoom());
         // }
         let southWest, northEast;
-
+        // return console.log('stopping just before map push!')
         $scope.map = L.map("wvw-map", {
             minZoom: 0,
-            maxZoom: 6,
+            maxZoom: 6
             // zoomSnap: 0,
             // zoomDelta: 0.3,
             /* wheelPxPerZoomLevel: 140,
@@ -570,9 +318,6 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
 
         const renderBounds = new L.LatLngBounds($scope.unproject($scope.map, [16384, 0]), $scope.unproject($scope.map, [0, 16384]));
         L.tileLayer("https://tiles.guildwars2.com/2/3/{z}/{x}/{y}.jpg", {
-            /* minZoom: 0,
-            maxZoom: 7,
-            continuousWorld: true */
             subdomains: ["tiles1", "tiles2", "tiles3", "tiles4"],
             bounds: renderBounds,
             minNativeZoom: 4,
@@ -588,7 +333,7 @@ app.controller('tool-cont', function($scope, $http, $state, $filter, $sce, $wind
         mapObjs.forEach(mp => {
             mp.objectives.filter(mpf => !!mpf.marker).forEach(mpo => {
                 let theMarker = $scope.mapMarkers.find(mmr => mmr.options.iconName == mpo.type.toLowerCase()+'-'+mpo.owner.toLowerCase());
-                console.log('THIS OBJECTIVE',mpo,'MARKER (probly)',theMarker,'FROM', mpo.type.toLowerCase()+'-'+mpo.owner.toLowerCase())
+                // $log.debug('THIS OBJECTIVE',mpo,'MARKER (probly)',theMarker,'FROM', mpo.type.toLowerCase()+'-'+mpo.owner.toLowerCase())
                 L.marker($scope.unproject($scope.map, mpo.coord), { title: `${mpo.name} (owned by: ${mpo.owner})`, icon: theMarker }).addTo($scope.map)
             })
         })

@@ -119,22 +119,3 @@ Array.prototype.findOne = function (p, v) {
 Array.prototype.removeOne = function (n) {
     this.splice(this.indexOf(n), 1);
 }
-
-// const snps = [
-//     {
-//         t: '<',
-//         s: '&lt;'
-//     },
-//     {
-//         t: '>',
-//         s: '&gt;'
-//     },
-//     {
-//         t: `\[&amp;D[\w+/]+=*\]`,
-//         s: `<build-template build='$&'></build-template>;`
-//     }
-// ]
-
-router.post('/testSNP', function (req, res, next) {
-    res.send(req.body.t.sanAndParse())
-});

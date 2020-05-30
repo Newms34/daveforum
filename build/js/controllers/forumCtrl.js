@@ -1,4 +1,4 @@
-app.controller('forum-cont', function($scope, $http, $state,$sce) {
+app.controller('forum-cont', function($scope, $http, $state,$sce,$log) {
     $scope.currMsg = 0;
     $scope.forObj = {};
     if (!localStorage.brethUsr) {
@@ -11,7 +11,7 @@ app.controller('forum-cont', function($scope, $http, $state,$sce) {
     $http.get('/forum/cats')
         .then((r) => {
             const forCats = Object.keys(r.data);
-            console.log('CATS',r)
+            $log.debug('CATS',r)
             $scope.forObj = forCats.map(ct => {
                 return {
                     name: ct,
@@ -32,7 +32,7 @@ app.controller('forum-cont', function($scope, $http, $state,$sce) {
             if ($scope.search && $scope.search.length) {
                 $http.post('/forum/searchThr', { term: $scope.search })
                     .then(r => {
-                        console.log('search response', r);
+                        $log.debug('search response', r);
                         $scope.searchResults = r.data;
                     })
             }

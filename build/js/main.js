@@ -33,7 +33,7 @@ const dcRedirect = ['$location', '$q', '$injector', function ($location, $q, $in
     let currLoc = '';
     return {
         request: function (config) {
-            // console.log('STATE', $injector.get('$state'));
+            console.log('STATE', $injector.get('$state'));
             currLoc = $location.path();
             return config;
         },
@@ -44,7 +44,7 @@ const dcRedirect = ['$location', '$q', '$injector', function ($location, $q, $in
             return result;
         },
         responseError: function (response) {
-            // console.log('Something bad happened!', response,currLoc, $location.path())
+            console.log('Something bad happened!', response,currLoc, $location.path())
             hadDirect = true;
             bulmabox.alert(`App Restarting`, `Hi! I've made some sort of change just now to make this app more awesome! Unfortunately, this also means I've needed to restart it. I'm gonna log you out now.`, function (r) {
                 fetch('/user/logout')
@@ -225,15 +225,15 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
                     const reader = new FileReader(),
                         theFile = changeEvent.target.files[0],
                         tempName = theFile.name;
-                    console.log('UPLOADING FILE', theFile);
+                    // console.log('UPLOADING FILE', theFile);
                     reader.onload = function (loadEvent) {
                         let theURI = loadEvent.target.result;
-                        console.log('URI before optional resize', theURI, theURI.length)
+                        // console.log('URI before optional resize', theURI, theURI.length)
                         if (scope.$parent.needsResize) {
                             //needs to resize img (usually for avatar)
                             resizeDataUrl(scope, theURI, scope.$parent.needsResize, scope.$parent.needsResize, tempName);
                         } else {
-                            console.log('APPLYING file to $parent')
+                            // console.log('APPLYING file to $parent')
                             scope.$apply(function () {
                                 if (scope.$parent && scope.$parent.$parent && scope.$parent.$parent.avas) {
 
@@ -279,11 +279,11 @@ app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$httpP
                 //first, find loginBase OR logoutBase
                 let base = scope;
                 while (base.$parent && !base.label) {
-                    console.log('Not yet found base! current:', base, base.label, 'has parent?', base.$parent)
+                    // console.log('Not yet found base! current:', base, base.label, 'has parent?', base.$parent)
                     base = base.$parent;
                 }
                 //'base' should now be our all-app base
-                console.log('final base', base.label);
+                // console.log('final base', base.label);
                 element.bind('click', function (e) {
                     base.inspectCode(attributes.build);
                 })
@@ -317,9 +317,9 @@ String.prototype.titleCase = function () {
     return this.split(/\s/).map(t => t.slice(0, 1).toUpperCase() + t.slice(1).toLowerCase()).join(' ');
 }
 
-Object.prototype.copy = function () {
-    return JSON.parse(JSON.stringify(this));
-}
+// Object.prototype.healyCopy = function () {
+//     return JSON.parse(JSON.stringify(this));
+// }
 const resizeDataUrl = (scope, datas, wantedWidth, wantedHeight, tempName) => {
     // We create an image to receive the Data URI
     const img = document.createElement('img');
@@ -361,12 +361,12 @@ String.prototype.sanAndParse = function () {
     */
     let str = this;
     for (rp of snps) {
-        console.log('replacing', rp.t, 'with', rp.s)
+        // console.log('replacing', rp.t, 'with', rp.s)
         str = str.replace(new RegExp(rp.t, 'g'), rp.s);
     }
-    // console.log('validateColor',validateColor)
+    console.log('validateColor',validateColor)
     return str.replace(/\[c=["']?[\w#\s,\(\)]{2,}['"]?\][^\[]*\[\/c\]/, function (m) {
-        console.log('at beginning of col replace, m is', m)
+        // console.log('at beginning of col replace, m is', m)
 
         const bc = m.indexOf('[c=')+3,
             ec  = m.indexOf(']'),
@@ -378,12 +378,11 @@ String.prototype.sanAndParse = function () {
         // const col = m.match(/(?<=\[c=['"]?)[\w#\s\(\)]{2,}(?=['"]?\])/) && m.match(/(?<=\[c=['"]?)[\w#\s\(\)]{2,}(?=['"]?\])/)[0],
         //     txt = m.match(/(?<=\])[^\[]{2,}(?=\[\/c\])/) && m.match(/(?<=\])[^\[]{2,}(?=\[\/c\])/)[0];
         //if the color is a valid css col according to validate-color, return a span el. Otherwise, strip out the color tags and simply return the text
-        console.log('M', m, 'COLOR CODE', col, 'TEXT', txt)
+        // console.log('M', m, 'COLOR CODE', col, 'TEXT', txt)
         return `<span style='color:${col}'>${txt}</span>`;
     });
     // return this.replace('<', '&lt;').replace('>', '&gt;').replace(/\[&amp;D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`)
 }
-console.log(`*meep* [c='red']Hello there[/c]`.sanAndParse());
 String.prototype.md2h = function (noP) {
     if(!!noP){
         return cv.makeHtml(this).slice(3,-4);

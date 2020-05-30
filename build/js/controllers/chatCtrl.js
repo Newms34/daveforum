@@ -1,5 +1,5 @@
-app.controller('chat-cont', function ($scope, $http, $state, $filter, $sce) {
-    $http.get('/user/getUsr')
+app.controller('chat-cont', function ($scope, $http, $state, $filter, $sce,userFact) {
+    userFact.getUser()
         .then(r => {
             $scope.doUser(r.data);
             console.log('user', $scope.user)
@@ -25,7 +25,7 @@ app.controller('chat-cont', function ($scope, $http, $state, $filter, $sce) {
         }
         return t;
     }
-    $http.get('/user/allUsrs')
+    userFact.getUsers()
         .then((au) => {
             //Auch!
             console.log('all users is', au)

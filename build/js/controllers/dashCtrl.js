@@ -1,6 +1,6 @@
-app.controller('dash-cont', function ($scope, $http, $state, $filter) {
+app.controller('dash-cont', function ($scope, $http, $state, $filter, userFact) {
     $scope.showDups = localStorage.brethDups; //show this user in 'members' list (for testing)
-    $http.get('/user/usrData')
+    userFact.getUser()
         .then(r => {
             $scope.doUser(r.data);
             console.log('user', $scope.user)
@@ -10,7 +10,7 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
         $http.put('/user/accountName?account=' + $scope.user.account)
             .then(rd => {
                 bulmabox.alert('Account Name Saved', 'Thanks! We&rsquo;ve saved your account name!')
-                $http.get('/user/usrData')
+                userFact.getUser()
                     .then(r => {
                         $scope.doUser(r.data);
                         // console.log('user', $scope.user)
@@ -49,7 +49,7 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
         console.log('SOCKET USER', u, 'this user', $scope.user)
         if (u.user == $scope.user.user || u.from == $scope.user.user) {
             console.log('re-getting user')
-            $http.get('/user/usrData')
+            userFact.getUser()
                 .then(r => {
                     $scope.doUser(r.data);
                 });
@@ -175,7 +175,7 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
     }
     //end search stuff
     $scope.getMembers = () => {
-        $http.get('/user/allUsrs')
+        userFact.getUsers()
             .then((au) => {
                 console.log('all users is', au)
                 $scope.allUsers = au.data;
@@ -190,7 +190,7 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
     $scope.getMembers();
     socket.on('allNames', function (r) {
         // console.log('ALLNAMES',r)
-        if(!!r.user){
+        if (!!r.user) {
             // console.log('not for dash, returning false!')
             return false;
         }
@@ -212,8 +212,8 @@ app.controller('dash-cont', function ($scope, $http, $state, $filter) {
         $scope.currTab = t;
     }
     $scope.currTab = 'Profile/Characters'
-    $scope.explRank = ()=>{
-        bulmabox.alert(`Member Rank`,`
+    $scope.explRank = () => {
+        bulmabox.alert(`Member Rank`, `
         This is the guild rank of each member (viewable by pressing "G" in game).<br>
         To get <i>your</i> rank to display:<br>
         <ol>

@@ -1,9 +1,9 @@
-app.controller('forum-cat-cont', function($scope, $http, $state, $location) {
+app.controller('forum-cat-cont', function($scope, $http, $state, $location,userFact) {
     if (!localStorage.brethUsr) {
         $state.go('app.login');
         //since we really cannot do anything here if user is NOT logged in
     }
-    $http.get('/user/getUsr')
+    userFact.getUser()
         .then(r => {
             $scope.user = r.data;
             console.log('user', $scope.user)

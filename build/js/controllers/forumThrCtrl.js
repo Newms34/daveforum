@@ -1,4 +1,4 @@
-app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sce) {
+app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sce,userFact,$log) {
     $scope.currMsg = 0;
     $scope.defaultPic = defaultPic;
     $scope.forObj = {};
@@ -14,12 +14,12 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
     }
     $scope.currCat = $location.search().c;
     $scope.id = $location.search().t;
-    // console.log($scope.currCat,)
+    // $log.debug($scope.currCat,)
     $scope.refThred = () => {
-        console.log('info to back:', $scope.id)
+        $log.debug('info to back:', $scope.id)
         $http.get('/forum/thread?id=' + $scope.id)
             .then((r) => {
-                console.log('response', r)
+                $log.debug('response', r)
                 $scope.thr = r.data.thrd;
                 r.data.psts.map(ps => {
                     ps.rawText = ps.text;
@@ -30,7 +30,7 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
                 });
                 $scope.avas = r.data.ava;
                 $scope.thr.posts = $scope.thr.posts.map(psth => {
-                    // console.log('PSTH', psth, r.data.psts.filter(psps => psps._id == psth.id)[0])
+                    // $log.debug('PSTH', psth, r.data.psts.filter(psps => psps._id == psth.id)[0])
                     const thePst = r.data.psts.filter(psps => psps._id == psth.id)[0];
                     thePst.votesUp = psth.votesUp;
                     thePst.votesDown = psth.votesDown;
@@ -40,22 +40,23 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
                 }).sort((a, b) => {
                     return a.order - b.order;
                 })
-                console.log('thred response', $scope.thr, r);
+                $log.debug('thred response', $scope.thr, r);
             })
     }
     $scope.refThred();
-    $http.get('/user/getUsr').then((r) => {
-        $scope.user = r.data;
-        console.log('user', $scope.user)
-    })
+    userFact.getUser()
+        .then((r) => {
+            $scope.user = r.data;
+            $log.debug('user', $scope.user)
+        })
     $scope.newPost = () => {
         let theText = document.querySelector('#postTxt').value;
-        console.log('new POST', theText, $scope.fileread);
+        $log.debug('new POST', theText, $scope.fileread);
         if (!theText && !$scope.fileread) {
             bulmabox.alert('Say Something', `You can't just post nothing!`);
             return false;
         }
-        // return console.log(new showdown.Converter().makeHtml(theText).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`))
+        // return $log.debug(new showdown.Converter().makeHtml(theText).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`))
         $http.post('/forum/newPost', {
             thread: $scope.thr._id,
             md: theText,
@@ -66,14 +67,14 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
             })
     };
     $scope.vote = (pst, dir) => {
-        console.log('voting for', pst, 'direction', dir, 'which is', typeof dir)
+        $log.debug('voting for', pst, 'direction', dir, 'which is', typeof dir)
         $http.post('/forum/vote', {
             thread: pst.thread,
             post: pst._id,
             voteUp: !!dir
         })
             .then((r) => {
-                console.log('vote response is:', r)
+                $log.debug('vote response is:', r)
                 $scope.refThred();
             })
     }
@@ -84,5 +85,5 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
     $scope.currBuild = {
         data: null,
     };
-    
+
 })
