@@ -64,11 +64,6 @@ const reporterFn = function (results, data, opts = {}) {
 
 gulp.task('clean', function () {
     return gulp.src(['public/js', 'public/css', 'views'], { read: false, allowEmpty:true })
-        .pipe(th2.obj((file, enc, cb) => {
-            // console.log('FILE IS',file._contents.toString('utf8'),'ENC',enc,'CB',cb);
-            console.log('file',file._contents.toString('utf8'))
-            return cb(null, file);
-        }))
         .pipe(cleanF());
 });
 
