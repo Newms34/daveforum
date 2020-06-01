@@ -10,11 +10,14 @@ const jshint = require('gulp-jshint'),
     kid = require('child_process'),
     ps = require('ps-node'),
     cleany = require('gulp-clean-css'),
+    cleanF = require('gulp-clean'),
     babel = require('gulp-babel'),
     addSrc = require('gulp-add-src'),
     iife = require('gulp-iife'),
     th2 = require('through2'),
-    chalk = require('chalk');
+    chalk = require('chalk'),
+    cachebust = require('gulp-cachebust'),
+    cb = new cachebust();
 let sassStart = 0,
     jsStart = 0;
 const reporterFn = function (results, data, opts = {}) {
@@ -58,6 +61,17 @@ const reporterFn = function (results, data, opts = {}) {
     // console.log('NOT SURE WHERE THIS GOES!')
 }
 // Lint Task
+
+gulp.task('clean', function () {
+    return gulp.src(['public/js', 'public/css', 'views'], { read: false, allowEmpty:true })
+        .pipe(th2.obj((file, enc, cb) => {
+            // console.log('FILE IS',file._contents.toString('utf8'),'ENC',enc,'CB',cb);
+            console.log('file',file._contents.toString('utf8'))
+            return cb(null, file);
+        }))
+        .pipe(cleanF());
+});
+
 gulp.task('lint', function () {
     let alreadyRan = false,
         semisDone = false;
@@ -72,7 +86,7 @@ gulp.task('lint', function () {
         }))
         .pipe(jshint({
             esversion: 8,
-            asi:true
+            asi: true
         }))
         .pipe(jshint.reporter(reporterFn));
 });
@@ -91,11 +105,24 @@ gulp.task('lintBE', function () {
         }))
         .pipe(jshint({
             esversion: 8,
-            asi:true
+            asi: true
         }))
         .pipe(jshint.reporter(reporterFn));
 });
 
+gulp.task('html', function () {
+    return gulp
+        .src(['build/views/*.html', 'build/views/**/*.html', 'build/views/**/**/*.html'])
+        .pipe(cb.references())
+        .pipe(gulp.dest('./views'))
+})
+
+// gulp.task('imgs',function(){
+//     return gulp
+//         .src(['build/imgs/*','build/imgs/**/*'])
+//         // .pipe(cb.references())
+//         .pipe(gulp.dest('./public/img'))
+// })
 
 // Compile Our Sass
 gulp.task('sass', function () {
@@ -125,6 +152,7 @@ gulp.task('sass', function () {
             console.log('CSS reduced from', sassStart, 'to', sassEnd + '. Reduction of', sassRedPerc + '%.')
             return cb(null, file);
         }))
+        .pipe(cb.resources())
         .pipe(gulp.dest('public/css'));
 });
 
@@ -150,11 +178,11 @@ gulp.task('scripts', function () {
         .pipe(gulp.dest('public/js'))
         .pipe(babel({
             presets: [
-                ["@babel/preset-env",{
+                ["@babel/preset-env", {
                     "targets": {
-                      "browsers": ["last 2 Chrome versions"]
+                        "browsers": ["last 2 Chrome versions"]
                     }
-                  }]
+                }]
             ],
             plugins: ['angularjs-annotate']
         }))
@@ -169,6 +197,7 @@ gulp.task('scripts', function () {
         .pipe(addSrc.prepend(['build/libs/*.js', 'build/libs/**/*.js']))
         .pipe(concat('all.js'))
         .pipe(rename('all.min.js'))
+        .pipe(cb.resources())
         .pipe(gulp.dest('public/js'));
 });
 
@@ -196,21 +225,6 @@ gulp.task('checkDB', function () {
         }
     });
 })
-//start mongod -dbpath "d:\\data\\mongo\\db
-// Watch Files For Changes
-gulp.task('watch', function () {
-    let alreadyRan = false;
-    drawTitle('Watching Front-End scripts, Back-End Scripts, and CSS', true)
-    gulp.watch(['build/js/**/*.js', 'build/js/*.js'], gulp.series('lint', 'scripts'));
-    gulp.watch(['routes/*.js', 'routes/**/*.js', 'models/*.js', 'models/**/*.js'], gulp.series('lintBE'))
-    gulp.watch(['build/scss/*.scss', 'build/scss/**/*.scss'], gulp.series('sass'));
-});
-
-//task to simply create everything without actually watching or starting the DB
-gulp.task('render', gulp.series('lint', 'lintBE', 'sass', 'scripts'))
-
-// Default Task
-gulp.task('default', gulp.series('lint', 'lintBE', 'sass', 'scripts', 'checkDB', 'watch'));
 
 let currColInd = 0;
 
@@ -242,3 +256,20 @@ const drawTitle = (t, w) => {
         console.log((chalk.bgYellowBright(' ') + chalk.bgBlack(' ')).repeat(wt / 2))
     }
 };
+
+//start mongod -dbpath "d:\\data\\mongo\\db
+// Watch Files For Changes
+gulp.task('watch', function () {
+    let alreadyRan = false;
+    drawTitle('Watching Front-End scripts, Back-End Scripts, and CSS', true)
+    gulp.watch(['build/js/**/*.js', 'build/js/*.js'], gulp.series('lint', 'scripts'));
+    gulp.watch(['routes/*.js', 'routes/**/*.js', 'models/*.js', 'models/**/*.js'], gulp.series('lintBE'))
+    gulp.watch(['build/scss/*.scss', 'build/scss/**/*.scss'], gulp.series('sass'));
+    gulp.watch(['views/*.html', 'views/**/*.html', 'views/**/**/*.html'], gulp.series('html'))
+});
+
+//task to simply create everything without actually watching or starting the DB
+gulp.task('render', gulp.series('clean', 'lint', 'lintBE', 'sass', 'scripts', 'html'))
+
+// Default Task
+gulp.task('default', gulp.series('clean', 'lint', 'lintBE', 'sass', 'scripts', 'html', 'checkDB', 'watch'));

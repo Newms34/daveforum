@@ -21,20 +21,41 @@
     <meta name="msapplication-TileImage" content="/img/icons/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
     <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" type="text/css" href="/css/styles.91016cd9.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
 </head>
 
 <body ng-app='reset-app' ng-controller='reset-contr'>
     <div class="panel">
-        <div class="panel-heading has-background-danger has-text-white"><i class="fa fa-exclamation-triangle is-size-3"></i>&nbsp;Password Reset Failure</div>
+        <div class="panel-heading">Reset Password for Account: {{user.user}}</div>
         <div class="panel-block has-background-white">
-            <div class="notification">
-            	We are unable to find an account associated with the provided reset code. Please check your email and try again.
-            </div>
-            <button class="button has-background-white" ng-click='goLogin()'><i class="fa fa-arrow-left"></i> Back to Login</button>
-        </div>
+            <form class='columns is-multiline'>
+                <div class='column is-one-fifth'>Enter a password: </div>
+                <div class="field column is-three-fifths">
+                    <p class="control has-icons-left">
+                        <input class="input" type="password" placeholder="Password" ng-model='pwd'>
+                        <span class="icon is-small is-left">
+                            <i class="fa fa-lock"></i>
+                        </span>
+                    </p>
+                </div>
+                <div class='column is-one-fifth'></div>
+                <div class='column is-one-fifth'>Repeat your password: </div>
+                <div class="field column is-three-fifths">
+                    <p class="control has-icons-left">
+                        <input class="input" type="password" placeholder="Password (again)" ng-model='pwdDup'>
+                        <span class="icon is-small is-left">
+                            <i class="fa fa-lock"></i>
+                        </span>
+                    </p>
+                </div>
+                <div class='column is-one-fifth'></div>
+                <div class='column is-two-fifths'></div>
+                <button class='button is-info column is-one-fifth' ng-click='doReset()'>Reset</button>
+                <br><br>
+            </form>
+        </div>      
     </div>
-    <script src="/js/all.min.f220a66f.js"></script>
+    <script src="/js/all.min.js"></script>
 
 </body>
 

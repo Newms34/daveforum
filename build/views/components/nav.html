@@ -1,0 +1,27 @@
+<nav class="navbar is-dark is-fixed-top" role="navigation" aria-label="main navigation" ng-controller='nav-cont'>
+    <div class="navbar-brand">
+        <a role="button" class="navbar-burger"  ng-class='{"is-active":mobActive}' aria-label="menu" aria-expanded="false" ng-click='mobActive=!mobActive'>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div ng-class='{"is-active":!mobActive}' ng-click='mobActive=!mobActive'>
+            <img src="./img/icons/android-icon-48x48.png" alt="" srcset="">
+        </div>
+    </div>
+    <div class="navbar-menu" ng-class='{"is-active":mobActive}' ng-click='mobActive=false'>
+        <div class="navbar-start">
+            <a class="navbar-item" ng-repeat='p in pages' href='#' ui-sref-active ='pg-active' ui-sref='{{p.sref}}' ng-if='!p.protected || user.mod'>
+                <h3><i class="fa fa-{{p.icon}}"></i>&nbsp;{{p.txt}}</h3>
+            </a>
+        </div>
+        <div class="navbar-end">
+            <a class="navbar-item" href='#' ui-sref-active ='pg-active' ui-sref='app.help'>
+                <h3><i class="fa fa-question-circle"></i>&nbsp;Help</h3>
+            </a>
+            <a class="navbar-item is-pulled-right" ng-click='logout()'>
+                <h3><i class="fa fa-sign-out"></i>&nbsp;Logout</h3>
+            </a>
+        </div>
+    </div>
+</nav>

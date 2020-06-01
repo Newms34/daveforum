@@ -1,0 +1,101 @@
+<div ng-controller='home-cont'>
+    <nav class="navbar is-dark is-fixed-top" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <img src="./img/icons/android-icon-48x48.png" alt="" srcset="">
+        </div>
+        <div class="navbar-menu">
+            <div class="navbar-start">
+                <!-- <a class="navbar-item" ng-repeat='p in pages' href='#' ui-sref-active ='pg-active' ui-sref='{{p.sref}}'>
+                    <h3>{{p.txt}}</h3>
+                </a> -->
+            </div>
+            <div class="navbar-end">
+                <a class="navbar-item is-pulled-right" id='login-btn' ng-click='goLogin()'>
+                    <h3>
+                        <i class="fa fa-lock"></i>
+                        <i class="fa fa-unlock"></i>
+                        &nbsp;Sign up/Login
+                    </h3>
+                </a>
+            </div>
+        </div>
+    </nav>
+    <div class="main-box">
+        <div class="panel has-background-grey-lighter has-text-dark home-panel">
+            <div class="panel-body ">
+                <br>
+                <div class="notification is-dark is-size-2 is-italic">
+                    <img src="./img/icons/android-icon-144x144.png" alt="" style='vertical-align: middle;'>&nbsp;Welcome to Brethren [PAIN]!</div>
+
+                <!-- blog list -->
+                <!-- <div class="message blog-post" ng-repeat='blg in blogs'>
+                    <div class="message-header is-size-5">{{blg.title||"Post at "+blg.timeSimp}}</div>
+                    <div class="message-body">
+                        <div class="is-fullwidth has-background-grey-darker has-text-centered" ng-show='blg.vid'>
+                            <video controls class='blog-vid'>
+                                <source src='{{blg.vid}}' type='video/mp4'>
+                            </video>
+                        </div>
+                        <hr>
+                        <div class="blog-text" ng-bind-html="blg.txt"></div>
+                    </div>
+                </div> -->
+
+                <div class="message blog-post" ng-repeat='blg in blogs'>
+                    <div class="message-header is-size-5">
+                        {{blg.title||"Untitled Post"}}    
+                    </div>
+                    <div class="message-body">
+                        <div class="is-size-7">Created:&nbsp;{{toDate(blg.timeCreated)}}<span ng-if='blg.timeCreated!=blg.time'>, Edited:&nbsp;{{toDate(blg.time)}}</span></div>
+                        <hr>
+                        <div class="is-fullwidth has-background-grey-darker" style='min-height: 50px;'>
+                            <div>
+                                <span class='has-text-white is-size-5'>Media: </span>
+                                <!-- if we have media... -->
+                                <video controls loop class='blog-vid' ng-if='includesFormat("vid",blg.media.mediaType)'>
+                                    <source src='{{blg.media.url}}' type='video/{{blg.media.mediaType}}'>
+                                </video>
+                                <img src="{{blg.media.url}}" alt="Post image" ng-if='includesFormat("img",blg.media.mediaType)'>
+                                <iframe ng-if='blg.media.mediaType=="youtube"' class='yt-vid' ng-src="{{getYoutubeUrl(blg.media.url)}}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                <!-- if no media -->
+                                <div ng-show='!blg.media || !blg.media.mediaType || blg.media.mediaType=="none"'>
+                                    <br>
+                                    <div class='has-text-grey-lighter'><i class="fa fa-times-circle has-text-danger"></i> No media selected</div>
+                                    <br>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div>
+                            <div class="content blog-text has-border" bind-html-compile="blg.txtHtml"></div>
+                            <!-- <div class="content blog-text has-border">{{blg.txtHtml}}</div> -->
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- default blog if no blog loaded -->
+                <div class="message blog-post" ng-show='!blogs || !blogs.length'>
+                    <div class="message-header is-size-5">{{defBlg.title}}</div>
+                    <div class="message-body">
+                        <div class="is-fullwidth has-background-grey-darker has-text-centered" ng-show='defBlg.vid'>
+
+                            <video controls class='blog-vid'>
+                                <source src='{{defBlg.vid}}' type='video/mp4'>
+                            </video>
+                        </div>
+                        <hr>
+                        <div class="blog-text" ng-bind-html="defBlg.txtHtml"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="is-fullwidth has-text-centered bottom-note has-background-grey-dark has-text-white">
+        <div ng-show='memberCount.types' class="is-size-4 is-italic">Brethren [PAIN] has:
+            <span id="fadey-count" class="fader">
+                {{memberCount.counts[memberCount.types[currMems]]}} {{memberCount.types[currMems]}}(s)
+            </span>
+        </div>
+    </div>
+</div>

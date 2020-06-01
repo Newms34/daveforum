@@ -1,0 +1,210 @@
+<div class='halp content' ng-controller='help-cont'>
+    <div class='tabs is-fullwidth is-boxed'>
+        <ul class='is-flex-mobile'>
+            <li ng-repeat='tab in tabs' ng-class='{"is-active":currTab==$index}'>
+                <a href="#" ng-click='setTab($index);' class=''>
+                    <i class="fa fa-{{tab.icon}}"></i>&nbsp;
+                    <span class="is-hidden-mobile">{{tab.title}}</span>&nbsp;
+                </a>
+            </li>
+        </ul>
+    </div>
+    <div class="panel dash-panel" ng-show='currTab==0'>
+        <div class="panel-heading has-text-white has-background-grey">
+            <i class='fa fa-user'></i>&nbsp;General Usage
+        </div>
+        <div class="content panel-block has-text-white has-background-grey-darker">
+            <div class='card' style='width:30%;'>
+                <div class="card-header has-background-grey has-text-centered has-text-white is-size-4">
+                    <a id="contents"></a>Contents
+                </div>
+                <div class="card-content content has-background-grey-dark">
+                    <ul>
+                        <li><a class='no-blue-link' href="#about">About</a></li>
+                        <li><a class='no-blue-link' href="#accounts">Accounts and Confirming</a></li>
+                        <li><a class='no-blue-link' href="#confirming">Confirming</a></li>
+                        <li><a class='no-blue-link' href="#sections">Sections</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div>
+                <a id="about"></a>
+                <h3>About</h3><a class='no-blue-link' href="#top"><i class="fa fa-caret-up"></i></a>
+                <p>This site is the Brethren [PAIN] Guild Wars 2 guild website (henceforth just known as "the site")! If you're reading this, you're likely already a member of the Brethren guild. Welcome!</p>
+            </div>
+            <hr>
+            <div>
+                <a id="accounts"></a>
+                <h3>Accounts</h3><a class='no-blue-link' href="#top"><i class="fa fa-caret-up"></i></a>
+                <p>Before using the site (and actually, viewing this page), you’re gonna need to create a account. You may note that creating an account involves <em>just</em> creating a username and password, and <em>not</em> any other information. This is because while that other info (i.e., your characters, preferred game mode, etc.) is cool, I don’t want to <em>force</em> you to include it before you sign up.</p>
+                <br>
+                <h5>Confirming</h5>
+                <p>Once you’ve created your account, you’ll need it to be confirmed. This is so that while anyone can <em>create</em> an account, only users confirmed by Brethren site moderators can actually view the site. Trolls r bad, k?</p>
+                <p>Again, to clarify, if you're seeing this page, you're already confirmed.</p>
+            </div>
+            <hr>
+            <div>
+                <a id="sections"></a>
+                <h3>Sections</h3>
+                <p>There are <em>seven</em> major public sections of the site and one moderator-only section:</p>
+                <div class="message message-body has-text-white has-background-grey-dark content">
+                    <div class="is-fullwidth" ng-repeat='sec in siteSections'>
+                        <i class="fa fa-{{sec.icon}}"></i>&nbsp;<span class="is-size-5">{{sec.title}}</span><br>
+                        <ul>
+                            <li ng-repeat='secPt in sec.descs' ng-bind-html='secPt'></li>
+                        </ul>
+                        <br>
+                    </div>
+                    <hr>
+                    <div class="is-size-5">Moderators Only</div>
+                    <p>
+                        In addition, if you're a moderator, you'll also see the <i class="fa fa-pencil"></i>&nbsp; Blog Editor section. Use this to, unsurprisingly, write blog entries. As with the <i class="fa fa-comments"></i>&nbsp;Chat and <i class="fa fa-commenting-o"></i>&nbsp;Forum sections above, see the <i class="fa fa-pencil-square"></i>&nbsp;Posting and Formatting tab for more details on how to make your text awesome.
+                    </p>
+                </div>
+            </div>
+            <hr>
+
+        </div>
+    </div>
+    <div class="panel dash-panel" ng-show='currTab==1'>
+        <div class="panel-heading has-text-white has-background-grey">
+            <i class='fa fa-pencil-square'></i>&nbsp;Posting and Formatting
+        </div>
+        <div class="content panel-block has-text-white has-background-grey-darker">
+            <div class='card' style='width:30%;'>
+                <div class="card-header has-background-grey has-text-centered has-text-white is-size-4">
+                    <a id="contents"></a>Contents
+                </div>
+                <div class="card-content content has-background-grey-dark">
+                    <ul>
+                        <li><a class='no-blue-link' href="#general">General</a></li>
+                        <li><a class='no-blue-link' href="#markdown">Healy's Markdown</a></li>
+                        <li><a class='no-blue-link' href="#restrictions">Restrictions</a></li>
+                        <li><a class='no-blue-link' href="#rules">Rules</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div>
+                <a id="general"></a>
+                <h3>General</h3><a class='no-blue-link' href="#top"><i class="fa fa-caret-up"></i></a>
+                <p>This help section applies, generally speaking, to stuff posted in the <i class="fa fa-comments"></i>&nbsp;Chat, <i class="fa fa-commenting-o"></i>&nbsp;Forum, and <i class="fa fa-pencil"></i>&nbsp; Blog Editor sections.</p>
+                <p> While you <em>can</em> just post regular old boring text, you can also make it more interesting with my special flavor of something called <em>Markdown</em>.</p>
+            </div>
+            <hr>
+            <div>
+                <a id="markdown"></a>
+                <h3>Healy's Markdown</h3><a class='no-blue-link' href="#top"><i class="fa fa-caret-up"></i></a>
+                <p><a href="https://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown</a> is a special way of formatting text on sites like github, reddit, etc., that allows you to add cool formatting stuff like <strong>bold</strong> or <em>italic</em> text without having to explicitly use a fancy-shmancy program to do it. The site uses a particular variation of Markdown, with the following basic rules:</p>
+                <h5>Markdown Rules</h5>
+                <table class="table has-background-grey">
+                    <thead class='has-background-grey-dark'>
+                        <tr>
+                            <th>Code</th>
+                            <th>HTML</th>
+                            <th>Result</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat='c in mdCodes'>
+                            <td>
+                                {{c.md}}
+                            </td>
+                            <td>
+                                <div class='code-fake'>{{c.html}}</div>
+                            </td>
+                            <td ng-if='!!c.htmlReal' bind-html-compile='c.htmlReal'></td>
+                            <td ng-if='!c.htmlReal' bind-html-compile='c.html'></td>
+                            <td ng-bind-html='c.notes'></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <hr>
+            <div>
+                <a id="restrictions"></a>
+                <h3>Restrictions</h3><a class='no-blue-link' href="#top"><i class="fa fa-caret-up"></i></a>
+                <p>There are a few technical restrictions with what you can post</p>
+                <div class='content'>
+                    <ul>
+                        <li>You cannot post custom HTML. Any HTML will not be parsed, and will be displayed as the raw HTML "code".</li>
+                        <li>Github, etc. "mentions" do not work. Nor should they, if you're wondering.</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div>
+                <a id="rules"></a>
+                <h3>Rules</h3><a class='no-blue-link' href="#top"><i class="fa fa-caret-up"></i></a>
+                <p>Check the <i class="fa fa-gavel"></i>&nbsp;Terms of Service and Rules tab above for more details, but in general, posting bad stuff on here can and will get you banned from the site if not also the guild. Don't do it!</p>
+
+            </div>
+        </div>
+    </div>
+    <div class="panel dash-panel" ng-show='currTab==2'>
+        <div class="panel-heading has-text-white has-background-grey">
+            <i class='fa fa-gavel'></i>&nbsp;Terms of Service and Rules
+        </div>
+        <div class="content panel-block has-text-white has-background-grey-darker">
+            <div class='card' style='width:30%;'>
+                <div class="card-header has-background-grey has-text-centered has-text-white is-size-4">
+                    <a id="contents"></a>Contents
+                </div>
+                <div class="card-content content has-background-grey-dark">
+                    <ul>
+                        <li><a class='no-blue-link' href="#terms">Terms of Service</a></li>
+                        <li><a class='no-blue-link' href="#site-rules">Site Rules</a></li>
+                        <li><a class='no-blue-link' href="#credits">Credits</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div>
+                <a id="terms"></a>
+                <h3>Terms of Service</h3><a class='no-blue-link' href="#top"><i class="fa fa-caret-up"></i></a>
+                <p><em>Please note: these are NOT legally binding. That doesn’t mean you get free reign, tho!</em>
+                    <br>
+                    <strong>Use:</strong> As a user of <a class='no-blue-link' href="http://brethrenpain.herokuapp.com">brethrenpain.herokuapp.com</a> (henceforth, “the site”), you agree to not attempt to bypass any security measures, access any account other than your own, or otherwise tamper with/compromise the site itself. You agree that any information you post on this site is released in the public domain, except where otherwise previously owned by copyright holders (i.e., in-game screenshots, which are property of ArenaNet, LLC).TL;DR: Don’t post stuff that infringes copyright and then attempt to blame Dave for it. I really don’t have time to deal with that. Ignoring or otherwise attempting to "cleverly" get past these rules will result in immediate expulsion from the site and possibly the guild.
+                    <br><br>
+                    <strong>Liability:</strong> You agree that the site is not responsible for anything you post here, and that blaming Dave for whatever stupidity you post is just really uncool.
+                    <br><br>
+                    <strong>Arbitration/Moderation:</strong> You agree that in all disputes, the site moderators have the final say, and that in disputes involving moderators on the site, I, Dave have the final say. We <i>will</i> ban you both from the site and the guild if you blatantly misuse either service.
+                    <br><br>
+                    <strong>Account Termination/Banning:</strong> If your actions warrant it, we will ban you. If you’re banned, you <em>can</em> beg us to unban you in game, but if we decide not to, that’s it. Don’t make another account to attempt to circumvent the ban. Since we need to confirm all accounts anyway, it won’t work.
+                    <br><br>
+                    <strong>Affiliation:</strong> We’re not affiliated with anyone. Not ArenaNet, Guild Wars 2, <em>any</em>one. We’re somewhat affiliated with the Brethren guild, but that’s it. So if someone posts something like “ArenaNet Official statement: ArenaNet hates Asuras” on here, don’t take that as the gospel truth. Plus, that’d be stupid, because Asuras are awesome.
+                </p>
+            </div>
+            <hr>
+            <div>
+                <a id="site-rules"></a>
+                <h3>Site Rules</h3><a class='no-blue-link' href="#top"><i class="fa fa-caret-up"></i></a>
+                <p>As a user of https://brethrenpain.herokuapp.com, you:
+                <ul class='content'>
+                    <li>May not post derogatory or overly inflammatory content in any section of the site. If you have a question as to whether something's "overly inflammatory", consider asking a guild officer first or just simply not posting it.</li>
+                    <li>May not post hate speech, or anything that overtly descriminates against other people. I'm not trying to make this site overly PC here, but if your post is purely designed to stir up drama, don't do it.</li>
+                    <li>May post any material related to Guild Wars 2, or any material <em>not</em> related to Guild Wars 2. Post whatever you want (within reason)! Have fun!</li>
+                    <li>May not attempt to bypass, circumvent, or break any security measures. Yes, I'm repeating this here too just so you don't forget.</li>
+                    <li>May not attempt to access anyone else's account. Doing that's just really uncool.</li>
+                    <li>May be nice to the dev. Hi!</li>
+                </ul>
+                </p>
+            </div>
+            <hr>
+            <div>
+                <a id="credits"></a>
+                <h3>Credits</h3><a class='no-blue-link' href="#top"><i class="fa fa-caret-up"></i></a>
+                <p>
+                    The following are involved in the creation of this site:
+                    <ul>
+                        <li><a class='no-blue-link' href="https://github.com/Newms34">David Newman</a>. I made this.</li>
+                        <li>Not <a class='no-blue-link' href="https://arena.net">ArenaNet</a>. They're not.</li>
+                        <li>Brethren [PAIN], the Guild Wars 2 guild for which this site was originally made.</li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

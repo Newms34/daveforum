@@ -5,4 +5,5 @@ npm-debug.log
 remoteSeed
 sparky.js
 config.json
-temp.js
+public
+views
