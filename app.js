@@ -171,7 +171,7 @@ const startServer = function () {
         // console.log(req.url);
     })
 }
-if (process.argv.includes('nodisc')) {
+if (!process.argv.includes('nodisc')) {
     dsClient.once('ready', function () {
         const allCmds = require('./botCommands/all.js')
         // console.log(allCmds)
@@ -260,7 +260,7 @@ app.use(function (req, res, next) {
 });
 app.use(function (err, req, res, next) {
     res.status(err.status || 500);
-    console.log('Client (probly) err:', err)
+    console.log('Err:', err)
     res.send('Error!' + err)
 });
 

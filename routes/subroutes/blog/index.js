@@ -6,9 +6,6 @@ const express = require('express'),
 
 
 const routeExp = function(io,keys,dscrd) {
-    // router.post('/uploadFile', upload.any(), (req, res, next) => {
-    //     res.send(req.files)
-    // })
     this.blogParams = ['title','txtMd'];
     this.authbit = (req, res, next) => {
         if (req.session && req.session.user && req.session.user._id) {

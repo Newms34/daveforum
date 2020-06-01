@@ -48,7 +48,7 @@
                 </div>
                 <div class="is-fullwidth" ng-show='currBuild.water'>
                     <!-- legends & pets:water -->
-                    <div class="level" style='margin-bottom:0' ng-show='currBuild.data.prof=="Ranger"'>Hippy!</div>
+                    <div class="level" style='margin-bottom:0' ng-show='currBuild.data.prof=="Ranger"'>Error!</div>
                     <div class="level" style='margin-bottom:0' ng-show='currBuild.data.prof=="Revenant"'>
                         <div class="level-left">
                             <img src="{{lgw.icon}}" title='{{lgw.name}}' class='leg-icon' ng-repeat='lgw in currBuild.data.legs.water' ng-click='currBuild.whichSkill=$index' ng-class='{"unselected":currBuild.whichSkill!=$index}'>
