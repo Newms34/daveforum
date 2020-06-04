@@ -170,16 +170,31 @@ const routeExp = function (io, keys) {
             }
         })
     })
-    router.post('/editPost', this.authbit, (req, res, next) => {
-        mongoose.model('post').findOneAndUpdate({ id: req.body.id, user: req.session.user.name }, {
-            text: req.body.md.sanAndParse().md2h(),
-            md:req.body.md
-        }, (err, pst) => {
-            if (err || !pst) {
-                res.status(400).send('err');
-            } else {
-                res.send('done');
-            }
+    router.put('/editPost', this.authbit, (req, res, next) => {
+        // return res.send(req.session.user)
+        console.log('editing post',req.body)
+        if (req.session.user.user != req.body.user && !req.session.user.mod) {
+            return res.status(401).send('wrongUsr');
+        } else if (req.session.user.user != req.body.user) {
+            //if this edit was done by a mod, write that
+            req.body.editedByMod = req.session.user.user;
+        }
+        mongoose.model('post').findOne({ _id: req.body._id }, (err, pst) => {
+            /* {
+                text: req.body.md.sanAndParse().md2h(),
+                md:req.body.md,
+                editedByMod:req.body.editedByMod||
+            } */
+            pst.md = req.body.md;
+            pst.text = req.body.md.sanAndParse().md2h();
+            pst.editedByMod = req.body.editedByMod || '';
+            pst.save((errsv, pstsv) => {
+                if (err || !pst) {
+                    res.status(400).send('err');
+                } else {
+                    res.send('done');
+                }
+            })
         })
     })
     router.get('/cats', (req, res, next) => {

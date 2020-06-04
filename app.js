@@ -171,7 +171,7 @@ const startServer = function () {
         // console.log(req.url);
     })
 }
-if (!process.argv.includes('nodisc')) {
+if (false && !process.argv.includes('nodisc')) {
     dsClient.once('ready', function () {
         const allCmds = require('./botCommands/all.js')
         // console.log(allCmds)

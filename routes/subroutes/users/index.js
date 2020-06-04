@@ -72,7 +72,7 @@ const routeExp = function (io, keys, dscrd) {
                     u.msgs = '';
                     u.pass = '';
                     u.salt = '';
-                    console.log("USER NOW", u)
+                    // console.log("USER NOW", u)
                     return u;
                 })
                 res.send(au);
@@ -137,7 +137,7 @@ const routeExp = function (io, keys, dscrd) {
     router.post('/changeAva', this.authbit, (req, res, next) => {
         mongoose.model('User').findOne({ user: req.session.user.user }, function (err, usr) {
             usr.avatar = req.body.img;
-            console.log('USER NOW', req.body, usr)
+            // console.log('USER NOW', req.body, usr)
             usr.save((errsv, usrsv) => {
                 res.send(usrsv);
             })
@@ -694,31 +694,6 @@ const routeExp = function (io, keys, dscrd) {
             usr.save((err, usv) => {
                 res.send({ pwd: tempPwd })
             });
-        })
-    })
-    // router.get('/setEmail', authbit, (req, res, next) => {
-    //     ///(\w+\.*)+@(\w+\.)+\w+/g
-    //     ///(\w+\.*)+@(\w*)(\.\w+)+/g
-    //     if (!req.query.email || !req.query.email.match(/(\w+\.*)+@(\w+\.)+\w+/g) || (req.query.email.match(/(\w+\.*)+@(\w+\.)+\w+/g)[0].length!==req.query.email.length)) {
-    //         res.send('err');
-    //         return false;
-    //     }
-    //     mongoose.model('User').findOne({ user: req.session.user.user }, function(err, usr) {
-    //         usr.email = req.query.email;
-    //         usr.save((errsv, usrsv) => {
-    //             res.send(usrsv);
-    //         })
-    //     })
-    // })
-    router.get('/resaveAll', this.authbit, isMod, (req, res, next) => {
-        mongoose.model('User').find({}, (err, usrs) => {
-            usrs.forEach(u => {
-                u.email = '';
-                u.save((esv, usv) => {
-                    console.log('USER NOW', usv);
-                });
-            })
-            res.send('done')
         })
     })
     return router;

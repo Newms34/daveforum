@@ -1,4 +1,4 @@
-app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sce,userFact,$log) {
+app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sce, userFact, $log) {
     $scope.currMsg = 0;
     $scope.defaultPic = defaultPic;
     $scope.forObj = {};
@@ -29,12 +29,14 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
                     return ps;
                 });
                 $scope.avas = r.data.ava;
-                $scope.thr.posts = $scope.thr.posts.map(psth => {
+                $scope.thr.posts = $scope.thr.posts.map((psth, n) => {
                     // $log.debug('PSTH', psth, r.data.psts.filter(psps => psps._id == psth.id)[0])
                     const thePst = r.data.psts.filter(psps => psps._id == psth.id)[0];
                     thePst.votesUp = psth.votesUp;
                     thePst.votesDown = psth.votesDown;
                     thePst.byMod = r.data.mods.indexOf(thePst.user) > -1;
+                    thePst.showMdBox = false;
+                    thePst.num = n;//used for ID
                     thePst.order = psth.order;
                     return r.data.psts.filter(psps => psps._id == psth.id)[0];
                 }).sort((a, b) => {
@@ -85,5 +87,71 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
     $scope.currBuild = {
         data: null,
     };
+    $scope.doEdit = p => {
+        p.md=p.showMdBox;
+        $http.put('/forum/editPost', p)
+            .then(r => {
+                $scope.refThred();
+            })
+            .catch(e => {
+                bulmabox.alert('Error updating post', 'There was an issue updating this post. Sorry!')
+            })
+    }
+    $scope.toggleMdBox = p => {
+        //we can only have ONE edit-box active at a time, so:
+        //find one that's not this box, has a truthy showMdBox (edited stuff) and the showMdBox is not the original post text.
+        const alreadyOpenBox = $scope.thr.posts.find(q => q._id != p && !!q.showMdBox && q.showMdBox != q.md);
+        if (!!alreadyOpenBox) {
+            bulmabox.confirm('Discard Changes', 'Are you sure you wish to discard your changes to the other post?', r => {
+                console.log('DISCARD RESPONSE', r)
+                if (!!r) {
+                    $scope.doMdToggle(p);
+                    $scope.$digest();
+                } else {
+                    return false;
+                }
+            })
+        } else {
+            $scope.doMdToggle(p);
+        }
+    }
+    $scope.doMdToggle = (id) => {
+        console.log('Changing post', id)
+        if (!!id) {
+            const targetPost = $scope.thr.posts.find(q => q._id == id);
+            if (targetPost.showMdBox) {
+                targetPost.showMdBox = false;
+            } else {
+                targetPost.showMdBox = targetPost.md;
+            }
+        }
+        $scope.thr.posts = $scope.thr.posts.map(op => {
+            console.log('LOOKING AT POST', op, op._id, id, op.showMdBox)
+            if (op._id != id && !!op.showMdBox) {
+                console.log('above post was reset, maybe')
+                op.showMdBox = false;
+                // $scope.$apply();
+            }
+            return op;
+        })
 
+    }
+    window.addEventListener('keyup', e => {
+        const targId = e.target.id,
+            isEditBox = targId.match(/^edit-box-\d+$/);
+        if (!isEditBox) {
+            return false;
+        }
+        const pNum = Number(isEditBox[0].slice(isEditBox[0].lastIndexOf('-') + 1)),
+            pst = $scope.thr.posts.find(q => q.num == pNum);
+        if (e.key == 'Escape') {
+            $scope.toggleMdBox(null)
+            $scope.$digest();
+        }else if(e.shiftKey && e.key=='Enter'){
+            e.preventDefault();
+            e.stopPropagation();
+            $scope.doEdit(pst);
+            // console.log('Submitting post',pst)
+        }
+    })
 })

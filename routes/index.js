@@ -8,10 +8,6 @@ module.exports = function (io, keys, dsClient) {
     router.use('/tool', require('./subroutes/tools')(io, keys));
     router.use('/cal', require('./subroutes/cal')(io, keys));
     router.use('/blog', require('./subroutes/blog')(io, keys, dsClient));
-    // router.get('/reset', function(req, res, next) {
-    //     console.log('reset page!')
-    //     res.sendFile('reset.html', { root: './views' })
-    // });
     router.get('/alive', function (req, res, next) {
         res.send(true)
     })

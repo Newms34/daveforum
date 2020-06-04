@@ -115,7 +115,7 @@ app.controller('help-cont', ($scope,$sce) => {
     },{
         md:`![awesome img description](some-img-address)`,
         html:`<img src='some-img-address' alt='awesome img description'/>`,
-        html:`<img src='http://localhost:8080/img/icons/android-icon-72x72.png' alt='awesome img description'/>`,
+        htmlReal:`<img src='./img/icons/android-icon-72x72.png' alt='awesome img description'/>`,
         notes:'An image. Must be hosted somewhere else!'
     },{
         md:`\`foo==bar\``,

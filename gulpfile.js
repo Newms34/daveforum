@@ -257,10 +257,10 @@ const drawTitle = (t, w) => {
 gulp.task('watch', function () {
     let alreadyRan = false;
     drawTitle('Watching Front-End scripts, Back-End Scripts, and CSS', true)
-    gulp.watch(['build/js/**/*.js', 'build/js/*.js'], gulp.series('lint', 'scripts'));
+    gulp.watch(['clean','build/js/**/*.js', 'build/js/*.js','build/views/*.html', 'build/views/**/*.html', 'build/views/**/**/*.html','build/scss/*.scss', 'build/scss/**/*.scss'], gulp.series('lint', 'scripts','sass','html'));
     gulp.watch(['routes/*.js', 'routes/**/*.js', 'models/*.js', 'models/**/*.js'], gulp.series('lintBE'))
-    gulp.watch(['build/scss/*.scss', 'build/scss/**/*.scss'], gulp.series('sass'));
-    gulp.watch(['views/*.html', 'views/**/*.html', 'views/**/**/*.html'], gulp.series('html'))
+    // gulp.watch(['build/scss/*.scss', 'build/scss/**/*.scss'], gulp.series('sass'));
+    // gulp.watch(['build/views/*.html', 'build/views/**/*.html', 'build/views/**/**/*.html'], gulp.series('html'))
 });
 
 //task to simply create everything without actually watching or starting the DB

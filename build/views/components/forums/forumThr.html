@@ -17,14 +17,24 @@
                     <div bind-html-compile="pst.text" class='post-text'>
                     </div>
                     <div class='post-image' ng-if='pst.file && pst.file.length'><img src="{{pst.file}}"></div>
+                    <div class="is-fullwidth" ng-show='pst.showMdBox'>
+                        <textarea ng-model='pst.showMdBox' class="textarea" id='edit-box-{{pst.num}}'></textarea>
+                    </div>
                     <div class='post-buttons'>
-                        <button class="button is-light is-small" title='Reply to this post' ng-click='quoteMe(pst);'><i class='fa fa-reply'></i></button>
-                        <button class="button is-light is-small" title='Report this post'><i class='fa fa-exclamation'></i></button>
-
+                        <div class="is-fullwidth">
+                            <button class="button is-light is-link" title='Cancel Edit' ng-if='(pst.user==user.user || !!user.mod) && pst.showMdBox' ng-click='doEdit(pst);toggleMdBox(pst.id)' ng-disabled='pst.showMdBox==pst.md'><i class='fa fa-check'></i> &nbsp;Submit</button>
+                            <button class="button is-light is-link" title='Cancel Edit' ng-if='(pst.user==user.user || !!user.mod) && pst.showMdBox' ng-click='toggleMdBox(null)'><i class='fa fa-times'></i> &nbsp;Cancel</button>
+                        </div>
+                        <button class="button is-light is-small is-info" title='Reply to this post' ng-click='quoteMe(pst);'><i class='fa fa-reply'></i> &nbsp;Reply</button>
+                        <button class="button is-light is-small is-danger" title='Report this post'><i class='fa fa-exclamation'></i> &nbsp;Report</button>
+                        <button class="button is-light is-small is-link" title='Edit this post' ng-if='(pst.user==user.user || !!user.mod) && !pst.showMdBox' ng-click='toggleMdBox(pst._id)'><i class='fa fa-pencil-square'></i> &nbsp;Edit</button>
+                        <!-- USER:{{user.user}}, POST USER:{{pst.user}}, MOD? {{!!user.mod}} -->
+                        <!-- <button class="button is-light is-small is-warning" title='Remove this post' ng-if='!!user.mod'><i class='fa fa-trash'></i> &nbsp;Remove</button> -->
                         <button class="button is-pulled-right is-light is-small" title='Vote down' ng-click='vote(pst,false);' ng-class='{"is-danger":pst.votesDown.indexOf(user.user)>-1}'><i class='fa fa-thumbs-down'></i></button>
                         <button class="button is-pulled-right is-light is-small" title='Vote up' ng-click='vote(pst,true);' ng-class='{"is-success":pst.votesUp.indexOf(user.user)>-1}'><i class='fa fa-thumbs-up'></i></button>
                         <div class='is-pulled-right vote-box' ng-class='{"good-vote":(pst.votesUp.length-pst.votesDown.length>=1),"bad-vote":(pst.votesUp.length-pst.votesDown.length)<1}'><span ng-if='pst.votesUp.length-pst.votesDown.length>0'>+</span>{{pst.votesUp.length-pst.votesDown.length}}</div>
                     </div>
+                    <div class="is-fullwidth is-italic has-text-danger" ng-if='pst.editedByMod'>Edited by moderator {{pst.editedByMod}}</div>
                 </div>
             </div>
         </div>
@@ -53,94 +63,6 @@
             </div>
             <div class="notification has-background-grey-darker has-text-white" ng-if='!thr.open'>
                 (This thread has been locked by a mod!)
-            </div>
-        </div>
-    </div>
-    <div class="build-box" ng-show='currBuild.data'>
-        <div class="info-row" ng-show='currBuild.data.prof'>
-            <div class="is-fullwidth" ng-show='!currBuild.water'>
-                <!-- legends & pets:land -->
-                <div class="level" style='margin-bottom:0' ng-show='currBuild.data.prof=="Ranger"'>
-                    <div class="level-left">
-                        <img src="{{ptl.icon}}" title='{{ptl.name}}' class='leg-icon' ng-repeat='ptl in currBuild.data.pets.land'>
-                    </div>
-                </div>
-                <div class="level" style='margin-bottom:0' ng-show='currBuild.data.prof=="Revenant"'>
-                    <div class="level-left">
-                        <img src="{{lgl.icon}}" title='{{lgl.name}}' class='leg-icon' ng-repeat='lgl in currBuild.data.legs.land' ng-click='currBuild.whichSkill=$index;saySkills(currBuild)' ng-class='{"unselected":currBuild.whichSkill!=$index}'>
-                    </div>
-                </div>
-            </div>
-            <div class="is-fullwidth" ng-show='currBuild.water'>
-                <!-- legends & pets:water -->
-                <div class="level" style='margin-bottom:0' ng-show='currBuild.data.prof=="Ranger"'>Hippy!</div>
-                <div class="level" style='margin-bottom:0' ng-show='currBuild.data.prof=="Revenant"'>
-                    <div class="level-left">
-                        <img src="{{lgw.icon}}" title='{{lgw.name}}' class='leg-icon' ng-repeat='lgw in currBuild.data.legs.water' ng-click='currBuild.whichSkill=$index' ng-class='{"unselected":currBuild.whichSkill!=$index}'>
-                    </div>
-                </div>
-            </div>
-            <div class="is-fullwidth level" style='padding:5px'>
-                <div>
-                    <button class="button is-small is-success" title='View land skills' ng-disabled='!currBuild.water' ng-click='currBuild.water=false'><i class="fa fa-tree"></i></button><br>
-                    <button class="button is-small is-info" title='View water skills' ng-disabled='currBuild.water' ng-click='currBuild.water=true'><i class="fa fa-tint"></i></button>
-                </div>
-                &nbsp;&nbsp;
-                <div ng-show='!currBuild.water' class='is-fullwidth'>
-                    <!-- land skills -->
-                    <img class='skill-icon' ng-mousemove='explSkill(ls,$event)' ng-mouseout='explSkill(null,$event)' ng-repeat='ls in currBuild.data.skills.land[currBuild.whichSkill] track by $index' src='{{ls.icon}}' />
-                </div>
-                <div ng-show='currBuild.water' class='is-fullwidth'>
-                    <!-- water skills -->
-                    <img class='skill-icon' ng-mousemove='explSkill(ws,$event)' ng-mouseout='explSkill(null,$event)' ng-repeat='ws in currBuild.data.skills.water[currBuild.whichSkill] track by $index' src='{{ws.icon}}' />
-                </div>
-                <button class="button is-danger is-small is-pulled-right" ng-click='noBuild()'><i class="fa fa-times"></i></button>
-            </div>
-        </div>
-        <div class="spec-row" ng-repeat='sp in currBuild.data.specs' style='background-image:linear-gradient(rgba(0, 0, 0, 0.3),rgba(0, 0, 0, 0.3)),url({{sp.spec.bg}});'>
-            <div class="is-fullwidth columns">
-
-                <div class="column is-one-quarter spec-name-col">
-                    <div class="is-size-5 is-fullwidth">{{sp.spec.name}}</div>
-                    <img src="{{sp.spec.icon}}" class='spec-icon'>
-                </div>
-                <div class="column is-one-quarter trait-pick-col columns" ng-repeat='ts in sp.traitSlots'>
-                    <!-- {{ts.minor.name}} -->
-                    <div class="column">
-                        <img src="{{ts.minor.icon}}" style="margin-top:50px" ng-mousemove='explTrait(ts.minor,$event,true)' ng-mouseout='explTrait(null,$event,true)'>
-                    </div>
-                    <div class="column">
-                        <div ng-repeat='ms in ts.major' ng-mousemove='explTrait(ms,$event)' ng-mouseout='explTrait(null,$event)'>
-                            <img src="{{ms.icon}}" style='filter:{{ms.picked?"none":"brightness(0.5)"}};' alt="">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- <div class="trait-row" style='background:'></div> -->
-        <!-- <div class="trait-row" style='background:'></div> -->
-    </div>
-    <div class="message info-box" style='left:{{infoBox.x}}px; top:{{infoBox.y}}px;' ng-show='infoBox.data' ng-bind-html='infoBox.data'>
-    </div>
-    <div class="message info-box" style='left:{{skillBox.x}}px; top:{{skillBox.y}}px;' ng-show='skillBox.on'>
-        <div class="is-fullwidth is-size-5 is-yella">
-            {{skillBox.data.name}}
-        </div>
-        <div class="is-fullwidth is-size-6">
-            {{skillBox.data.description}}
-        </div>
-        <div class="is-fullwidth is-size-7 skill-fact" ng-repeat='fact in skillBox.data.realFacts' ng-class='{"trait-fact":fact.isTraited}'>
-            <img src="{{fact.icon}}" alt="" class="fact-img">&nbsp;
-            <div class='fact-info'>
-                <span>{{fact.status||fact.text}}</span>
-                <span ng-if='fact.duration'> ({{fact.duration}}s)</span>
-                <span ng-if='fact.type!="Time"'>:</span>
-                <span ng-if='fact.description'>{{fact.description}}</span>
-                <span ng-if='fact.value'>{{fact.value}}</span>
-                <span ng-if='fact.distance'>{{fact.distance}}</span>
-                <span ng-if='fact.field_type'>{{fact.field_type}}</span>
-                <span ng-if='fact.percent'>{{fact.percent}}%</span>
-                <span ng-if='fact.dmg_multiplier'>x {{fact.dmg_multiplier}}</span>
             </div>
         </div>
     </div>

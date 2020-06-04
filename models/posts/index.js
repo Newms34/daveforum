@@ -8,6 +8,7 @@ const postSchema = new mongoose.Schema({
     lastUpd:{type:Number,default:Date.now()},
     thread:String,//ID of parent thread.
     file:{type:String,default:null},
+    editedByMod:{type:String,default:''},
     profPic:{type:String,default:null}
 }, { collection: 'post' });
 postSchema.index({md:'text'});
