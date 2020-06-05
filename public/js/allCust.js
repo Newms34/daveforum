@@ -1895,7 +1895,23 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
             $scope.doEdit(pst);
             // console.log('Submitting post',pst)
         }
-    })
+    });
+    $scope.removePost = p =>{
+        // bulmabox.custom(`Remove Post`,`$`)
+        bulmabox.custom('Remove Post', `<div class="is-fullwidth">
+        Are you absolutely sure you wish to mark this post as removed? This process is not reversable!
+        <hr/>
+        <label class='has-text-weight-bold'>To confirm, please enter your password: <input type='password' id='rem-pwd' placeholder='Password to confirm'/></label>
+        </div>`, () => {
+            // console.log('User trying to send post',p)
+            $http.put('/forum/removePost',{pst:p,pwd:document.querySelector('#rem-pwd').value}).then(r=>{
+                $scope.refThred();
+            }).catch(e=>{
+                bulmabox.alert('Cannot Remove Post','There was an error removing that post. Sorry!')
+            })
+        }, `<button class='button is-warning' onclick='bulmabox.runCb(bulmabox.params.cb,true,false)'><i class='fa fa-check'></i>&nbsp;Remove</button>
+        <button class='button is-danger' onclick='bulmabox.kill("bulmabox-diag")'><i class='fa fa-times'></i>&nbsp;Cancel</button>`)
+    }
 })
 app.controller('help-cont', ($scope,$sce) => {
     $scope.tabs = [{

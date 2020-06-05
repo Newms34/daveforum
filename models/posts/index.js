@@ -4,6 +4,7 @@ const postSchema = new mongoose.Schema({
     text:String,//actual TEXT of the post (may include html),
     md:String,//raw markdown (for quoting!)
     user:String,
+    isLocked:{type:Boolean,default:false},
     createDate:{type:Number,default:Date.now()},
     lastUpd:{type:Number,default:Date.now()},
     thread:String,//ID of parent thread.

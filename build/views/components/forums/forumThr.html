@@ -1,7 +1,7 @@
 <div ng-controller='forum-thr-cont'>
     <div class="panel container">
         <div class="panel-heading has-background-grey-darker has-text-white"><a href="#" ui-sref='app.forum' class='no-blue-link'>Forums</a>:&nbsp;<a href="#" ui-sref='app.forumCat({c:currCat})' class='no-blue-link'>{{currCat}}</a>:&nbsp;{{thr.title}}</div>
-        <div class="panel-block has-text-white" style='display:block; width:100%;'>
+        <div class="panel-block has-text-white has-background-black" style='display:block; width:100%;'>
             <div class="content forum-post is-fullwidth columns" ng-repeat='pst in thr.posts'>
                 <div class='column is-one-fifth has-background-grey-darker'>
                     <img src="{{avas[pst.user]||defaultPic}}" class='prof-pic'>
@@ -27,9 +27,9 @@
                         </div>
                         <button class="button is-light is-small is-info" title='Reply to this post' ng-click='quoteMe(pst);'><i class='fa fa-reply'></i> &nbsp;Reply</button>
                         <button class="button is-light is-small is-danger" title='Report this post'><i class='fa fa-exclamation'></i> &nbsp;Report</button>
-                        <button class="button is-light is-small is-link" title='Edit this post' ng-if='(pst.user==user.user || !!user.mod) && !pst.showMdBox' ng-click='toggleMdBox(pst._id)'><i class='fa fa-pencil-square'></i> &nbsp;Edit</button>
+                        <button class="button is-light is-small is-link" title='Edit this post' ng-if='((pst.user==user.user && !pst.isLocked)|| !!user.mod) && !pst.showMdBox' ng-click='toggleMdBox(pst._id)'><i class='fa fa-pencil-square'></i> &nbsp;Edit</button>
                         <!-- USER:{{user.user}}, POST USER:{{pst.user}}, MOD? {{!!user.mod}} -->
-                        <!-- <button class="button is-light is-small is-warning" title='Remove this post' ng-if='!!user.mod'><i class='fa fa-trash'></i> &nbsp;Remove</button> -->
+                        <button class="button is-light is-small is-warning" title='Remove this post' ng-if='!!user.mod && !pst.isLocked' ng-click='removePost(pst);'><i class='fa fa-trash'></i> &nbsp;Remove</button>
                         <button class="button is-pulled-right is-light is-small" title='Vote down' ng-click='vote(pst,false);' ng-class='{"is-danger":pst.votesDown.indexOf(user.user)>-1}'><i class='fa fa-thumbs-down'></i></button>
                         <button class="button is-pulled-right is-light is-small" title='Vote up' ng-click='vote(pst,true);' ng-class='{"is-success":pst.votesUp.indexOf(user.user)>-1}'><i class='fa fa-thumbs-up'></i></button>
                         <div class='is-pulled-right vote-box' ng-class='{"good-vote":(pst.votesUp.length-pst.votesDown.length>=1),"bad-vote":(pst.votesUp.length-pst.votesDown.length)<1}'><span ng-if='pst.votesUp.length-pst.votesDown.length>0'>+</span>{{pst.votesUp.length-pst.votesDown.length}}</div>

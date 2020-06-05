@@ -185,8 +185,12 @@ const routeExp = function (io, keys) {
                 md:req.body.md,
                 editedByMod:req.body.editedByMod||
             } */
+            if(!!pst.isLocked && !req.session.user.mod){
+                return res.status(403).send('err');
+            }
             pst.md = req.body.md;
             pst.text = req.body.md.sanAndParse().md2h();
+            pst.lastUpd = Date.now();
             pst.editedByMod = req.body.editedByMod || '';
             pst.save((errsv, pstsv) => {
                 if (err || !pst) {
@@ -194,6 +198,29 @@ const routeExp = function (io, keys) {
                 } else {
                     res.send('done');
                 }
+            })
+        })
+    })
+    router.put('/removePost',this.authbit,this.isMod,(req,res,next)=>{
+        // if()
+        mongoose.model('User').findOne({user: req.session.user.user},(erru,usr)=>{
+            if(!usr.correctPassword(req.body.pwd)){
+                return res.status(401).send('err');
+            }
+            mongoose.model('post').findOne({_id:req.body.pst._id},(err,pst)=>{
+                if(!!err||!pst){
+                    return res.status(400).send('err');
+                }
+                pst.editedByMod = req.session.user.user;
+                pst.md = `[c='red'](Post removed by moderator)[/c]`;
+                pst.text = `<span style='color:red'>(Post removed by moderator)</span>`;
+                pst.profPic = null;
+                pst.file=null;
+                pst.lastUpd = Date.now();
+                pst.isLocked = true;
+                pst.save((a,b)=>{
+                    res.send(req.body);
+                })
             })
         })
     })
