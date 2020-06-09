@@ -41,7 +41,7 @@ const routeExp = function (io, keys) {
             }
         })
     }
-    router.post('/newThread', this.authbit, (req, res, next) => {
+    router.post('/thread', this.authbit, (req, res, next) => {
         mongoose.model('thread').find({ title: req.body.title }, function (err, thr) {
             console.log('THREAD', req.body)
             if (thr && thr.length) {
@@ -143,7 +143,7 @@ const routeExp = function (io, keys) {
             res.send(psts);
         })
     })
-    router.post('/newPost', this.authbit, (req, res, next) => {
+    router.post('/post', this.authbit, (req, res, next) => {
         if (!req.body.thread) res.status(400).send('err');
         mongoose.model('thread').findOne({ _id: req.body.thread }, (err, thrd) => {
             const thrdLen = thrd.posts.length;
@@ -170,7 +170,7 @@ const routeExp = function (io, keys) {
             }
         })
     })
-    router.put('/editPost', this.authbit, (req, res, next) => {
+    router.put('/post', this.authbit, (req, res, next) => {
         // return res.send(req.session.user)
         console.log('editing post',req.body)
         if (req.session.user.user != req.body.user && !req.session.user.mod) {
@@ -202,7 +202,7 @@ const routeExp = function (io, keys) {
         })
     })
     router.put('/removePost',this.authbit,this.isMod,(req,res,next)=>{
-        // if()
+        // if you're wondering why this is a PUT route, it's because we don't actually remove the post
         mongoose.model('User').findOne({user: req.session.user.user},(erru,usr)=>{
             if(!usr.correctPassword(req.body.pwd)){
                 return res.status(401).send('err');

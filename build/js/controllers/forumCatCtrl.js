@@ -66,7 +66,7 @@ app.controller('forum-cat-cont', function($scope, $http, $state, $location,userF
         $scope.newThr.grp = $scope.currCat;
         // console.log('newThr:',$scope.newThr);
         // return false;
-        $http.post('/forum/newThread', $scope.newThr)
+        $http.post('/forum/thread', $scope.newThr)
             .then(function(r) {
                 console.log('new thred response', r)
                 $state.go($state.current, {}, { reload: true });

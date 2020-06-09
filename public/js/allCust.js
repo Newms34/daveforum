@@ -1659,7 +1659,7 @@ app.controller('forum-cat-cont', function($scope, $http, $state, $location,userF
         $scope.newThr.grp = $scope.currCat;
         // console.log('newThr:',$scope.newThr);
         // return false;
-        $http.post('/forum/newThread', $scope.newThr)
+        $http.post('/forum/thread', $scope.newThr)
             .then(function(r) {
                 console.log('new thred response', r)
                 $state.go($state.current, {}, { reload: true });
@@ -1801,7 +1801,7 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
             return false;
         }
         // return $log.debug(new showdown.Converter().makeHtml(theText).replace('&amp;','&').replace(/\[&D[\w+/]+=*\]/g, `<build-template build='$&'></build-template>`))
-        $http.post('/forum/newPost', {
+        $http.post('/forum/post', {
             thread: $scope.thr._id,
             md: theText,
             file: $scope.fileread || null
@@ -1831,7 +1831,7 @@ app.controller('forum-thr-cont', function ($scope, $http, $state, $location, $sc
     };
     $scope.doEdit = p => {
         p.md=p.showMdBox;
-        $http.put('/forum/editPost', p)
+        $http.put('/forum/post', p)
             .then(r => {
                 $scope.refThred();
             })
